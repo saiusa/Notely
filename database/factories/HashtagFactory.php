@@ -2,13 +2,13 @@
 
 namespace Database\Factories;
 
-use App\Models\User;
+use App\Models\Hashtag;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends Factory<User>
+ * @extends Factory<Hashtag>
  */
-class UserFactory extends Factory
+class HashtagFactory extends Factory
 {
     /**
      * Define the model's default state.
@@ -18,10 +18,7 @@ class UserFactory extends Factory
     public function definition(): array
     {
         return [
-            'username' => fake()->unique()->userName(),
-            'email' => fake()->unique()->safeEmail(),
-            'password' => 'password',
-            'phone_number' => fake()->optional()->phoneNumber(),
+            'name' => fake()->unique()->word(),
             'created_at' => fake()->dateTimeBetween('-1 year', 'now'),
         ];
     }
