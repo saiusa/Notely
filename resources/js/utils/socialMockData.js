@@ -1,0 +1,195 @@
+export const sidebarUser = {
+    name: 'JinHit',
+    username: '@jin.bts',
+    avatar: 'https://images.unsplash.com/photo-1543852786-1cf6624b9987?auto=format&fit=crop&w=120&q=80',
+};
+
+export const currentUser = {
+    id: 1,
+    username: 'jin.bts',
+    avatar: sidebarUser.avatar,
+};
+
+export const feedPosts = [
+    {
+        id: 1,
+        username: 'jin.bts',
+        user: 'jin.bts',
+        handle: '@jin.bts',
+        avatar: 'https://images.unsplash.com/photo-1542204625-de293a02f696?auto=format&fit=crop&w=90&q=80',
+        time: '1 hour ago',
+        title: 'Quiet Progress',
+        body: 'Today did not look extraordinary on the outside. No big milestones, no dramatic moments. But somewhere between the small tasks and quiet pauses, I realized something important: progress does not always announce itself loudly. Sometimes it hides in the discipline of showing up.',
+        mood: 'Calm',
+        hashtags: ['#hashtag', '#hashtag'],
+        likes: '77k',
+        comments: '700',
+        quote: false,
+        isOwner: true,
+        link: 'https://notely.app/post/1',
+        commentList: [
+            {
+                id: '1-1',
+                username: 'moonlight.reader',
+                avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=90&q=80',
+                text: 'This is exactly what I needed to read today. Thank you for sharing this.',
+            },
+            {
+                id: '1-2',
+                username: 'jin.bts',
+                avatar: 'https://images.unsplash.com/photo-1542204625-de293a02f696?auto=format&fit=crop&w=90&q=80',
+                text: 'Appreciate it. The quiet days matter too.',
+            },
+        ],
+    },
+    {
+        id: 2,
+        username: 'music-gremlin',
+        user: 'jin.bts/music-gremlin',
+        handle: '@jin.bts',
+        avatar: 'https://images.unsplash.com/photo-1542204625-de293a02f696?auto=format&fit=crop&w=90&q=80',
+        time: '1 day ago',
+        title: '',
+        body: 'No matter who you are, where you are from, your skin color, your gender identity, just speak yourself.',
+        mood: 'Reflective',
+        hashtags: ['#KimNamjoon', '#BTS', '#LoveYourself'],
+        likes: '77k',
+        comments: '700',
+        quote: true,
+        image: 'https://images.unsplash.com/photo-1516534775068-ba3e7458af70?auto=format&fit=crop&w=1100&q=80',
+        isOwner: false,
+        link: 'https://notely.app/post/2',
+        commentList: [
+            {
+                id: '2-1',
+                username: 'vibe.archive',
+                avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&w=90&q=80',
+                text: 'Strong quote. Keeping this one bookmarked.',
+            },
+        ],
+    },
+    {
+        id: 3,
+        username: 'daily.notes',
+        user: 'daily.notes',
+        handle: '@daily.notes',
+        avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=90&q=80',
+        time: '1 week ago',
+        title: 'Slow Sundays',
+        body: 'I spent the entire day offline, read one chapter, made tea, and watched the rain. It felt like my brain finally exhaled.',
+        mood: 'Peaceful',
+        hashtags: ['#slowliving', '#journal'],
+        likes: '12k',
+        comments: '91',
+        quote: false,
+        image: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1100&q=80',
+        isOwner: false,
+        link: 'https://notely.app/post/3',
+        commentList: [
+            {
+                id: '3-1',
+                username: 'jin.bts',
+                avatar: 'https://images.unsplash.com/photo-1542204625-de293a02f696?auto=format&fit=crop&w=90&q=80',
+                text: 'Offline days are underrated.',
+            },
+        ],
+    },
+];
+
+export const recentJournals = [
+    {
+        id: 1,
+        username: 'jin.bts',
+        user: 'jin.bts',
+        avatar: 'https://images.unsplash.com/photo-1542204625-de293a02f696?auto=format&fit=crop&w=70&q=80',
+        time: '1 hour ago',
+        body: 'Feeling the nature as of the moment',
+        isPublic: true,
+        link: 'https://notely.app/journal/101',
+    },
+    {
+        id: 2,
+        username: 'jin.bts',
+        user: 'jin.bts',
+        avatar: 'https://images.unsplash.com/photo-1542204625-de293a02f696?auto=format&fit=crop&w=70&q=80',
+        time: '1 day ago',
+        body: 'Feeling the nature as of the moment',
+        image: 'https://images.unsplash.com/photo-1508780709619-79562169bc64?auto=format&fit=crop&w=90&q=80',
+        isPublic: true,
+        link: 'https://notely.app/journal/102',
+    },
+    {
+        id: 3,
+        username: 'jin.bts',
+        user: 'jin.bts',
+        avatar: 'https://images.unsplash.com/photo-1542204625-de293a02f696?auto=format&fit=crop&w=70&q=80',
+        time: '1 week ago',
+        body: 'Feeling the nature as of the moment',
+        image: 'https://images.unsplash.com/photo-1508780709619-79562169bc64?auto=format&fit=crop&w=90&q=80',
+        isPublic: true,
+        link: 'https://notely.app/journal/103',
+    },
+    {
+        id: 4,
+        username: 'jin.bts',
+        user: 'jin.bts',
+        avatar: 'https://images.unsplash.com/photo-1542204625-de293a02f696?auto=format&fit=crop&w=70&q=80',
+        time: '1 month ago',
+        body: 'Feeling the nature as of the moment',
+        isPublic: true,
+        link: 'https://notely.app/journal/104',
+    },
+];
+
+export const communityCards = [
+    {
+        id: 1,
+        title: 'Art History Academy',
+        desc: 'A place to share your favorite paintings',
+        members: '67 members',
+        image: 'https://images.unsplash.com/photo-1460661419201-fd4cecdf8a8b?auto=format&fit=crop&w=1000&q=80',
+    },
+    {
+        id: 2,
+        title: 'Nature',
+        desc: 'Talk about life outdoors and slow mornings',
+        members: '140 members',
+        image: 'https://images.unsplash.com/photo-1470252649378-9c29740c9fa8?auto=format&fit=crop&w=1000&q=80',
+    },
+    {
+        id: 3,
+        title: 'Music Gremlin',
+        desc: 'Where passion for music goes shinnin.',
+        members: '10k members',
+        image: 'https://images.unsplash.com/photo-1520523839897-bd0b52f945a0?auto=format&fit=crop&w=1000&q=80',
+    },
+];
+
+export const journalCards = [
+    {
+        id: 1,
+        date: 'March 21, 2026',
+        text: 'Today I felt really calm walking outside the campus garden. The wind was soft and everything felt peaceful...',
+        mood: 'Calm',
+    },
+    {
+        id: 2,
+        date: 'March 21, 2026',
+        text: '',
+        mood: 'Reflective',
+        image: 'https://images.unsplash.com/photo-1516534775068-ba3e7458af70?auto=format&fit=crop&w=1000&q=80',
+    },
+    {
+        id: 3,
+        date: 'March 21, 2026',
+        text: 'Life may be hard right now, and you might still feel unsure, but try to be thankful for what you have.',
+        mood: 'Grateful',
+    },
+];
+
+export const profileCommunities = [
+    { id: 1, name: 'Music Gremlin', handle: '@music-gremlin' },
+    { id: 2, name: 'Music Gremlin', handle: '@music-gremlin' },
+    { id: 3, name: 'Music Gremlin', handle: '@music-gremlin' },
+    { id: 4, name: 'Music Gremlin', handle: '@music-gremlin' },
+];
