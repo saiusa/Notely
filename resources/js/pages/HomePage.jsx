@@ -39,7 +39,7 @@ export default function HomePage() {
         >
             <div className="relative flex justify-center">
 
-                {/* LEFT: Posts */}
+                {/* Posts */}
                 <section className="w-[600px] space-y-3 xl:ml-6 xl:mr-[340px]">
 
                     {/* Composer Selector */}
@@ -75,7 +75,7 @@ export default function HomePage() {
                     ))}
                 </section>
 
-                {/* RIGHT: Fixed Recent Journals */}
+                {/* Recent Journals */}
                 <div className="hidden xl:block fixed right-6 top-[100px] w-[320px]">
                     <RecentJournals
                         journals={recentJournalHistory}

@@ -207,8 +207,6 @@ export default function TopNavbar({
         )}
       </header>
 
-
-     
     </>
   );
 }
