@@ -2,7 +2,6 @@ import React, { useMemo, useState } from 'react';
 import ComposerModal from '../components/layout/ComposerModal';
 import SocialLayout from '../components/layout/SocialLayout';
 import PostCard from '../components/posts/PostCard';
-import RecentJournals from '../components/posts/RecentJournals';
 import { currentUser, feedPosts, recentJournals } from '../utils/socialMockData';
 
 export default function HomePage() {
@@ -36,57 +35,47 @@ export default function HomePage() {
             navbarMode="tabs"
             activeTab={activeTab}
             onTabChange={setActiveTab}
+            recentJournals={recentJournalHistory}
+            onClearRecentJournals={() => setRecentJournalHistory([])}
         >
-            <div className="relative flex justify-center">
+            <section className="mx-auto w-[600px] space-y-3">
+
+                {/* Composer Selector */}
+                <div className="grid grid-cols-3 gap-2 rounded-[10px] bg-[#212633] p-2">
+                    {[
+                        { key: 'text', icon: 'format_size' },
+                        { key: 'quote', icon: 'format_quote' },
+                        { key: 'image', icon: 'image' },
+                    ].map((item) => (
+                        <button
+                            key={item.key}
+                            onClick={() => handleSelectComposer(item.key)}
+                            className={`flex h-[56px] items-center justify-center rounded-[8px] transition-colors ${
+                                selectedPostType === item.key
+                                    ? 'bg-[#2f3548] text-white'
+                                    : 'text-[#d2d6e3] hover:bg-[#2f3548]'
+                            }`}
+                        >
+                            <span className="material-symbols-outlined text-[24px]">
+                                {item.icon}
+                            </span>
+                        </button>
+                    ))}
+                </div>
 
                 {/* Posts */}
-                <section className="w-[600px] space-y-3 xl:ml-6 xl:mr-[340px]">
-
-                    {/* Composer Selector */}
-                    <div className="grid grid-cols-3 gap-2 rounded-[10px] bg-[#212633] p-2">
-                        {[
-                            { key: 'text', icon: 'format_size' },
-                            { key: 'quote', icon: 'format_quote' },
-                            { key: 'image', icon: 'image' },
-                        ].map((item) => (
-                            <button
-                                key={item.key}
-                                onClick={() => handleSelectComposer(item.key)}
-                                className={`flex h-[56px] items-center justify-center rounded-[8px] transition-colors ${
-                                    selectedPostType === item.key
-                                        ? 'bg-[#2f3548] text-white'
-                                        : 'text-[#d2d6e3] hover:bg-[#2f3548]'
-                                }`}
-                            >
-                                <span className="material-symbols-outlined text-[26px]">
-                                    {item.icon}
-                                </span>
-                            </button>
-                        ))}
-                    </div>
-
-                    {/* Posts */}
-                    {headingPosts.map((post) => (
-                        <PostCard
-                            key={post.id}
-                            post={post}
-                            currentUserUsername={currentUser.username}
-                        />
-                    ))}
-                </section>
-
-                {/* Recent Journals */}
-                <div className="hidden xl:block fixed right-6 top-[100px] w-[320px]">
-                    <RecentJournals
-                        journals={recentJournalHistory}
-                        onClear={() => setRecentJournalHistory([])}
+                {headingPosts.map((post) => (
+                    <PostCard
+                        key={post.id}
+                        post={post}
+                        currentUserUsername={currentUser.username}
                     />
-                </div>
-            </div>
+                ))}
+            </section>
 
             {/* Composer Modal */}
             {composerMode && (
-                <div className="fixed inset-x-0 top-[68px] z-50 flex justify-center px-4">
+                <div className="fixed left-[260px] right-0 top-0 z-[60] flex justify-center px-4 xl:right-[400px]">
                     <ComposerModal
                         mode={composerMode}
                         onClose={() => setComposerMode(null)}

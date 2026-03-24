@@ -60,13 +60,13 @@ function FilterDropdown({ open }) {
   return (
     <div className="absolute right-0 top-[44px] z-50 w-[170px] rounded-[10px] border border-[#323848] bg-[#1f2332] p-1.5 text-[13px] text-white shadow-xl">
       <button className="block h-8 w-full rounded px-2 text-left transition-colors hover:bg-[#2a3043]">
-        Types of mood
+        Recent
       </button>
       <button className="block h-8 w-full rounded px-2 text-left transition-colors hover:bg-[#2a3043]">
-        Most React
+        Popular
       </button>
       <button className="block h-8 w-full rounded px-2 text-left transition-colors hover:bg-[#2a3043]">
-        Top Journal
+        Most mood used
       </button>
     </div>
   );
@@ -145,7 +145,6 @@ function DefaultNavbar({ title, showBack, onBack, notificationCount, notificatio
   );
 }
 
-// ----------------- FIXED TOP NAVBAR -----------------
 export default function TopNavbar({
   mode = 'tabs',
   title = 'Home',
@@ -180,11 +179,10 @@ export default function TopNavbar({
 
   return (
     <>
-      {/* Fixed Top Navbar */}
+      {/* Top Navbar */}
       <header
-        className="sticky top-0 z-50 flex h-[68px] items-center border-b border-[#2b3041] bg-[#1B1C24] px-7 justify-between"
-        style={{ left: '260px', right: 0 }} // <-- offset so it doesn't cover sidebar
-      >
+        className="sticky top-0 z-50 flex h-[80px] items-center border-b border-[#2b3041] bg-[#1B1C24] px-8 justify-between">
+          
         {mode === 'tabs' ? (
           <HomeNavbar
             activeTab={currentTab}

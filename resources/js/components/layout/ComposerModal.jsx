@@ -19,7 +19,7 @@ export default function ComposerModal({ mode, onClose }) {
     const config = modeConfig[mode] || modeConfig.text;
 
     return (
-        <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/55 px-4">
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 px-4">
             <section className="w-full max-w-[600px] rounded-[16px] bg-[#232838] p-6">
                 <div className="flex justify-between">
                     <div className="w-full">

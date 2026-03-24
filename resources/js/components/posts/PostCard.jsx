@@ -153,7 +153,7 @@ export default function PostCard({ post, compact = false, variant = 'feed', curr
                 </button>
             )}
 
-            {post.image && <img src={post.image} alt="post media" className="mt-3 h-[400px] w-full max-w-[540px] rounded-[6px] object-cover" />}
+            {post.image && <img src={post.image} alt="post media" className="mt-3 h-full max-h-[400px] w-full max-w-[560px] rounded-[6px] object-cover" />}
 
             <div className="mt-4 flex items-center gap-2 text-[14px] text-[#b9bdc8]">
                 {post.mood && (
@@ -167,7 +167,7 @@ export default function PostCard({ post, compact = false, variant = 'feed', curr
             </div>
 
             <div className="mt-3 border-t border-[#303548] pt-3">
-                <div className="grid grid-cols-3 text-center text-[18px] text-[#e8e8e8]">
+                <div className="grid grid-cols-3 text-center text-[12px] text-[#e8e8e8]">
                     <button
                         type="button"
                         onClick={() => setReacted((prev) => !prev)}
