@@ -1,189 +1,261 @@
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import CommunityAboutPanel from '../components/community/CommunityAboutPanel';
+import CategoryBentoCard from '../components/community/CategoryBentoCard';
+import CommunityDetailHeader from '../components/community/CommunityDetailHeader';
+import CommunityListCard from '../components/community/CommunityListCard';
+import CommunityMembersPanel from '../components/community/CommunityMembersPanel';
+import CommunityRightSidebar from '../components/community/CommunityRightSidebar';
+import {
+    categoryCards,
+    communities,
+    memberDirectory,
+    myCommunityIds,
+} from '../components/community/communityData';
+import ComposerModal from '../components/layout/ComposerModal';
 import SocialLayout from '../components/layout/SocialLayout';
 import PostCard from '../components/posts/PostCard';
-import { communityCards, feedPosts } from '../utils/socialMockData';
-
-function CommunityCard({ title, desc, members, image, actionLabel, onClick }) {
-    return (
-        <article className="rounded-[10px] bg-[#212633] p-0">
-            <img src={image} alt={title} className="h-[146px] w-full rounded-t-[10px] object-cover" />
-            <div className="space-y-2 p-3">
-                <h3 className="text-[30px] font-medium">{title}</h3>
-                <p className="text-[24px] text-[#e4e6ec]">{desc}</p>
-                <p className="text-[28px] font-medium">{members}</p>
-                <button
-                    type="button"
-                    onClick={onClick}
-                    className="h-[38px] w-full rounded-[9px] bg-[#343b4f] text-[30px] font-medium text-white hover:bg-[#46506a]"
-                >
-                    {actionLabel}
-                </button>
-            </div>
-        </article>
-    );
-}
+import { feedPosts } from '../utils/socialMockData';
 
 export default function CommunityPage() {
-    const [communitySub, setCommunitySub] = useState('browse');
-    const [detailTab, setDetailTab] = useState('list');
-    const [joined, setJoined] = useState(false);
+    const { category, communityId } = useParams();
+    const location = useLocation();
+    const navigate = useNavigate();
 
-    const showingDetail = detailTab !== 'list';
+    const isBrowseRoot = location.pathname === '/community/browse';
+    const isCategoryRoute = location.pathname.startsWith('/community/browse/') && !communityId;
+    const isMyCommunityList = location.pathname === '/community/my-community';
+    const isDetailRoute = Boolean(communityId);
+    const isMyCommunityRoute = location.pathname.startsWith('/community/my-community');
+
+    const [activeTab, setActiveTab] = useState('posts');
+    const [showHeaderMenu, setShowHeaderMenu] = useState(false);
+    const [memberSearch, setMemberSearch] = useState('');
+    const [composerMode, setComposerMode] = useState(null);
+    const [joinedIds, setJoinedIds] = useState(new Set(myCommunityIds));
+
+    useEffect(() => {
+        setActiveTab('posts');
+    }, [location.pathname]);
+
+    const communityLookup = useMemo(() => {
+        return new Map(communities.map((item) => [item.id, item]));
+    }, []);
+
+    const selectedCommunity = communityId ? communityLookup.get(communityId) : null;
+
+    const filteredCommunities = useMemo(() => {
+        if (!category) {
+            return communities;
+        }
+        return communities.filter((community) => community.category === category);
+    }, [category]);
+
+    const myCommunities = useMemo(() => {
+        return communities.filter((community) => myCommunityIds.includes(community.id));
+    }, []);
+
+    const isJoined = selectedCommunity
+        ? isMyCommunityRoute || joinedIds.has(selectedCommunity.id)
+        : false;
+
+    const visibleMembers = useMemo(() => {
+        const query = memberSearch.trim().toLowerCase();
+        if (!query) {
+            return memberDirectory;
+        }
+        return memberDirectory.filter((member) => member.name.toLowerCase().includes(query));
+    }, [memberSearch]);
+
+    const handleJoinToggle = () => {
+        if (!selectedCommunity || isMyCommunityRoute) {
+            return;
+        }
+
+        setJoinedIds((prev) => {
+            const next = new Set(prev);
+            if (next.has(selectedCommunity.id)) {
+                next.delete(selectedCommunity.id);
+            } else {
+                next.add(selectedCommunity.id);
+            }
+            return next;
+        });
+    };
+
+    const handleCopyLink = async () => {
+        try {
+            await navigator.clipboard.writeText(window.location.href);
+        } catch (error) {
+            // no-op
+        }
+        setShowHeaderMenu(false);
+    };
+
+    const handleReport = () => {
+        setShowHeaderMenu(false);
+    };
+
+    const showBackButton = isDetailRoute || isCategoryRoute;
+
+    const selectedCategoryLabel = useMemo(() => {
+        if (!category) {
+            return '';
+        }
+
+        const matchedCategory = categoryCards.find((item) => item.id === category);
+        if (matchedCategory) {
+            return matchedCategory.name;
+        }
+
+        return category.charAt(0).toUpperCase() + category.slice(1);
+    }, [category]);
+
+    const handleBack = () => {
+        if (isCategoryRoute) {
+            navigate('/community/browse');
+            return;
+        }
+        navigate(-1);
+    };
+
+    const communityNav = isMyCommunityRoute ? 'community-my' : 'community-browse';
+
+    if (isDetailRoute && !selectedCommunity) {
+        return (
+            <SocialLayout activeNav={communityNav} navbarMode="title" title="Community">
+                <p className="text-[16px] text-[#c9cdd8]">Community not found.</p>
+            </SocialLayout>
+        );
+    }
 
     return (
         <SocialLayout
-            activeNav="community"
-            communitySub={communitySub}
-            onCommunitySubChange={setCommunitySub}
+            activeNav={communityNav}
             navbarMode="title"
-            title="Community"
+            title={showBackButton ? '' : 'Community'}
+            showBack={showBackButton}
+            onBack={handleBack}
         >
-            {!showingDetail ? (
-                <section className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
-                    {(communitySub === 'browse' ? communityCards.concat(communityCards.slice(0, 3)) : communityCards.slice(0, 2)).map((card) => (
-                        <CommunityCard
-                            key={`${communitySub}-${card.id}-${card.title}`}
-                            {...card}
-                            actionLabel={communitySub === 'browse' ? 'Explore' : 'View'}
-                            onClick={() => setDetailTab('posts')}
-                        />
-                    ))}
-                </section>
-            ) : (
-                <section className="space-y-3">
-                    <button
-                        type="button"
-                        className="flex items-center text-white hover:text-[#9b84d8]"
-                        onClick={() => setDetailTab('list')}
-                    >
-                        <span className="material-symbols-outlined text-[24px]">arrow_back</span>
-                    </button>
-
-                    <article className="relative overflow-hidden rounded-[10px] bg-[#212633]">
-                        <img
-                            src="https://images.unsplash.com/photo-1520523839897-bd0b52f945a0?auto=format&fit=crop&w=1600&q=80"
-                            alt="Music Gremlin"
-                            className="h-[225px] w-full object-cover"
-                        />
-                        <div className="absolute bottom-4 left-5 right-5 flex items-end justify-between">
-                            <div>
-                                <h2 className="text-[44px] font-medium">Music Gremlin</h2>
-                                <p className="text-[24px] text-[#d7d9e0]">Where the passion of music goes shinnin. Welcome everyone!!!</p>
-                            </div>
-                            <button
-                                type="button"
-                                onClick={() => setJoined((prev) => !prev)}
-                                className={`h-[40px] min-w-[140px] rounded-full px-5 text-[28px] font-medium text-white ${
-                                    joined ? 'bg-[#785ebf]' : 'bg-[#343b4f] hover:bg-[#46506a]'
-                                }`}
-                            >
-                                {joined ? 'Joined' : 'Join Community'}
-                            </button>
-                        </div>
-                    </article>
-
-                    <div className="grid grid-cols-1 gap-3 xl:grid-cols-[minmax(0,1fr)_315px]">
-                        <div className="space-y-3">
-                            <div className="grid grid-cols-3 gap-2 rounded-[10px] bg-[#212633] p-2">
-                                {[
-                                    { key: 'posts', icon: 'format_size' },
-                                    { key: 'members', icon: 'group' },
-                                    { key: 'about', icon: 'image' },
-                                ].map((item) => (
-                                    <button
-                                        key={item.key}
-                                        type="button"
-                                        onClick={() => setDetailTab(item.key)}
-                                        className="flex h-[56px] items-center justify-center rounded-[8px] text-white hover:bg-[#2f3548]"
-                                    >
-                                        <span className="material-symbols-outlined text-[30px]">{item.icon}</span>
-                                    </button>
-                                ))}
-                            </div>
-
-                            {detailTab === 'posts' && feedPosts.map((post) => <PostCard key={`community-${post.id}`} post={post} />)}
-
-                            {detailTab === 'members' && (
-                                <div className="rounded-[10px] bg-[#212633] p-4">
-                                    <div className="flex h-[40px] items-center gap-2 rounded-full bg-[#2b3041] px-3 text-[#6d7283]">
-                                        <span className="material-symbols-outlined">search</span>
-                                        <span className="text-[24px]">Search Notely</span>
-                                    </div>
-                                    <div className="mt-4 space-y-3">
-                                        {Array.from({ length: 6 }).map((_, index) => (
-                                            <article key={index} className="flex items-center gap-3 border-b border-[#303548] pb-3 last:border-b-0">
-                                                <img
-                                                    src="https://images.unsplash.com/photo-1543852786-1cf6624b9987?auto=format&fit=crop&w=90&q=80"
-                                                    alt="member"
-                                                    className="h-[42px] w-[42px] rounded-full object-cover"
-                                                />
-                                                <div>
-                                                    <p className="text-[28px]">aiss07</p>
-                                                    <p className="text-[20px] text-[#9ca0ad]">December 30, 2025</p>
-                                                </div>
-                                            </article>
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
-
-                            {detailTab === 'about' && (
-                                <div className="rounded-[10px] bg-[#212633] p-4 text-[32px] leading-[1.45] text-[#e4e6ec]">
-                                    <h3 className="mb-2 text-[44px] font-medium text-white">About this community</h3>
-                                    <p className="mb-4 text-[20px] text-[#9ca0ad]">Created: June 13, 2013</p>
-                                    <p>
-                                        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-                                        Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
-                                    </p>
-                                </div>
-                            )}
-                        </div>
-
-                        <aside className="rounded-[10px] bg-[#212633] p-4">
-                            <div className="mb-3 flex items-center gap-2.5">
-                                <img
-                                    src="https://images.unsplash.com/photo-1520523839897-bd0b52f945a0?auto=format&fit=crop&w=120&q=80"
-                                    alt="community"
-                                    className="h-10 w-10 rounded-[6px] object-cover"
-                                />
-                                <div>
-                                    <p className="text-[30px] font-medium">Music Gremlin</p>
-                                    <p className="text-[20px] text-[#9ca0ad]">@music-gremlin</p>
-                                </div>
-                            </div>
-
-                            {[
-                                ['Post', '10k'],
-                                ['Members', '10k'],
-                                ['About this community', ''],
-                            ].map(([label, value]) => (
-                                <div key={label} className="flex items-center justify-between border-t border-[#303548] py-3">
-                                    <p className="text-[32px]">{label}</p>
-                                    <p className="text-[32px]">{value}</p>
-                                </div>
-                            ))}
-
-                            <div className="mt-3 flex gap-2">
-                                <button
-                                    type="button"
-                                    onClick={() => setCommunitySub('browse')}
-                                    className={`h-[36px] rounded-[8px] px-3 text-[20px] ${communitySub === 'browse' ? 'bg-[#343b4f]' : 'bg-[#252b3b] hover:bg-[#343b4f]'}`}
-                                >
-                                    Browse
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => setCommunitySub('my')}
-                                    className={`h-[36px] rounded-[8px] px-3 text-[20px] ${communitySub === 'my' ? 'bg-[#343b4f]' : 'bg-[#252b3b] hover:bg-[#343b4f]'}`}
-                                >
-                                    My Community
-                                </button>
-                            </div>
-                        </aside>
+            {isBrowseRoot ? (
+                <section>
+                    <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
+                        {categoryCards.concat(categoryCards).map((categoryItem, index) => (
+                            <CategoryBentoCard key={`${categoryItem.id}-${index}`} category={categoryItem} />
+                        ))}
                     </div>
                 </section>
-            )}
+            ) : null}
 
+            {isCategoryRoute ? (
+                <section>
+                    <div className="mb-6 flex items-center justify-between gap-4">
+                        <h2 className="text-[24px] font-semibold leading-[1.2] text-white">{selectedCategoryLabel}</h2>
+                        <button
+                            type="button"
+                            className="h-[44px] rounded-[9px] bg-[#785ebf] px-7 text-[16px] font-normal text-white transition-colors hover:bg-[#8b70d4]"
+                        >
+                            Create Community
+                        </button>
+                    </div>
+
+                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+                        {filteredCommunities.map((community) => (
+                            <CommunityListCard
+                                key={community.id}
+                                community={community}
+                                actionLabel="Explore"
+                                to={`/community/browse/${community.category}/${community.id}`}
+                            />
+                        ))}
+                    </div>
+                </section>
+            ) : null}
+
+            {isMyCommunityList ? (
+                <section>
+                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+                        {myCommunities.map((community) => (
+                            <CommunityListCard
+                                key={community.id}
+                                community={community}
+                                actionLabel="View"
+                                to={`/community/my-community/${community.id}`}
+                            />
+                        ))}
+                    </div>
+                </section>
+            ) : null}
+
+            {isDetailRoute ? (
+                <section className="space-y-4">
+                    <CommunityDetailHeader
+                        community={selectedCommunity}
+                        isJoined={isJoined}
+                        isMyCommunityRoute={isMyCommunityRoute}
+                        showHeaderMenu={showHeaderMenu}
+                        onToggleMenu={() => setShowHeaderMenu((prev) => !prev)}
+                        onCopyLink={handleCopyLink}
+                        onReport={handleReport}
+                        onJoinToggle={handleJoinToggle}
+                    />
+
+                    <div className="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_340px]">
+                        <div className="space-y-4">
+                            {activeTab === 'posts' && isJoined ? (
+                                <div className="grid grid-cols-3 gap-2 rounded-[10px] bg-[#212633] p-2">
+                                    {[
+                                        { key: 'text', icon: 'format_size' },
+                                        { key: 'quote', icon: 'format_quote' },
+                                        { key: 'image', icon: 'image' },
+                                    ].map((item) => (
+                                        <button
+                                            key={item.key}
+                                            type="button"
+                                            onClick={() => setComposerMode(item.key)}
+                                            className="flex h-[56px] items-center justify-center rounded-[8px] text-white transition-colors hover:bg-[#2f3548]"
+                                        >
+                                            <span className="material-symbols-outlined text-[24px]">{item.icon}</span>
+                                        </button>
+                                    ))}
+                                </div>
+                            ) : null}
+
+                            {activeTab === 'posts' ? (
+                                <div className="space-y-3">
+                                    {feedPosts.map((post) => (
+                                        <PostCard key={`community-${selectedCommunity.id}-${post.id}`} post={post} />
+                                    ))}
+                                </div>
+                            ) : null}
+
+                            {activeTab === 'members' ? (
+                                <CommunityMembersPanel
+                                    memberSearch={memberSearch}
+                                    onSearchChange={setMemberSearch}
+                                    visibleMembers={visibleMembers}
+                                />
+                            ) : null}
+
+                            {activeTab === 'about' ? (
+                                <CommunityAboutPanel community={selectedCommunity} />
+                            ) : null}
+                        </div>
+
+                        <CommunityRightSidebar
+                            community={selectedCommunity}
+                            activeTab={activeTab}
+                            onTabChange={setActiveTab}
+                        />
+                    </div>
+
+                    {composerMode ? (
+                        <div className="fixed left-[260px] right-0 top-0 z-[60] flex justify-center px-4 xl:right-[360px]">
+                            <ComposerModal mode={composerMode} onClose={() => setComposerMode(null)} />
+                        </div>
+                    ) : null}
+                </section>
+            ) : null}
         </SocialLayout>
     );
 }

@@ -92,7 +92,7 @@ export default function PostCard({ post, compact = false, variant = 'feed', curr
                 <div className="flex items-center gap-2.5">
                     <img src={post.avatar} alt={post.user} className="h-10 w-10 rounded-full object-cover" />
                     <div>
-                        <p className="text-[15px] font-semibold leading-none">{post.user}</p>
+                        <p className="text-[15px] font-medium leading-none">{post.user}</p>
                         <p className="mt-1 text-[13px] leading-none text-[#9ca0ad]">• {post.time}</p>
                     </div>
                 </div>
@@ -147,7 +147,7 @@ export default function PostCard({ post, compact = false, variant = 'feed', curr
                 <button
                     type="button"
                     onClick={() => setExpanded((prev) => !prev)}
-                    className="mt-2 text-[14px] font-medium text-[#8e74d5] transition-colors hover:text-[#a58be5]"
+                    className="mt-2 text-[14px] font-normal text-[#8e74d5] transition-colors hover:text-[#a58be5]"
                 >
                     {expanded ? 'Show less' : 'Show more'}
                 </button>

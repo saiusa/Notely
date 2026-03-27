@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { sidebarUser } from '../../utils/socialMockData';
 import NotelyLogo from './Notely-Logo.svg';
 
@@ -12,15 +12,21 @@ const navItems = [
 ];
 
 export default function Sidebar({ active = 'home', onActiveChange = () => {} }) {
+  const location = useLocation();
+  const pathname = location.pathname;
+
+  const isCommunityBrowse = pathname.startsWith('/community/browse');
+  const isCommunityMy = pathname.startsWith('/community/my-community');
+
   const [menuOpen, setMenuOpen] = useState(false);
-  const [communityOpen, setCommunityOpen] = useState(active.startsWith('community'));
+  const [communityOpen, setCommunityOpen] = useState(pathname.startsWith('/community'));
 
   
   useEffect(() => {
-    if (active.startsWith('community')) {
+    if (pathname.startsWith('/community')) {
       setCommunityOpen(true);
     }
-  }, [active]);
+  }, [pathname]);
 
   return (
     <aside className="sticky top-0 flex h-screen w-[260px] flex-col border-r border-[#323848] bg-[#1B1C24] px-5 py-5">
@@ -47,14 +53,10 @@ export default function Sidebar({ active = 'home', onActiveChange = () => {} }) 
         </Link>
 
         {/* Community */}
-        <button
-          type="button"
-          onClick={() => setCommunityOpen(!communityOpen)}
-          className={`flex h-[40px] w-full items-center justify-between rounded-[9px] px-3 text-[13px] font-medium transition-colors ${
-            active.startsWith('community-browse') || active.startsWith('community-my')
-              ? 'bg-[#343b4f] text-white'
-              : 'text-white hover:bg-[#23283a]'
-          }`}
+        <Link
+          to="/community/browse"
+          onClick={() => setCommunityOpen(true)}
+          className="flex h-[40px] w-full items-center justify-between rounded-[9px] px-3 text-[13px] font-medium text-white transition-colors hover:bg-[#23283a]"
         >
           <span className="flex items-center gap-2.5">
             <span className="material-symbols-outlined text-[18px]">groups</span>
@@ -67,34 +69,38 @@ export default function Sidebar({ active = 'home', onActiveChange = () => {} }) 
           >
             chevron_right
           </span>
-        </button>
+        </Link>
 
         {/* Community Dropdown */}
-        {communityOpen && (
+        <div
+          className={`space-y-1 overflow-hidden transition-all duration-300 ease-out ${
+            communityOpen ? 'max-h-[96px] opacity-100' : 'max-h-0 opacity-0'
+          }`}
+        >
           <div className="space-y-1">
-            <button
-              onClick={() => onActiveChange('community-browse')}
-              className={`h-[40px] w-full rounded-[9px] px-6 text-left text-[13px] transition-colors ${
-                active === 'community-browse'
+            <Link
+              to="/community/browse"
+              className={`flex h-[40px] w-full items-center rounded-[9px] px-6 text-left text-[13px] transition-colors ${
+                isCommunityBrowse
                   ? 'bg-[#343b4f] text-white'
                   : 'text-[#d1d3dc] hover:bg-[#23283a]'
               }`}
             >
               Browse
-            </button>
+            </Link>
 
-            <button
-              onClick={() => onActiveChange('community-my')}
-              className={`h-[40px] w-full rounded-[9px] px-6 text-left text-[13px] transition-colors ${
-                active === 'community-my'
+            <Link
+              to="/community/my-community"
+              className={`flex h-[40px] w-full items-center rounded-[9px] px-6 text-left text-[13px] transition-colors ${
+                isCommunityMy
                   ? 'bg-[#343b4f] text-white'
                   : 'text-[#d1d3dc] hover:bg-[#23283a]'
               }`}
             >
               My Community
-            </button>
+            </Link>
           </div>
-        )}
+        </div>
 
         {/* Journal */}
         <Link

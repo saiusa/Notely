@@ -130,7 +130,7 @@ function DefaultNavbar({ title, showBack, onBack, notificationCount, notificatio
     <>
       <div className="flex items-center gap-4 w-60 flex-shrink-0">
         {showBack && <IconButton icon="arrow_back" label="Back" onClick={onBack} />}
-        <span className="text-[20px] font-semibold text-[#f4f5fa]">{title}</span>
+        {title ? <span className="text-[20px] font-semibold text-[#f4f5fa]">{title}</span> : null}
       </div>
 
       <div className="flex items-center gap-3 w-[280px] justify-end">

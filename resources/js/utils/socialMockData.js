@@ -205,7 +205,15 @@ export const journalCards = [
 
 export const profileCommunities = [
     { id: 1, name: 'Music Gremlin', handle: '@music-gremlin' },
-    { id: 2, name: 'Music Gremlin', handle: '@music-gremlin' },
-    { id: 3, name: 'Music Gremlin', handle: '@music-gremlin' },
-    { id: 4, name: 'Music Gremlin', handle: '@music-gremlin' },
+    { id: 2, name: 'Lo-Fi Writers', handle: '@lofi-writers' },
+    { id: 3, name: 'Night Walkers', handle: '@night-walkers' },
+    { id: 4, name: 'Quiet Minds', handle: '@quiet-minds' },
+    { id: 5, name: 'Sea Window', handle: '@sea-window' },
+    { id: 6, name: 'Moonlight Club', handle: '@moonlight-club' },
+    { id: 7, name: 'Daily Gratitude', handle: '@daily-gratitude' },
+    { id: 8, name: 'Poetry Lane', handle: '@poetry-lane' },
+    { id: 9, name: 'Skyline Notes', handle: '@skyline-notes' },
+    { id: 10, name: 'Minimal Diaries', handle: '@minimal-diaries' },
+    { id: 11, name: 'Blue Hour', handle: '@blue-hour' },
+    { id: 12, name: 'Silver Vinyl', handle: '@silver-vinyl' },
 ];

@@ -9,6 +9,8 @@ export default function SocialLayout({
     onCommunitySubChange,
     navbarMode,
     title,
+    showBack,
+    onBack,
     activeTab,
     onTabChange,
     recentJournals,
@@ -33,6 +35,8 @@ export default function SocialLayout({
                 <TopNavbar
                     mode={navbarMode}
                     title={title}
+                    showBack={showBack}
+                    onBack={onBack}
                     activeTab={activeTab}
                     onTabChange={onTabChange}
                 />
