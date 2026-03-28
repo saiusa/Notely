@@ -1,0 +1,54 @@
+@import '../variables';
+
+.home-page {
+  &__container {
+    margin: 0 auto;
+    width: $composer-width;
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-xl;
+  }
+
+  // Composer Selector Bar
+  &__composer-selector {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: $spacing-lg;
+    border-radius: $radius-lg;
+    background-color: $color-bg-tertiary;
+    padding: $spacing-lg;
+  }
+
+  &__composer-btn {
+    display: flex;
+    height: 56px;
+    align-items: center;
+    justify-content: center;
+    border-radius: $radius-md;
+    color: $color-text-primary;
+    transition: $transition-fast;
+    border: none;
+    cursor: pointer;
+    background-color: transparent;
+
+    .icon {
+      font-size: 24px;
+    }
+
+    &:hover {
+      background-color: $color-bg-hover;
+    }
+
+    &--active {
+      background-color: $color-primary;
+      color: $color-text-primary;
+    }
+  }
+
+  // Posts List
+  &__posts {
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-xl;
+  }
+}

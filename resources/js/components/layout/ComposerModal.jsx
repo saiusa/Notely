@@ -1,71 +1,247 @@
-import React from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { moodOptions } from './moodOptions';
+import '../../../sass/components/layout/ComposerModal.scss';
 
 const modeConfig = {
     text: {
         header: 'Title',
-        placeholder: 'Start writing your day...',
+        placeholder: 'Write your story...',
     },
     quote: {
-        header: '',
-        placeholder: 'Start writing quotes...',
+        header: 'Quote',
+        placeholder: 'Write a quote...',
     },
     image: {
-        header: '',
-        placeholder: 'Start writing your day...',
+        header: 'Caption',
+        placeholder: 'Write a caption...',
     },
 };
 
-export default function ComposerModal({ mode, onClose }) {
+export default function ComposerModal({ mode, onClose, embedded = false }) {
     const config = modeConfig[mode] || modeConfig.text;
+    const [isMoodOpen, setIsMoodOpen] = useState(false);
+    const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+    const [isPrivacyOpen, setIsPrivacyOpen] = useState(false);
+    const [selectedMoodId, setSelectedMoodId] = useState(null);
+    const [privacy, setPrivacy] = useState('public');
+    const [allowComments, setAllowComments] = useState(true);
+    const [isAnonymous, setIsAnonymous] = useState(false);
+
+    const selectedMood = useMemo(() => {
+        return moodOptions.find((option) => option.id === selectedMoodId) || null;
+    }, [selectedMoodId]);
+
+    const wrapperClassName = embedded
+        ? 'composer-modal__wrapper composer-modal__wrapper--embedded'
+        : 'composer-modal__wrapper composer-modal__wrapper--modal';
+    const sectionClassName = embedded
+        ? 'composer-modal__section composer-modal__section--embedded'
+        : 'composer-modal__section composer-modal__section--modal';
+
+    useEffect(() => {
+        if (embedded) {
+            return undefined;
+        }
+
+        const originalOverflow = document.body.style.overflow;
+        document.body.style.overflow = 'hidden';
+
+        return () => {
+            document.body.style.overflow = originalOverflow;
+        };
+    }, [embedded]);
 
     return (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 px-4">
-            <section className="w-full max-w-[600px] rounded-[16px] bg-[#232838] p-6">
-                <div className="flex justify-between">
-                    <div className="w-full">
-                        {config.header ? <p className="text-[32px] text-[#8a8f9f]">{config.header}</p> : null}
-                        <p className="mt-2 text-[16px] text-[#8a8f9f]">{config.placeholder}</p>
+        <div className={wrapperClassName}>
+            <section className={sectionClassName}>
+                <div className="composer-modal__header">
+                    <div className="composer-modal__content">
+                        {mode === 'text' ? (
+                            <input
+                                type="text"
+                                placeholder={config.header}
+                                className="composer-modal__input composer-modal__input--title"
+                                aria-label="Post title"
+                            />
+                        ) : null}
+
+                        {mode === 'quote' ? (
+                            <textarea
+                                placeholder={config.placeholder}
+                                className="composer-modal__textarea composer-modal__textarea--quote"
+                                aria-label="Quote text"
+                            />
+                        ) : null}
+
+                        {mode === 'image' ? (
+                            <textarea
+                                placeholder={config.placeholder}
+                                className="composer-modal__textarea composer-modal__textarea--caption"
+                                aria-label="Image caption"
+                            />
+                        ) : null}
+
+                        {mode === 'text' ? (
+                            <textarea
+                                placeholder={config.placeholder}
+                                className="composer-modal__textarea composer-modal__textarea--body"
+                                aria-label="Post body"
+                            />
+                        ) : null}
                     </div>
-                    <span className="material-symbols-outlined text-[#9aa0ae]">more_vert</span>
+                    <button
+                        type="button"
+                        onClick={() => {
+                            setIsSettingsOpen((prev) => !prev);
+                            setIsMoodOpen(false);
+                        }}
+                        className="composer-modal__settings-btn material-symbols-outlined"
+                        aria-label="Post settings"
+                    >
+                        more_vert
+                    </button>
+
+                    {isSettingsOpen ? (
+                        <div className="composer-modal__settings-menu">
+                            <button
+                                type="button"
+                                onClick={() => setIsPrivacyOpen((prev) => !prev)}
+                                className="composer-modal__menu-item"
+                            >
+                                <span>Select privacy</span>
+                                <span className="composer-modal__menu-item-label">
+                                    <span>{privacy.charAt(0).toUpperCase() + privacy.slice(1)}</span>
+                                    <span className="material-symbols-outlined">expand_more</span>
+                                </span>
+                            </button>
+
+                            {isPrivacyOpen ? (
+                                <div className="composer-modal__privacy-options">
+                                    {['public', 'private'].map((option) => (
+                                        <button
+                                            key={option}
+                                            type="button"
+                                            onClick={() => {
+                                                setPrivacy(option);
+                                                setIsPrivacyOpen(false);
+                                            }}
+                                            className={`composer-modal__privacy-btn ${
+                                                privacy === option
+                                                    ? 'composer-modal__privacy-btn--active'
+                                                    : 'composer-modal__privacy-btn--inactive'
+                                            }`}
+                                        >
+                                            {option}
+                                        </button>
+                                    ))}
+                                </div>
+                            ) : null}
+
+                            <button
+                                type="button"
+                                onClick={() => setAllowComments((prev) => !prev)}
+                                className="composer-modal__menu-item"
+                            >
+                                <span>Allow comments</span>
+                                <span
+                                    className={`composer-modal__toggle ${
+                                        allowComments ? 'composer-modal__toggle--on' : 'composer-modal__toggle--off'
+                                    }`}
+                                >
+                                    <span
+                                        className={`composer-modal__toggle-knob ${
+                                            allowComments
+                                                ? 'composer-modal__toggle-knob--on'
+                                                : 'composer-modal__toggle-knob--off'
+                                        }`}
+                                    />
+                                </span>
+                            </button>
+
+                            <button
+                                type="button"
+                                onClick={() => setIsAnonymous((prev) => !prev)}
+                                className="composer-modal__menu-item"
+                            >
+                                <span>Make it anonymous</span>
+                                <span
+                                    className={`composer-modal__toggle ${
+                                        isAnonymous ? 'composer-modal__toggle--on' : 'composer-modal__toggle--off'
+                                    }`}
+                                >
+                                    <span
+                                        className={`composer-modal__toggle-knob ${
+                                            isAnonymous
+                                                ? 'composer-modal__toggle-knob--on'
+                                                : 'composer-modal__toggle-knob--off'
+                                        }`}
+                                    />
+                                </span>
+                            </button>
+                        </div>
+                    ) : null}
                 </div>
 
                 {mode === 'image' && (
-                    <img
-                        src="https://images.unsplash.com/photo-1516534775068-ba3e7458af70?auto=format&fit=crop&w=1100&q=80"
-                        alt="preview"
-                        className="mt-4 h-[220px] w-full rounded-[6px] object-cover"
-                    />
+                    <button type="button" className="composer-modal__image-uploader">
+                        Upload image
+                    </button>
                 )}
 
-                <div className="mt-6 flex items-center gap-3 text-white">
-                    {mode !== 'image' && (
-                        <>
-                            <button type="button" className="text-[24px] font-semibold transition-colors hover:text-[#9b84d8]">
-                                B
-                            </button>
-                            <button type="button" className="text-[24px] italic transition-colors hover:text-[#9b84d8]">
-                                I
-                            </button>
-                        </>
-                    )}
-                </div>
-
-                <div className="mt-2 flex items-center gap-3 text-[16px] text-[#83899a]">
+                <div className="composer-modal__bottom-bar">
                     <button
                         type="button"
-                        className="flex items-center gap-1 rounded-full bg-[#666a75] px-3 py-1 text-[14px] text-white transition-colors hover:bg-[#7a7f8b]"
+                        onClick={() => {
+                            setIsMoodOpen((prev) => !prev);
+                            setIsSettingsOpen(false);
+                        }}
+                        className="composer-modal__mood-btn"
+                        style={{
+                            backgroundColor: selectedMood ? selectedMood.backgroundColor : '#666a75',
+                            color: selectedMood ? selectedMood.textColor : '#ffffff',
+                        }}
                     >
-                        Mood
-                        <span className="material-symbols-outlined text-[18px]">keyboard_arrow_down</span>
+                        {selectedMood ? selectedMood.label : 'Mood'}
+                        <span className="material-symbols-outlined mood-icon">keyboard_arrow_down</span>
                     </button>
-                    <button type="button" className="transition-colors hover:text-[#a0a6b8]">#add tags</button>
+
+                    <input
+                        type="text"
+                        placeholder="#add tags"
+                        className="composer-modal__input composer-modal__input--tags"
+                        aria-label="Hashtags"
+                    />
+
+                    {isMoodOpen ? (
+                        <div className="composer-modal__mood-dropdown">
+                            <div className="composer-modal__mood-dropdown-content">
+                                {moodOptions.map((option) => (
+                                    <button
+                                        key={option.id}
+                                        type="button"
+                                        onClick={() => {
+                                            setSelectedMoodId(option.id);
+                                            setIsMoodOpen(false);
+                                        }}
+                                        className={`composer-modal__mood-option ${
+                                            selectedMoodId === option.id
+                                                ? 'composer-modal__mood-option--active'
+                                                : ''
+                                        }`}
+                                    >
+                                        {option.label}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    ) : null}
                 </div>
 
-                <div className="mt-8 flex items-center justify-between">
-                    <button type="button" onClick={onClose} className="text-[28px] text-white transition-colors hover:text-[#9b84d8]">
+                <div className="composer-modal__actions">
+                    <button type="button" onClick={onClose} className="composer-modal__cancel-btn">
                         Cancel
                     </button>
-                    <button type="button" className="h-[36px] w-[76px] rounded-[8px] bg-[#785ebf] text-[20px] font-medium text-white transition-colors hover:bg-[#8c72d4]">
+                    <button type="button" onClick={onClose} className="composer-modal__post-btn">
                         Post
                     </button>
                 </div>

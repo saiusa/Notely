@@ -1,0 +1,77 @@
+@import '../../variables';
+
+.social-layout {
+  &__wrapper {
+    display: flex;
+    min-height: 100vh;
+    background-color: $color-bg-primary;
+    color: $color-text-primary;
+  }
+
+  &__sidebar {
+    // Sidebar styles (in Sidebar.scss)
+  }
+
+  &__main {
+    display: flex;
+    min-height: 100vh;
+    min-width: 0;
+    flex: 1;
+    flex-direction: column;
+  }
+
+  &__navbar {
+    // Navbar styles (in TopNavbar.scss)
+  }
+
+  &__content-area {
+    display: flex;
+    min-height: 0;
+    flex: 1;
+  }
+
+  &__main-content {
+    flex: 1;
+    padding: $spacing-2xl;
+    padding-left: $spacing-2xl;
+    padding-top: 24px;
+    padding-bottom: $spacing-2xl;
+
+    @media (max-width: $breakpoint-lg) {
+      padding: $spacing-lg;
+    }
+  }
+
+  &__main-content--with-override {
+    padding: $spacing-5xl $spacing-2xl;
+    padding-top: 24px;
+    padding-bottom: $spacing-2xl;
+
+    @media (max-width: $breakpoint-lg) {
+      padding: $spacing-2xl;
+    }
+  }
+
+  &__content-container {
+    &--tabs {
+      margin: 0 auto;
+      width: 100%;
+      max-width: 720px;
+    }
+
+    &--default {
+      width: 100%;
+    }
+  }
+
+  &__recent-journals {
+    display: none;
+    width: 320px;
+    border-left: 1px solid $color-border;
+    background-color: $color-bg-primary;
+
+    @media (min-width: $breakpoint-xl) {
+      display: flex;
+    }
+  }
+}

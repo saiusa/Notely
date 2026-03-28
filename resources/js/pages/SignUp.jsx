@@ -1,3 +1,4 @@
+import '../../sass/pages/Auth.scss';
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 
@@ -11,95 +12,93 @@ export default function SignUp() {
     };
 
     return (
-        <div className="relative min-h-screen bg-[#1b1c24]">
-            <div className="mx-auto flex w-full max-w-[1440px] justify-center px-6 pt-[80px] sm:px-8 sm:pt-[83px]">
-                <section className="flex w-full max-w-[440px] flex-col items-center gap-[80px]">
-                    <h1 className="font-['Sansita_Swashed'] text-[48px] font-semibold leading-none text-[#785ebf]">
+        <div className="auth-page auth-page--signup">
+            <div className="auth-page__container auth-page__container--signup">
+                <section className="auth-page__content">
+                    <h1 className="auth-page__brand">
                         Notely
                     </h1>
 
-                    <div className="w-full space-y-10">
-                        <div className="space-y-5 text-center">
-                            <h2 className="font-['Roboto'] text-[28px] font-medium leading-[1.286] text-white">
+                    <div className="auth-page__panel">
+                        <div className="auth-page__intro">
+                            <h2 className="auth-page__heading">
                                 Create your account
                             </h2>
-                            <p className="font-['Roboto'] text-[18px] font-normal leading-[1.5] text-[#b3b3b3]">
+                            <p className="auth-page__description">
                                 Join Notely and share your everyday journal
                             </p>
                         </div>
 
-                        <form onSubmit={onSubmit} className="space-y-[30px]">
-                            <div className="grid grid-cols-1 gap-[20px] sm:grid-cols-2">
-                                <div className="space-y-1">
-                                    <label className="block font-['Roboto'] text-[14px] font-medium leading-5 tracking-[0.1px] text-white">
+                        <form onSubmit={onSubmit} className="auth-page__form">
+                            <div className="auth-page__grid auth-page__grid--two-columns">
+                                <div className="auth-page__field">
+                                    <label className="auth-page__label">
                                         First Name
                                     </label>
                                     <input
                                         type="text"
                                         placeholder="John"
-                                        className="h-[52px] w-full rounded-[10px] border-[1.604px] border-[#323848] bg-transparent px-4 font-['Roboto'] text-[16px] font-normal leading-6 tracking-[0.5px] text-white outline-none placeholder:text-[#757575]"
+                                        className="auth-page__input"
                                     />
                                 </div>
 
-                                <div className="space-y-1">
-                                    <label className="block font-['Roboto'] text-[14px] font-medium leading-5 tracking-[0.1px] text-white">
+                                <div className="auth-page__field">
+                                    <label className="auth-page__label">
                                         Last Name
                                     </label>
                                     <input
                                         type="text"
                                         placeholder="Doe"
-                                        className="h-[52px] w-full rounded-[10px] border-[1.604px] border-[#323848] bg-transparent px-4 font-['Roboto'] text-[16px] font-normal leading-6 tracking-[0.5px] text-white outline-none placeholder:text-[#757575]"
+                                        className="auth-page__input"
                                     />
                                 </div>
                             </div>
 
-                            <div className="space-y-1">
-                                <label className="block font-['Roboto'] text-[14px] font-medium leading-5 tracking-[0.1px] text-white">
+                            <div className="auth-page__field">
+                                <label className="auth-page__label">
                                     Email address
                                 </label>
                                 <input
                                     type="email"
                                     placeholder="Enter your email"
-                                    className="h-[52px] w-full rounded-[10px] border-[1.604px] border-[#323848] bg-transparent px-4 font-['Roboto'] text-[16px] font-normal leading-6 tracking-[0.5px] text-white outline-none placeholder:text-[#757575]"
+                                    className="auth-page__input"
                                 />
                             </div>
 
-                            <div className="space-y-1">
-                                <label className="block font-['Roboto'] text-[14px] font-medium leading-5 tracking-[0.1px] text-white">
+                            <div className="auth-page__field">
+                                <label className="auth-page__label">
                                     Password
                                 </label>
                                 <input
                                     type="password"
                                     placeholder="Enter your password"
-                                    className="h-[52px] w-full rounded-[10px] border-[1.604px] border-[#323848] bg-transparent px-4 font-['Roboto'] text-[16px] font-normal leading-6 tracking-[0.5px] text-white outline-none placeholder:text-[#757575]"
+                                    className="auth-page__input"
                                 />
                             </div>
 
-                            <div className="space-y-1">
-                                <label className="block font-['Roboto'] text-[14px] font-medium leading-5 tracking-[0.1px] text-white">
+                            <div className="auth-page__field">
+                                <label className="auth-page__label">
                                     Phone Number
                                 </label>
                                 <input
                                     type="tel"
                                     placeholder="Enter your password"
-                                    className="h-[52px] w-full rounded-[10px] border-[1.604px] border-[#323848] bg-transparent px-4 font-['Roboto'] text-[16px] font-normal leading-6 tracking-[0.5px] text-white outline-none placeholder:text-[#757575]"
+                                    className="auth-page__input"
                                 />
                             </div>
-
-                        
 
                             <button
                                 type="submit"
                                 disabled={loading}
-                                className="h-[52px] w-full rounded-[10px] bg-[#785ebf] font-['Roboto'] text-[18px] font-semibold leading-[1.2] tracking-[-0.18px] text-white disabled:opacity-80"
+                                className="auth-page__submit"
                             >
                                 {loading ? 'Loading...' : 'Create Account'}
                             </button>
                         </form>
 
-                        <p className="text-center font-['Roboto'] text-[18px] font-normal leading-[1.5] text-[#6c6c6c]">
+                        <p className="auth-page__footer-text">
                             Already have an account?{' '}
-                            <Link to="/login" className="font-semibold text-[#785ebf] underline">
+                            <Link to="/login" className="auth-page__footer-link">
                                 Sign in
                             </Link>
                         </p>

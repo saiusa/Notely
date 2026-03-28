@@ -1,19 +1,21 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import '../../../sass/components/community/Community.scss';
+
 
 export default function CategoryBentoCard({ category }) {
     return (
         <Link
             to={`/community/browse/${category.id}`}
-            className="block h-[296px] w-full max-w-[400px] rounded-[10px] bg-[#212633]"
+            className="category-bento-card__container"
         >
             <img
                 src={category.image}
                 alt={category.name}
-                className="h-[250px] w-full rounded-t-[8px] object-cover"
+                className="category-bento-card__image"
             />
-            <div className="flex items-center h-[46px]">
-                <p className="ml-4 text-[16px] font-medium leading-[1.2] text-white">{category.name}</p>
+            <div className="category-bento-card__footer">
+                <p className="category-bento-card__title">{category.name}</p>
             </div>
         </Link>
     );

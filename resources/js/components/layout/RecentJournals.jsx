@@ -18,27 +18,27 @@ export default function RecentJournals({
   onClear = () => {},
 }) {
   return (
-    <aside className="sticky top-[100px] w-[320px] self-start bg-[#1B1C24] pl-8 pr-5 pt-0">
+    <aside className="recent-journals__sidebar">
 
       {/* Bento Box */}
-      <div className="flex flex-col space-y-5 rounded-[12px] bg-[#212633] p-5">
+      <div className="recent-journals__panel">
 
         {/* Header */}
-        <div className="flex items-center justify-between">
-          <p className="text-[12px] font-semibold tracking-wide text-white">
+        <div className="recent-journals__header">
+          <p className="recent-journals__label">
             RECENT JOURNALS
           </p>
           <button
             type="button"
             onClick={onClear}
-            className="text-[13px] text-[#a7aebe] transition-colors hover:text-[#9b84d8]"
+            className="recent-journals__clear-btn"
           >
             Clear
           </button>
         </div>
 
         {/* Content */}
-        <div className="space-y-3">
+        <div className="recent-journals__content">
           {journals.length ? (
             journals.map((entry) => (
               <PostCard
@@ -48,7 +48,7 @@ export default function RecentJournals({
               />
             ))
           ) : (
-            <p className="text-[14px] text-[#a7aebe]">
+            <p className="recent-journals__empty">
               No Recent Journal&apos;s yet
             </p>
           )}

@@ -1,27 +1,28 @@
 import React, { useMemo, useState } from 'react';
 import CommentSection from './CommentSection';
+import '../../../sass/components/posts/PostCard.scss';
 
 function RecentJournalCard({ post }) {
     return (
-        <article className="border-b border-[#303548] py-2 last:border-b-0">
-            <div className="mb-1 flex items-center gap-2">
+        <article className="post-card__recent-item">
+            <div className="post-card__recent-header">
                 <img
                     src={post.avatar}
                     alt={post.user}
-                    className="h-6 w-6 rounded-full object-cover"
+                    className="post-card__recent-avatar"
                 />
-                <p className="text-[12px] text-[#b3b8c7]">
+                <p className="post-card__recent-meta">
                     {post.user} • {post.time}
                 </p>
             </div>
 
-            <div className="flex items-center justify-between gap-3">
-                <p className="text-[16px] leading-[1.45] text-[#e7ebf5]">{post.body}</p>
+            <div className="post-card__recent-body">
+                <p className="post-card__recent-text">{post.body}</p>
                 {post.image && (
                     <img
                         src={post.image}
                         alt="journal"
-                        className="h-[52px] w-[52px] rounded-[6px] object-cover"
+                        className="post-card__recent-image"
                     />
                 )}
             </div>
@@ -87,42 +88,42 @@ export default function PostCard({ post, compact = false, variant = 'feed', curr
     }
 
     return (
-        <article className="w-full max-w-[600px] rounded-[10px] bg-[#212633] p-5 text-white">
-            <div className="flex items-start justify-between">
-                <div className="flex items-center gap-2.5">
-                    <img src={post.avatar} alt={post.user} className="h-10 w-10 rounded-full object-cover" />
-                    <div>
-                        <p className="text-[15px] font-medium leading-none">{post.user}</p>
-                        <p className="mt-1 text-[13px] leading-none text-[#9ca0ad]">• {post.time}</p>
+        <article className="post-card__container">
+            <div className="post-card__header">
+                <div className="post-card__author-wrap">
+                    <img src={post.avatar} alt={post.user} className="post-card__author-avatar" />
+                    <div className="post-card__author-meta">
+                        <p className="post-card__author-name">{post.user}</p>
+                        <p className="post-card__author-time">• {post.time}</p>
                     </div>
                 </div>
 
-                <div className="relative">
+                <div className="post-card__menu-wrap">
                     <button
                         type="button"
                         onClick={() => setMenuOpen((prev) => !prev)}
-                        className="flex h-8 w-8 items-center justify-center rounded-full text-[#9095a4] transition-colors hover:bg-[#2a3043] hover:text-white"
+                        className="post-card__menu-btn"
                         aria-label="Post options"
                     >
-                        <span className="material-symbols-outlined text-[18px]">more_vert</span>
+                        <span className="material-symbols-outlined post-card__menu-icon">more_vert</span>
                     </button>
 
                     {menuOpen && (
-                        <div className="absolute right-0 top-9 z-20 w-[160px] rounded-[10px] border border-[#323848] bg-[#1f2332] p-1.5 text-[13px] shadow-xl">
+                        <div className="post-card__menu-dropdown">
                             {ownsPost ? (
                                 <>
-                                    <button type="button" className="block h-8 w-full rounded px-2 text-left text-white transition-colors hover:bg-[#2a3043]">
+                                    <button type="button" className="post-card__menu-item">
                                         Edit Post
                                     </button>
-                                    <button type="button" className="block h-8 w-full rounded px-2 text-left text-white transition-colors hover:bg-[#2a3043]">
+                                    <button type="button" className="post-card__menu-item">
                                         Change Privacy
                                     </button>
-                                    <button type="button" className="block h-8 w-full rounded px-2 text-left text-[#f08b8b] transition-colors hover:bg-[#2a3043]">
+                                    <button type="button" className="post-card__menu-item post-card__menu-item--danger">
                                         Delete Post
                                     </button>
                                 </>
                             ) : (
-                                <button type="button" className="block h-8 w-full rounded px-2 text-left text-white transition-colors hover:bg-[#2a3043]">
+                                <button type="button" className="post-card__menu-item">
                                     Report Post
                                 </button>
                             )}
@@ -131,13 +132,13 @@ export default function PostCard({ post, compact = false, variant = 'feed', curr
                 </div>
             </div>
 
-            {!compact && post.title && <h3 className="mt-3 text-[22px] font-semibold leading-[1.3]">{post.title}</h3>}
+            {!compact && post.title && <h3 className="post-card__title">{post.title}</h3>}
 
             <p
-                className={`mt-3 whitespace-pre-line ${
+                className={`post-card__body ${
                     post.quote
-                        ? 'border-l-2 border-[#6750A4] pl-3 text-[22px] italic leading-[1.45]'
-                        : 'text-[16px] leading-[1.55]'
+                        ? 'post-card__body--quote'
+                        : 'post-card__body--default'
                 }`}
             >
                 {post.quote ? `"${visibleBody}"` : visibleBody}
@@ -147,17 +148,17 @@ export default function PostCard({ post, compact = false, variant = 'feed', curr
                 <button
                     type="button"
                     onClick={() => setExpanded((prev) => !prev)}
-                    className="mt-2 text-[14px] font-normal text-[#8e74d5] transition-colors hover:text-[#a58be5]"
+                    className="post-card__expand-btn"
                 >
                     {expanded ? 'Show less' : 'Show more'}
                 </button>
             )}
 
-            {post.image && <img src={post.image} alt="post media" className="mt-3 h-full max-h-[400px] w-full max-w-[560px] rounded-[6px] object-cover" />}
+            {post.image && <img src={post.image} alt="post media" className="post-card__image" />}
 
-            <div className="mt-4 flex items-center gap-2 text-[14px] text-[#b9bdc8]">
+            <div className="post-card__tags-row">
                 {post.mood && (
-                    <span className="rounded-full bg-[#d4ece5] px-2 py-0.5 text-[14px] font-medium text-[#4a4459]">
+                    <span className="post-card__mood-pill">
                         {post.mood}
                     </span>
                 )}
@@ -166,16 +167,16 @@ export default function PostCard({ post, compact = false, variant = 'feed', curr
                 ))}
             </div>
 
-            <div className="mt-3 border-t border-[#303548] pt-3">
-                <div className="grid grid-cols-3 text-center text-[12px] text-[#e8e8e8]">
+            <div className="post-card__actions-wrap">
+                <div className="post-card__actions-grid">
                     <button
                         type="button"
                         onClick={() => setReacted((prev) => !prev)}
-                        className={`flex items-center justify-center gap-1.5 transition-colors ${
-                            reacted ? 'text-[#9b84d8]' : 'hover:text-[#9b84d8]'
+                        className={`post-card__action-btn ${
+                            reacted ? 'post-card__action-btn--active' : ''
                         }`}
                     >
-                        <span className={`material-symbols-outlined text-[20px] transition-transform ${reacted ? 'scale-110' : 'scale-100'}`}>
+                        <span className={`material-symbols-outlined post-card__action-icon ${reacted ? 'post-card__action-icon--active' : ''}`}>
                             {reacted ? 'favorite' : 'favorite_border'}
                         </span>
                         {post.likes}
@@ -184,43 +185,43 @@ export default function PostCard({ post, compact = false, variant = 'feed', curr
                     <button
                         type="button"
                         onClick={() => setShowComments((prev) => !prev)}
-                        className={`flex items-center justify-center gap-1.5 transition-colors ${
-                            showComments ? 'text-[#9b84d8]' : 'hover:text-[#9b84d8]'
+                        className={`post-card__action-btn ${
+                            showComments ? 'post-card__action-btn--active' : ''
                         }`}
                     >
-                        <span className="material-symbols-outlined text-[20px]">chat_bubble_outline</span>
+                        <span className="material-symbols-outlined post-card__action-icon">chat_bubble_outline</span>
                         {post.comments}
                     </button>
 
                     <button
                         type="button"
                         onClick={handleShare}
-                        className={`flex items-center justify-center gap-1.5 transition-colors ${
-                            shared ? 'text-[#9b84d8]' : 'hover:text-[#9b84d8]'
+                        className={`post-card__action-btn ${
+                            shared ? 'post-card__action-btn--active' : ''
                         }`}
                     >
-                        <span className="material-symbols-outlined text-[20px]">share</span>
-                        <span className="text-[13px]">{shared ? 'Copied' : 'Share'}</span>
+                        <span className="material-symbols-outlined post-card__action-icon">share</span>
+                        <span className="post-card__share-label">{shared ? 'Copied' : 'Share'}</span>
                     </button>
                 </div>
             </div>
 
             {showComments && (
-                <div className="mt-3 space-y-3">
-                    <div className="flex items-center gap-2 rounded-[10px] border border-[#2f3446] bg-[#1d2230] p-2.5">
+                <div className="post-card__comments-section">
+                    <div className="post-card__comment-input-row">
                         <input
                             value={commentInput}
                             onChange={(event) => setCommentInput(event.target.value)}
                             placeholder="Write a comment..."
-                            className="w-full bg-transparent text-[14px] text-[#d4d8e6] placeholder:text-[#7e8598] focus:outline-none"
+                            className="post-card__comment-input"
                         />
                         <button
                             type="button"
                             onClick={handleAddComment}
-                            className="flex h-8 w-8 items-center justify-center rounded-full text-[#9b84d8] transition-colors hover:bg-[#2a3043]"
+                            className="post-card__comment-send"
                             aria-label="Send comment"
                         >
-                            <span className="material-symbols-outlined text-[18px]">send</span>
+                            <span className="material-symbols-outlined post-card__comment-send-icon">send</span>
                         </button>
                     </div>
 

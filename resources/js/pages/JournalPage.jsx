@@ -1,3 +1,4 @@
+import '../../sass/pages/JournalPage.scss';
 import React, { useMemo, useState } from 'react';
 import JournalCard from '../components/journal/JournalCard';
 import ComposerModal from '../components/layout/ComposerModal';

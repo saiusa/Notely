@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { sidebarUser } from '../../utils/socialMockData';
 import NotelyLogo from './Notely-Logo.svg';
+import '../../../sass/components/layout/Sidebar.scss';
 
 const navItems = [
   { key: 'home', label: 'Home', icon: 'home', to: '/home' },
@@ -29,26 +30,26 @@ export default function Sidebar({ active = 'home', onActiveChange = () => {} }) 
   }, [pathname]);
 
   return (
-    <aside className="sticky top-0 flex h-screen w-[260px] flex-col border-r border-[#323848] bg-[#1B1C24] px-5 py-5">
+    <aside className="sidebar__container">
       
       {/* Logo */}
-      <div className="mb-10 mt-5 flex justify-center">
-        <img src={NotelyLogo} alt="Notely" className="h-[32px] w-auto" />
+      <div className="sidebar__logo">
+        <img src={NotelyLogo} alt="Notely" className="sidebar__logo-image" />
       </div>
 
-      <nav className="space-y-2">
+      <nav className="sidebar__nav">
         
         {/* Home */}
         <Link
           to="/home"
           onClick={() => onActiveChange('home')}
-          className={`flex h-[40px] items-center gap-2.5 rounded-[9px] px-3 text-[13px] font-medium transition-colors ${
+          className={`sidebar__nav-item ${
             active === 'home'
-              ? 'bg-[#343b4f] text-white'
-              : 'text-white hover:bg-[#23283a]'
+              ? 'sidebar__nav-item--active'
+              : 'sidebar__nav-item--inactive'
           }`}
         >
-          <span className="material-symbols-outlined text-[18px]">home</span>
+          <span className="material-symbols-outlined sidebar__nav-icon">home</span>
           Home
         </Link>
 
@@ -56,15 +57,15 @@ export default function Sidebar({ active = 'home', onActiveChange = () => {} }) 
         <Link
           to="/community/browse"
           onClick={() => setCommunityOpen(true)}
-          className="flex h-[40px] w-full items-center justify-between rounded-[9px] px-3 text-[13px] font-medium text-white transition-colors hover:bg-[#23283a]"
+          className="sidebar__community-toggle"
         >
-          <span className="flex items-center gap-2.5">
-            <span className="material-symbols-outlined text-[18px]">groups</span>
+          <span className="sidebar__community-left">
+            <span className="material-symbols-outlined sidebar__nav-icon">groups</span>
             Community
           </span>
           <span
-            className={`material-symbols-outlined text-[18px] transition-transform ${
-              communityOpen ? 'rotate-90' : ''
+            className={`material-symbols-outlined sidebar__chevron ${
+              communityOpen ? 'sidebar__chevron--open' : ''
             }`}
           >
             chevron_right
@@ -72,18 +73,14 @@ export default function Sidebar({ active = 'home', onActiveChange = () => {} }) 
         </Link>
 
         {/* Community Dropdown */}
-        <div
-          className={`space-y-1 overflow-hidden transition-all duration-300 ease-out ${
-            communityOpen ? 'max-h-[96px] opacity-100' : 'max-h-0 opacity-0'
-          }`}
-        >
-          <div className="space-y-1">
+        <div className={`sidebar__community-dropdown ${communityOpen ? 'sidebar__community-dropdown--open' : ''}`}>
+          <div className="sidebar__community-menu">
             <Link
               to="/community/browse"
-              className={`flex h-[40px] w-full items-center rounded-[9px] px-6 text-left text-[13px] transition-colors ${
+              className={`sidebar__community-link ${
                 isCommunityBrowse
-                  ? 'bg-[#343b4f] text-white'
-                  : 'text-[#d1d3dc] hover:bg-[#23283a]'
+                  ? 'sidebar__community-link--active'
+                  : 'sidebar__community-link--inactive'
               }`}
             >
               Browse
@@ -91,10 +88,10 @@ export default function Sidebar({ active = 'home', onActiveChange = () => {} }) 
 
             <Link
               to="/community/my-community"
-              className={`flex h-[40px] w-full items-center rounded-[9px] px-6 text-left text-[13px] transition-colors ${
+              className={`sidebar__community-link ${
                 isCommunityMy
-                  ? 'bg-[#343b4f] text-white'
-                  : 'text-[#d1d3dc] hover:bg-[#23283a]'
+                  ? 'sidebar__community-link--active'
+                  : 'sidebar__community-link--inactive'
               }`}
             >
               My Community
@@ -106,29 +103,29 @@ export default function Sidebar({ active = 'home', onActiveChange = () => {} }) 
         <Link
           to="/journal"
           onClick={() => onActiveChange('journal')}
-          className={`flex h-[40px] items-center gap-2.5 rounded-[9px] px-3 text-[13px] font-medium transition-colors ${
+          className={`sidebar__nav-item ${
             active === 'journal'
-              ? 'bg-[#343b4f] text-white'
-              : 'text-white hover:bg-[#23283a]'
+              ? 'sidebar__nav-item--active'
+              : 'sidebar__nav-item--inactive'
           }`}
         >
-          <span className="material-symbols-outlined text-[18px]">book_2</span>
+          <span className="material-symbols-outlined sidebar__nav-icon">book_2</span>
           Journal
         </Link>
 
-        <div className="my-6 border-t border-[#2b3041]" />
+        <div className="sidebar__divider" />
 
         {/* Profile */}
         <Link
           to="/profile"
           onClick={() => onActiveChange('profile')}
-          className={`flex h-[40px] items-center gap-2.5 rounded-[9px] px-3 text-[13px] font-medium transition-colors ${
+          className={`sidebar__nav-item ${
             active === 'profile'
-              ? 'bg-[#343b4f] text-white'
-              : 'text-white hover:bg-[#23283a]'
+              ? 'sidebar__nav-item--active'
+              : 'sidebar__nav-item--inactive'
           }`}
         >
-          <span className="material-symbols-outlined text-[18px]">person</span>
+          <span className="material-symbols-outlined sidebar__nav-icon">person</span>
           Profile
         </Link>
 
@@ -136,13 +133,13 @@ export default function Sidebar({ active = 'home', onActiveChange = () => {} }) 
         <Link
           to="/settings"
           onClick={() => onActiveChange('settings')}
-          className={`flex h-[40px] items-center gap-2.5 rounded-[9px] px-3 text-[13px] font-medium transition-colors ${
+          className={`sidebar__nav-item ${
             active === 'settings'
-              ? 'bg-[#343b4f] text-white'
-              : 'text-white hover:bg-[#23283a]'
+              ? 'sidebar__nav-item--active'
+              : 'sidebar__nav-item--inactive'
           }`}
         >
-          <span className="material-symbols-outlined text-[18px]">settings</span>
+          <span className="material-symbols-outlined sidebar__nav-icon">settings</span>
           Settings
         </Link>
       </nav>
@@ -150,37 +147,37 @@ export default function Sidebar({ active = 'home', onActiveChange = () => {} }) 
       {/* Write Button */}
       <button
         type="button"
-        className="mt-auto h-[40px] rounded-[9px] bg-[#785ebf] text-[14px] font-semibold text-white transition-colors hover:bg-[#8b70d4] active:bg-[#6b4fa8]"
+        className="sidebar__write-btn"
       >
         Write
       </button>
 
       {/* Profile Section */}
-      <div className="relative mt-6 border-t border-[#2b3041] pt-4">
+      <div className="sidebar__profile-section">
         <button
           type="button"
           onClick={() => setMenuOpen(!menuOpen)}
-          className="flex w-full items-center justify-between rounded-[9px] px-2 py-2 hover:bg-[#23283a]"
+          className="sidebar__profile-toggle"
         >
-          <div className="flex items-center gap-3">
+          <div className="sidebar__profile-left">
             <img
               src={sidebarUser.avatar}
               alt={sidebarUser.name}
-              className="h-[40px] w-[40px] rounded-full object-cover"
+              className="sidebar__profile-avatar"
             />
-            <div>
-              <p className="text-[13px] font-semibold text-white">
+            <div className="sidebar__profile-meta">
+              <p className="sidebar__profile-name">
                 {sidebarUser.name}
               </p>
-              <p className="text-[12px] text-[#8a8a8a]">
+              <p className="sidebar__profile-username">
                 {sidebarUser.username}
               </p>
             </div>
           </div>
 
           <span
-            className={`material-symbols-outlined text-[18px] text-white transition-transform ${
-              menuOpen ? 'rotate-90' : ''
+            className={`material-symbols-outlined sidebar__profile-chevron ${
+              menuOpen ? 'sidebar__profile-chevron--open' : ''
             }`}
           >
             chevron_right
@@ -188,16 +185,16 @@ export default function Sidebar({ active = 'home', onActiveChange = () => {} }) 
         </button>
 
         {menuOpen && (
-          <div className="absolute bottom-[80px] left-0 right-0 z-50 rounded-[10px] border border-[#323848] bg-[#1f2332] p-2 text-[13px] shadow-xl">
-            <button className="flex h-8 w-full items-center gap-2 rounded px-3 text-white hover:bg-[#2a3043]">
-              <span className="material-symbols-outlined text-[16px]">
+          <div className="sidebar__profile-menu">
+            <button className="sidebar__profile-menu-item">
+              <span className="material-symbols-outlined sidebar__profile-menu-icon">
                 person
               </span>
               View Profile
             </button>
 
-            <button className="flex h-8 w-full items-center gap-2 rounded px-3 text-white hover:bg-[#2a3043]">
-              <span className="material-symbols-outlined text-[16px]">
+            <button className="sidebar__profile-menu-item">
+              <span className="material-symbols-outlined sidebar__profile-menu-icon">
                 logout
               </span>
               Logout

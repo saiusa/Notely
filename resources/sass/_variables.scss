@@ -1,6 +1,9 @@
 // Body
 $body-bg: #f8fafc;
 
+// Shared design tokens used by app components
+@import 'design-tokens';
+
 // Typography
 $font-family-sans-serif: 'Nunito', sans-serif;
 $font-size-base: 0.9rem;

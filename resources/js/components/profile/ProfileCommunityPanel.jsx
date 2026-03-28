@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react';
+import '../../../sass/components/profile/ProfileCommunityPanel.scss';
 
 export default function ProfileCommunityPanel({ communities }) {
     const [expanded, setExpanded] = useState(false);
@@ -11,20 +12,20 @@ export default function ProfileCommunityPanel({ communities }) {
     }, [communities, expanded]);
 
     return (
-        <aside className="sticky top-[96px] h-fit rounded-[10px] bg-[#212633] p-6">
-            <h4 className="mb-4 text-[14px] font-medium tracking-[0.02em]">COMMUNITIES</h4>
+        <aside className="profile-community-panel">
+            <h4 className="profile-community-panel__title">COMMUNITIES</h4>
 
-            <div className="space-y-2.5">
+            <div className="profile-community-panel__list">
                 {visibleCommunities.map((community) => (
-                    <div key={community.id} className="flex items-center gap-2.5">
+                    <div key={community.id} className="profile-community-panel__item">
                         <img
                             src="https://images.unsplash.com/photo-1520523839897-bd0b52f945a0?auto=format&fit=crop&w=110&q=80"
                             alt={community.name}
-                            className="h-12 w-12 rounded-[6px] object-cover"
+                            className="profile-community-panel__image"
                         />
-                        <div>
-                            <p className="text-[16px] font-normal leading-[1.25]">{community.name}</p>
-                            <p className="text-[14px] font-normal leading-[1.25] text-[#8f94a2]">{community.handle}</p>
+                        <div className="profile-community-panel__item-text">
+                            <p className="profile-community-panel__name">{community.name}</p>
+                            <p className="profile-community-panel__handle">{community.handle}</p>
                         </div>
                     </div>
                 ))}
@@ -34,10 +35,10 @@ export default function ProfileCommunityPanel({ communities }) {
                 <button
                     type="button"
                     onClick={() => setExpanded((prev) => !prev)}
-                    className="mt-4 flex items-center gap-1 text-[14px] font-normal leading-[1.2] text-[#cacddd] transition-colors hover:text-[#785EBF]"
+                    className="profile-community-panel__toggle"
                 >
                     {expanded ? 'Show less' : 'Show more'}
-                    <span className={`material-symbols-outlined text-[18px] transition-transform ${expanded ? 'rotate-90' : ''}`}>
+                    <span className={`material-symbols-outlined profile-community-panel__toggle-icon ${expanded ? 'profile-community-panel__toggle-icon--expanded' : ''}`}>
                         chevron_right
                     </span>
                 </button>

@@ -1,11 +1,21 @@
 import React from 'react';
+import '../../../sass/components/community/Community.scss';
 
 export default function CommunityAboutPanel({ community }) {
     return (
-        <article className="rounded-[10px] bg-[#212633] p-6">
-            <h3 className="text-[44px] font-medium leading-[1.1] text-white">About this community</h3>
-            <p className="mt-3 text-[20px] text-[#9ca0ad]">Created: {community.createdAt}</p>
-            <p className="mt-6 text-[32px] leading-[1.5] text-[#e3e7ef]">{community.about}</p>
+        <article className="community-about-panel__container">
+            <h3 className="community-about-panel__title">About this community</h3>
+            <p className="community-about-panel__meta">Created: {community.createdAt}</p>
+            <p
+                className="community-about-panel__description"
+                style={{
+                    display: '-webkit-box',
+                    WebkitBoxOrient: 'vertical',
+                    WebkitLineClamp: 14,
+                }}
+            >
+                {community.about}
+            </p>
         </article>
     );
 }

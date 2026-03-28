@@ -3,10 +3,10 @@ import ComposerModal from '../components/layout/ComposerModal';
 import SocialLayout from '../components/layout/SocialLayout';
 import PostCard from '../components/posts/PostCard';
 import { currentUser, feedPosts, recentJournals } from '../utils/socialMockData';
+import '../../sass/pages/HomePage.scss';
 
 export default function HomePage() {
     const [activeTab, setActiveTab] = useState('explore');
-    const [selectedPostType, setSelectedPostType] = useState('text');
     const [composerMode, setComposerMode] = useState(null);
     const [recentJournalHistory, setRecentJournalHistory] = useState(
         recentJournals.filter((journal) => journal.isPublic)
@@ -25,7 +25,6 @@ export default function HomePage() {
     }, [activeTab]);
 
     const handleSelectComposer = (type) => {
-        setSelectedPostType(type);
         setComposerMode(type);
     };
 
@@ -38,49 +37,47 @@ export default function HomePage() {
             recentJournals={recentJournalHistory}
             onClearRecentJournals={() => setRecentJournalHistory([])}
         >
-            <section className="mx-auto w-[600px] space-y-3">
+            <section className="home-page__container">
 
                 {/* Composer Selector */}
-                <div className="grid grid-cols-3 gap-2 rounded-[10px] bg-[#212633] p-2">
-                    {[
-                        { key: 'text', icon: 'format_size' },
-                        { key: 'quote', icon: 'format_quote' },
-                        { key: 'image', icon: 'image' },
-                    ].map((item) => (
-                        <button
-                            key={item.key}
-                            onClick={() => handleSelectComposer(item.key)}
-                            className={`flex h-[56px] items-center justify-center rounded-[8px] transition-colors ${
-                                selectedPostType === item.key
-                                    ? 'bg-[#2f3548] text-white'
-                                    : 'text-[#d2d6e3] hover:bg-[#2f3548]'
-                            }`}
-                        >
-                            <span className="material-symbols-outlined text-[24px]">
-                                {item.icon}
-                            </span>
-                        </button>
-                    ))}
+                <div className="home-page__composer-selector">
+                    <div className="selector-grid">
+                        {[
+                            { key: 'text', icon: 'format_size' },
+                            { key: 'quote', icon: 'format_quote' },
+                            { key: 'image', icon: 'image' },
+                        ].map((item) => (
+                            <button
+                                key={item.key}
+                                onClick={() => handleSelectComposer(item.key)}
+                                className="home-page__composer-btn"
+                            >
+                                <span className="material-symbols-outlined icon">
+                                    {item.icon}
+                                </span>
+                            </button>
+                        ))}
+                    </div>
                 </div>
 
                 {/* Posts */}
-                {headingPosts.map((post) => (
-                    <PostCard
-                        key={post.id}
-                        post={post}
-                        currentUserUsername={currentUser.username}
-                    />
-                ))}
+                <div className="home-page__posts">
+                    {headingPosts.map((post) => (
+                        <PostCard
+                            key={post.id}
+                            post={post}
+                            currentUserUsername={currentUser.username}
+                        />
+                    ))}
+                </div>
             </section>
 
             {/* Composer Modal */}
             {composerMode && (
-                <div className="fixed left-[260px] right-0 top-0 z-[60] flex justify-center px-4 xl:right-[400px]">
-                    <ComposerModal
-                        mode={composerMode}
-                        onClose={() => setComposerMode(null)}
-                    />
-                </div>
+                <ComposerModal
+                    mode={composerMode}
+                    onClose={() => setComposerMode(null)}
+                />
             )}
         </SocialLayout>
     );

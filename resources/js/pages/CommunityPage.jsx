@@ -5,7 +5,7 @@ import CategoryBentoCard from '../components/community/CategoryBentoCard';
 import CommunityDetailHeader from '../components/community/CommunityDetailHeader';
 import CommunityListCard from '../components/community/CommunityListCard';
 import CommunityMembersPanel from '../components/community/CommunityMembersPanel';
-import CommunityRightSidebar from '../components/community/CommunityRightSidebar';
+import CommunityRightSidebar from '../components/community/CommunitySidebar';
 import {
     categoryCards,
     communities,
@@ -16,6 +16,7 @@ import ComposerModal from '../components/layout/ComposerModal';
 import SocialLayout from '../components/layout/SocialLayout';
 import PostCard from '../components/posts/PostCard';
 import { feedPosts } from '../utils/socialMockData';
+import '../../sass/pages/CommunityPage.scss';
 
 export default function CommunityPage() {
     const { category, communityId } = useParams();
@@ -32,7 +33,7 @@ export default function CommunityPage() {
     const [showHeaderMenu, setShowHeaderMenu] = useState(false);
     const [memberSearch, setMemberSearch] = useState('');
     const [composerMode, setComposerMode] = useState(null);
-    const [joinedIds, setJoinedIds] = useState(new Set(myCommunityIds));
+    const [joinedIds, setJoinedIds] = useState(() => new Set(myCommunityIds));
 
     useEffect(() => {
         setActiveTab('posts');
@@ -52,12 +53,10 @@ export default function CommunityPage() {
     }, [category]);
 
     const myCommunities = useMemo(() => {
-        return communities.filter((community) => myCommunityIds.includes(community.id));
-    }, []);
+        return communities.filter((community) => joinedIds.has(community.id));
+    }, [joinedIds]);
 
-    const isJoined = selectedCommunity
-        ? isMyCommunityRoute || joinedIds.has(selectedCommunity.id)
-        : false;
+    const isJoined = selectedCommunity ? joinedIds.has(selectedCommunity.id) : false;
 
     const visibleMembers = useMemo(() => {
         const query = memberSearch.trim().toLowerCase();
@@ -67,20 +66,30 @@ export default function CommunityPage() {
         return memberDirectory.filter((member) => member.name.toLowerCase().includes(query));
     }, [memberSearch]);
 
-    const handleJoinToggle = () => {
-        if (!selectedCommunity || isMyCommunityRoute) {
+    const handleJoinCommunity = () => {
+        if (!selectedCommunity || joinedIds.has(selectedCommunity.id)) {
             return;
         }
 
         setJoinedIds((prev) => {
             const next = new Set(prev);
-            if (next.has(selectedCommunity.id)) {
-                next.delete(selectedCommunity.id);
-            } else {
-                next.add(selectedCommunity.id);
-            }
+            next.add(selectedCommunity.id);
             return next;
         });
+    };
+
+    const handleLeaveCommunity = () => {
+        if (!selectedCommunity || !joinedIds.has(selectedCommunity.id)) {
+            return;
+        }
+
+        setJoinedIds((prev) => {
+            const next = new Set(prev);
+            next.delete(selectedCommunity.id);
+            return next;
+        });
+        setComposerMode(null);
+        setShowHeaderMenu(false);
     };
 
     const handleCopyLink = async () => {
@@ -124,7 +133,7 @@ export default function CommunityPage() {
     if (isDetailRoute && !selectedCommunity) {
         return (
             <SocialLayout activeNav={communityNav} navbarMode="title" title="Community">
-                <p className="text-[16px] text-[#c9cdd8]">Community not found.</p>
+                <p className="community-page__not-found">Community not found.</p>
             </SocialLayout>
         );
     }
@@ -138,8 +147,8 @@ export default function CommunityPage() {
             onBack={handleBack}
         >
             {isBrowseRoot ? (
-                <section>
-                    <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
+                <section className="community-page__section">
+                    <div className="community-page__category-grid">
                         {categoryCards.concat(categoryCards).map((categoryItem, index) => (
                             <CategoryBentoCard key={`${categoryItem.id}-${index}`} category={categoryItem} />
                         ))}
@@ -148,18 +157,18 @@ export default function CommunityPage() {
             ) : null}
 
             {isCategoryRoute ? (
-                <section>
-                    <div className="mb-6 flex items-center justify-between gap-4">
-                        <h2 className="text-[24px] font-semibold leading-[1.2] text-white">{selectedCategoryLabel}</h2>
+                <section className="community-page__section">
+                    <div className="community-page__header-row">
+                        <h2 className="community-page__header-title">{selectedCategoryLabel}</h2>
                         <button
                             type="button"
-                            className="h-[44px] rounded-[9px] bg-[#785ebf] px-7 text-[16px] font-normal text-white transition-colors hover:bg-[#8b70d4]"
+                            className="community-page__create-btn"
                         >
                             Create Community
                         </button>
                     </div>
 
-                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+                    <div className="community-page__community-grid">
                         {filteredCommunities.map((community) => (
                             <CommunityListCard
                                 key={community.id}
@@ -173,8 +182,8 @@ export default function CommunityPage() {
             ) : null}
 
             {isMyCommunityList ? (
-                <section>
-                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+                <section className="community-page__section">
+                    <div className="community-page__community-grid">
                         {myCommunities.map((community) => (
                             <CommunityListCard
                                 key={community.id}
@@ -188,41 +197,43 @@ export default function CommunityPage() {
             ) : null}
 
             {isDetailRoute ? (
-                <section className="space-y-4">
+                <section className="community-page__detail-section">
                     <CommunityDetailHeader
                         community={selectedCommunity}
                         isJoined={isJoined}
-                        isMyCommunityRoute={isMyCommunityRoute}
                         showHeaderMenu={showHeaderMenu}
                         onToggleMenu={() => setShowHeaderMenu((prev) => !prev)}
+                        onLeaveCommunity={handleLeaveCommunity}
                         onCopyLink={handleCopyLink}
                         onReport={handleReport}
-                        onJoinToggle={handleJoinToggle}
+                        onJoinCommunity={handleJoinCommunity}
                     />
 
-                    <div className="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_340px]">
-                        <div className="space-y-4">
+                    <div className="community-page__detail-grid">
+                        <div className="community-page__detail-main">
                             {activeTab === 'posts' && isJoined ? (
-                                <div className="grid grid-cols-3 gap-2 rounded-[10px] bg-[#212633] p-2">
-                                    {[
-                                        { key: 'text', icon: 'format_size' },
-                                        { key: 'quote', icon: 'format_quote' },
-                                        { key: 'image', icon: 'image' },
-                                    ].map((item) => (
-                                        <button
-                                            key={item.key}
-                                            type="button"
-                                            onClick={() => setComposerMode(item.key)}
-                                            className="flex h-[56px] items-center justify-center rounded-[8px] text-white transition-colors hover:bg-[#2f3548]"
-                                        >
-                                            <span className="material-symbols-outlined text-[24px]">{item.icon}</span>
-                                        </button>
-                                    ))}
+                                <div className="community-page__composer-wrap">
+                                    <div className="community-page__composer-grid">
+                                        {[
+                                            { key: 'text', icon: 'format_size' },
+                                            { key: 'quote', icon: 'format_quote' },
+                                            { key: 'image', icon: 'image' },
+                                        ].map((item) => (
+                                            <button
+                                                key={item.key}
+                                                type="button"
+                                                onClick={() => setComposerMode(item.key)}
+                                                className="community-page__composer-btn"
+                                            >
+                                                <span className="material-symbols-outlined community-page__composer-icon">{item.icon}</span>
+                                            </button>
+                                        ))}
+                                    </div>
                                 </div>
                             ) : null}
 
                             {activeTab === 'posts' ? (
-                                <div className="space-y-3">
+                                <div className="community-page__posts-lane">
                                     {feedPosts.map((post) => (
                                         <PostCard key={`community-${selectedCommunity.id}-${post.id}`} post={post} />
                                     ))}
@@ -234,6 +245,7 @@ export default function CommunityPage() {
                                     memberSearch={memberSearch}
                                     onSearchChange={setMemberSearch}
                                     visibleMembers={visibleMembers}
+                                    memberCount={selectedCommunity.memberCount}
                                 />
                             ) : null}
 
@@ -250,9 +262,7 @@ export default function CommunityPage() {
                     </div>
 
                     {composerMode ? (
-                        <div className="fixed left-[260px] right-0 top-0 z-[60] flex justify-center px-4 xl:right-[360px]">
-                            <ComposerModal mode={composerMode} onClose={() => setComposerMode(null)} />
-                        </div>
+                        <ComposerModal mode={composerMode} onClose={() => setComposerMode(null)} />
                     ) : null}
                 </section>
             ) : null}

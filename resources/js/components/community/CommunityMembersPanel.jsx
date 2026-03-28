@@ -1,25 +1,49 @@
 import React from 'react';
+import '../../../sass/components/community/Community.scss';
 
-export default function CommunityMembersPanel({ memberSearch, onSearchChange, visibleMembers }) {
+export default function CommunityMembersPanel({ memberSearch, onSearchChange, visibleMembers, memberCount }) {
+    const formatMemberCount = (value) => {
+        if (typeof value === 'number') {
+            return value.toLocaleString('en-US');
+        }
+
+        if (typeof value !== 'string') {
+            return '0';
+        }
+
+        const trimmed = value.trim().toLowerCase();
+        const multiplier = trimmed.endsWith('k') ? 1000 : 1;
+        const numeric = Number.parseFloat(trimmed.replace(/k$/, ''));
+
+        if (Number.isNaN(numeric)) {
+            return value;
+        }
+
+        return Math.round(numeric * multiplier).toLocaleString('en-US');
+    };
+
     return (
-        <div className="rounded-[10px] bg-[#212633] p-4">
-            <label className="flex h-[40px] items-center gap-2 rounded-full bg-[#2b3041] px-3 text-[#8c93a7]">
-                <span className="material-symbols-outlined text-[20px]">search</span>
-                <input
-                    value={memberSearch}
-                    onChange={(event) => onSearchChange(event.target.value)}
-                    placeholder="Search Notely"
-                    className="w-full bg-transparent text-[24px] text-white placeholder:text-[#7d8498] focus:outline-none"
-                />
-            </label>
+        <div className="community-members-panel__container">
+            <div className="community-members-panel__header">
+                <p className="community-members-panel__title">{formatMemberCount(memberCount)} Members</p>
+                <label className="community-members-panel__search-wrap">
+                    <span className="material-symbols-outlined community-members-panel__search-icon">search</span>
+                    <input
+                        value={memberSearch}
+                        onChange={(event) => onSearchChange(event.target.value)}
+                        placeholder="Search Community Members"
+                        className="community-members-panel__search-input"
+                    />
+                </label>
+            </div>
 
-            <div className="mt-4 space-y-3">
+            <div className="community-members-panel__list">
                 {visibleMembers.map((member) => (
-                    <article key={member.id} className="flex items-center gap-3 border-b border-[#303548] pb-3 last:border-b-0">
-                        <img src={member.avatar} alt={member.name} className="h-[40px] w-[40px] rounded-full object-cover" />
-                        <div>
-                            <p className="text-[28px] font-medium text-white">{member.name}</p>
-                            <p className="text-[20px] text-[#9ca0ad]">{member.joinedDate}</p>
+                    <article key={member.id} className="community-members-panel__item">
+                        <img src={member.avatar} alt={member.name} className="community-members-panel__avatar" />
+                        <div className="community-members-panel__info">
+                            <p className="community-members-panel__name">{member.name}</p>
+                            <p className="community-members-panel__joined">{member.joinedDate}</p>
                         </div>
                     </article>
                 ))}

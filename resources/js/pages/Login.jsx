@@ -1,3 +1,4 @@
+import '../../sass/pages/Auth.scss';
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 
@@ -16,20 +17,20 @@ export default function Login() {
     };
 
     return (
-        <div className="relative min-h-screen bg-[#1b1c24]">
-            <div className="mx-auto flex w-full max-w-[1440px] justify-center px-6 pt-[140px] sm:px-8 sm:pt-[170px]">
-                <section className="flex w-full max-w-[440px] flex-col items-center gap-[80px]">
-                    <h1 className="font-['Sansita_Swashed'] text-[48px] font-semibold leading-none text-[#785ebf]">
+        <div className="auth-page auth-page--login">
+            <div className="auth-page__container auth-page__container--login">
+                <section className="auth-page__content">
+                    <h1 className="auth-page__brand">
                         Notely
                     </h1>
 
-                    <form onSubmit={onSubmit} className="w-full space-y-[30px]">
-                        <div className="space-y-[30px]">
+                    <form onSubmit={onSubmit} className="auth-page__form">
+                        <div className="auth-page__fields auth-page__fields--spaced">
                             {loginFields.map((field) => (
-                                <div key={field.id} className="space-y-1">
+                                <div key={field.id} className="auth-page__field">
                                     <label
                                         htmlFor={field.id}
-                                        className="block font-['Roboto'] text-[14px] font-medium leading-5 tracking-[0.1px] text-white"
+                                        className="auth-page__label"
                                     >
                                         {field.label}
                                     </label>
@@ -37,24 +38,24 @@ export default function Login() {
                                         id={field.id}
                                         type={field.type}
                                         placeholder={field.placeholder}
-                                        className="h-[52px] w-full rounded-[10px] border-[1.604px] border-[#323848] bg-transparent px-4 font-['Roboto'] text-[16px] font-normal leading-6 tracking-[0.5px] text-white outline-none placeholder:text-[#757575]"
+                                        className="auth-page__input"
                                         required
                                     />
                                 </div>
                             ))}
                         </div>
 
-                        <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-[10px]">
-                                <span className="material-symbols-outlined text-[24px] text-white">check_box_outline_blank</span>
-                                <span className="font-['Roboto'] text-[14px] font-normal leading-5 tracking-[0.1px] text-white">
+                        <div className="auth-page__utility-row">
+                            <div className="auth-page__remember">
+                                <span className="material-symbols-outlined auth-page__remember-icon">check_box_outline_blank</span>
+                                <span className="auth-page__remember-text">
                                     Remember me
                                 </span>
                             </div>
 
                             <Link
                                 to="/forgot-password"
-                                className="font-['Roboto'] text-[14px] font-medium leading-5 tracking-[0.1px] text-[#785ebf]"
+                                className="auth-page__utility-link"
                             >
                                 Forgot Password?
                             </Link>
@@ -63,14 +64,14 @@ export default function Login() {
                         <button
                             type="submit"
                             disabled={loading}
-                            className="h-[52px] w-full rounded-[10px] bg-[#785ebf] font-['Roboto'] text-[18px] font-semibold leading-[1.2] tracking-[-0.18px] text-white disabled:opacity-80"
+                            className="auth-page__submit"
                         >
                             {loading ? 'Loading...' : 'Sign in'}
                         </button>
 
-                        <p className="text-center font-['Roboto'] text-[18px] font-normal leading-[1.5] text-[#6c6c6c]">
+                        <p className="auth-page__footer-text">
                             Need an account?{' '}
-                            <Link to="/signup" className="font-semibold text-[#785ebf] underline">
+                            <Link to="/signup" className="auth-page__footer-link">
                                 Create one
                             </Link>
                         </p>

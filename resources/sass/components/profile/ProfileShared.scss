@@ -1,0 +1,129 @@
+@import '../../variables';
+
+.profile-feed-card {
+  border-radius: 10px;
+  background: #212633;
+  padding: 20px;
+  color: #fff;
+
+  &__header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+  }
+
+  &__user {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  &__avatar {
+    height: 40px;
+    width: 40px;
+    border-radius: 999px;
+    object-fit: cover;
+  }
+
+  &__username {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 600;
+    line-height: 1.15;
+  }
+
+  &__time {
+    margin: 4px 0 0;
+    font-size: 14px;
+    line-height: 1;
+    color: #9ca0ad;
+  }
+
+  &__menu-button {
+    display: flex;
+    height: 28px;
+    width: 28px;
+    align-items: center;
+    justify-content: center;
+    border: 0;
+    border-radius: 999px;
+    background: transparent;
+    color: #9ca0ad;
+    transition: background-color .2s ease, color .2s ease;
+
+    &:hover {
+      background: #2a3043;
+      color: #fff;
+    }
+  }
+
+  &__menu-icon {
+    font-size: 18px;
+  }
+
+  &__body {
+    margin: 16px 0 0;
+    font-size: 16px;
+    line-height: 1.6;
+    color: #e8ebf5;
+  }
+
+  &__image {
+    margin-top: 16px;
+    max-height: 420px;
+    width: 100%;
+    border-radius: 6px;
+    object-fit: cover;
+  }
+
+  &__mood-row {
+    margin-top: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: #b9bdc8;
+  }
+
+  &__mood-pill {
+    border-radius: 999px;
+    background: #f2f4ef;
+    padding: 4px 12px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #4a4459;
+  }
+
+  &__actions-wrap {
+    margin-top: 16px;
+    border-top: 1px solid #303548;
+    padding-top: 12px;
+  }
+
+  &__actions-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    text-align: center;
+    font-size: 13px;
+    color: #e8e8e8;
+  }
+
+  &__action-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    transition: color .2s ease;
+
+    &:hover {
+      color: #9b84d8;
+    }
+  }
+
+  &__action-icon {
+    font-size: 20px;
+  }
+}

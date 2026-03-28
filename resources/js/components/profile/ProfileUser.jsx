@@ -1,4 +1,5 @@
 import React from 'react';
+import '../../../sass/components/profile/ProfileShared.scss';
 
 export const defaultProfile = {
     firstName: 'Jungkook',
@@ -75,48 +76,48 @@ export function ProfilePostFeedCard({ post }) {
     const body = trimPostText(post.text, post.image ? 120 : 180);
 
     return (
-        <article className="rounded-[10px] bg-[#212633] p-5 text-white">
-            <div className="flex items-start justify-between">
-                <div className="flex items-center gap-2.5">
-                    <img src={post.avatar} alt={post.username} className="h-10 w-10 rounded-full object-cover" />
-                    <div>
-                        <p className="text-[24px] font-semibold leading-[1.15]">{post.username}</p>
-                        <p className="mt-1 text-[14px] font-normal leading-none text-[#9ca0ad]">{post.time}</p>
+        <article className="profile-feed-card">
+            <div className="profile-feed-card__header">
+                <div className="profile-feed-card__user">
+                    <img src={post.avatar} alt={post.username} className="profile-feed-card__avatar" />
+                    <div className="profile-feed-card__identity">
+                        <p className="profile-feed-card__username">{post.username}</p>
+                        <p className="profile-feed-card__time">{post.time}</p>
                     </div>
                 </div>
                 <button
                     type="button"
-                    className="flex h-7 w-7 items-center justify-center rounded-full text-[#9ca0ad] transition-colors hover:bg-[#2a3043] hover:text-white"
+                    className="profile-feed-card__menu-button"
                     aria-label="Post options"
                 >
-                    <span className="material-symbols-outlined text-[18px]">more_vert</span>
+                    <span className="material-symbols-outlined profile-feed-card__menu-icon">more_vert</span>
                 </button>
             </div>
 
-            {body ? <p className="mt-4 text-[16px] font-normal leading-[1.6] text-[#e8ebf5]">{body}</p> : null}
+            {body ? <p className="profile-feed-card__body">{body}</p> : null}
 
             {post.image ? (
-                <img src={post.image} alt="journal" className="mt-4 max-h-[420px] w-full rounded-[6px] object-cover" />
+                <img src={post.image} alt="journal" className="profile-feed-card__image" />
             ) : null}
 
-            <div className="mt-4 flex items-center gap-2 text-[13px] text-[#b9bdc8]">
+            <div className="profile-feed-card__mood-row">
                 {post.mood ? (
-                    <span className="rounded-full bg-[#f2f4ef] px-3 py-1 text-[14px] font-medium text-[#4a4459]">{post.mood}</span>
+                    <span className="profile-feed-card__mood-pill">{post.mood}</span>
                 ) : null}
             </div>
 
-            <div className="mt-4 border-t border-[#303548] pt-3">
-                <div className="grid grid-cols-3 text-center text-[13px] text-[#e8e8e8]">
-                    <button type="button" className="flex items-center justify-center gap-1.5 transition-colors hover:text-[#9b84d8]">
-                        <span className="material-symbols-outlined text-[20px]">favorite_border</span>
+            <div className="profile-feed-card__actions-wrap">
+                <div className="profile-feed-card__actions-grid">
+                    <button type="button" className="profile-feed-card__action-button">
+                        <span className="material-symbols-outlined profile-feed-card__action-icon">favorite_border</span>
                         {post.likes || '77k'}
                     </button>
-                    <button type="button" className="flex items-center justify-center gap-1.5 transition-colors hover:text-[#9b84d8]">
-                        <span className="material-symbols-outlined text-[20px]">chat_bubble_outline</span>
+                    <button type="button" className="profile-feed-card__action-button">
+                        <span className="material-symbols-outlined profile-feed-card__action-icon">chat_bubble_outline</span>
                         {post.comments || '700'}
                     </button>
-                    <button type="button" className="flex items-center justify-center transition-colors hover:text-[#9b84d8]">
-                        <span className="material-symbols-outlined text-[20px]">share</span>
+                    <button type="button" className="profile-feed-card__action-button">
+                        <span className="material-symbols-outlined profile-feed-card__action-icon">share</span>
                     </button>
                 </div>
             </div>

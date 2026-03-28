@@ -1,3 +1,4 @@
+import '../../sass/pages/Auth.scss';
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 
@@ -11,28 +12,28 @@ export default function ForgotPassword() {
     };
 
     return (
-        <div className="relative min-h-screen bg-[#1b1c24]">
-            <div className="mx-auto flex w-full max-w-[1440px] justify-center px-6 pt-[150px] sm:px-8 sm:pt-[220px]">
-                <section className="flex w-full max-w-[440px] flex-col items-center gap-[80px]">
-                    <h1 className="font-['Sansita_Swashed'] text-[48px] font-semibold leading-none text-[#785ebf]">
+        <div className="auth-page auth-page--forgot-password">
+            <div className="auth-page__container auth-page__container--forgot-password">
+                <section className="auth-page__content">
+                    <h1 className="auth-page__brand">
                         Notely
                     </h1>
 
-                    <div className="w-full space-y-10">
-                        <div className="space-y-5 text-center">
-                            <h2 className="font-['Roboto'] text-[28px] font-medium leading-[1.286] text-white">
+                    <div className="auth-page__panel">
+                        <div className="auth-page__intro">
+                            <h2 className="auth-page__heading">
                                 Reset your password
                             </h2>
-                            <p className="font-['Roboto'] text-[18px] font-normal leading-[1.5] text-[#b3b3b3]">
+                            <p className="auth-page__description">
                                 Enter your email address and we&apos;ll send you instructions to reset your password.
                             </p>
                         </div>
 
-                        <form onSubmit={onSubmit} className="space-y-[30px]">
-                            <div className="space-y-1">
+                        <form onSubmit={onSubmit} className="auth-page__form">
+                            <div className="auth-page__field">
                                 <label
                                     htmlFor="forgot-email"
-                                    className="block font-['Roboto'] text-[14px] font-medium leading-5 tracking-[0.1px] text-white"
+                                    className="auth-page__label"
                                 >
                                     Email address
                                 </label>
@@ -40,7 +41,7 @@ export default function ForgotPassword() {
                                     id="forgot-email"
                                     type="email"
                                     placeholder="Enter your email"
-                                    className="h-[52px] w-full rounded-[10px] border-[1.604px] border-[#323848] bg-transparent px-4 font-['Roboto'] text-[16px] font-normal leading-6 tracking-[0.5px] text-white outline-none placeholder:text-[#757575]"
+                                    className="auth-page__input"
                                     required
                                 />
                             </div>
@@ -48,15 +49,15 @@ export default function ForgotPassword() {
                             <button
                                 type="submit"
                                 disabled={loading}
-                                className="h-[52px] w-full rounded-[10px] bg-[#785ebf] font-['Roboto'] text-[18px] font-semibold leading-[1.2] tracking-[-0.18px] text-white disabled:opacity-80"
+                                className="auth-page__submit"
                             >
                                 {loading ? 'Loading...' : 'Send reset link'}
                             </button>
                         </form>
 
-                        <div className="flex items-center justify-center gap-[10px] text-[#6c6c6c]">
-                            <span className="material-symbols-outlined text-[24px]">arrow_back</span>
-                            <Link to="/login" className="font-['Roboto'] text-[18px] font-normal leading-[1.5]">
+                        <div className="auth-page__back-link-row">
+                            <span className="material-symbols-outlined auth-page__back-icon">arrow_back</span>
+                            <Link to="/login" className="auth-page__back-link">
                                 Back to login
                             </Link>
                         </div>

@@ -2,6 +2,7 @@ import React from 'react';
 import Sidebar from './Sidebar';
 import TopNavbar from './TopNavbar';
 import RecentJournals from './RecentJournals';
+import '../../../sass/components/layout/SocialLayout.scss';
 
 export default function SocialLayout({
     activeNav,
@@ -18,10 +19,10 @@ export default function SocialLayout({
     children,
 }) {
     const contentContainerClassName =
-        navbarMode === 'tabs' ? 'mx-auto w-full max-w-[720px]' : 'w-full';
+        navbarMode === 'tabs' ? 'social-layout__content-container--tabs' : 'social-layout__content-container--default';
 
     return (
-        <div className="flex min-h-screen bg-[#1B1C24] text-white">
+        <div className="social-layout__wrapper">
             {/* Sidebar */}
             <Sidebar
                 active={activeNav}
@@ -30,7 +31,7 @@ export default function SocialLayout({
             />
 
             {/* Main Content */}
-            <div className="flex min-h-screen min-w-0 flex-1 flex-col">
+            <div className="social-layout__main">
                 {/* Top Navbar */}
                 <TopNavbar
                     mode={navbarMode}
@@ -41,9 +42,9 @@ export default function SocialLayout({
                     onTabChange={onTabChange}
                 />
 
-                <div className="flex min-h-0 flex-1">
+                <div className="social-layout__content-area">
                     {/* Main */}
-                    <main className="flex-1 px-8 pt-[24px] pb-6">
+                    <main className="social-layout__main-content">
                         <div className={contentContainerClassName}>
                             {children}
                         </div>
@@ -51,7 +52,7 @@ export default function SocialLayout({
 
                     {/* Recent Journals */}
                     {recentJournals && (
-                        <aside className="hidden w-[320px] border-l border-[#323848] bg-[#1B1C24] xl:flex">
+                        <aside className="social-layout__recent-journals">
                             <RecentJournals
                                 journals={recentJournals}
                                 onClear={onClearRecentJournals}

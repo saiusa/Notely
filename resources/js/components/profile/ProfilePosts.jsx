@@ -5,6 +5,7 @@ import PostCard from '../posts/PostCard';
 import ProfileCommunityPanel from './ProfileCommunityPanel';
 import { getPublicJournalPosts } from './ProfileUser';
 import { journalCards, profileCommunities } from '../../utils/socialMockData';
+import '../../../sass/components/profile/ProfilePosts.scss';
 
 function formatRelativeTime(dateInput) {
     const createdTime = new Date(dateInput).getTime();
@@ -72,29 +73,29 @@ export default function ProfilePostsPage() {
             showBack
             onBack={() => navigate(-1)}
         >
-            <div className="mx-auto mb-10 grid grid-cols-1 gap-6 xl:grid-cols-[760px_315px] xl:justify-center">
-                <section className="w-full max-w-[760px]">
-                    <div className="mx-auto mb-4 flex w-full max-w-[600px] items-center justify-between">
-                        <h2 className="text-[24px] font-semibold leading-[1.1] text-white">Post</h2>
-                        <div className="relative">
+            <div className="profile-posts-layout">
+                <section className="profile-posts-layout__main">
+                    <div className="profile-posts-layout__header">
+                        <h2 className="profile-posts-layout__title">Post</h2>
+                        <div className="profile-posts-layout__filter-wrap">
                             <button
                                 type="button"
                                 onClick={() => setFilterOpen((prev) => !prev)}
-                                className="flex h-9 w-9 items-center justify-center rounded-full text-[#b6bac6] transition-colors hover:bg-[#23283a] hover:text-white"
+                                className="profile-posts-layout__filter-toggle"
                                 aria-label="Filter public posts"
                             >
-                                <span className="material-symbols-outlined text-[20px]">tune</span>
+                                <span className="material-symbols-outlined profile-posts-layout__filter-icon">tune</span>
                             </button>
 
                             {filterOpen ? (
-                                <div className="absolute right-0 top-[44px] z-30 w-[160px] rounded-[10px] border border-[#323848] bg-[#1f2332] p-1.5 text-[13px] leading-[1.2] shadow-xl">
+                                <div className="profile-posts-layout__filter-menu">
                                     <button
                                         type="button"
                                         onClick={() => {
                                             setSortBy('recent');
                                             setFilterOpen(false);
                                         }}
-                                        className="block h-8 w-full rounded px-2 text-left text-white transition-colors hover:bg-[#2a3043]"
+                                        className="profile-posts-layout__filter-item"
                                     >
                                         Most Recent
                                     </button>
@@ -104,7 +105,7 @@ export default function ProfilePostsPage() {
                                             setSortBy('oldest');
                                             setFilterOpen(false);
                                         }}
-                                        className="block h-8 w-full rounded px-2 text-left text-white transition-colors hover:bg-[#2a3043]"
+                                        className="profile-posts-layout__filter-item"
                                     >
                                         Oldest
                                     </button>
@@ -113,7 +114,7 @@ export default function ProfilePostsPage() {
                         </div>
                     </div>
 
-                    <div className="mx-auto flex w-full max-w-[600px] flex-col gap-4">
+                    <div className="profile-posts-layout__list">
                         {publicPosts.map((post) => (
                             <PostCard key={`profile-public-${post.id}`} post={post} currentUserUsername="jin.bts" />
                         ))}

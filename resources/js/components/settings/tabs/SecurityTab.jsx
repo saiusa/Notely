@@ -14,25 +14,25 @@ export default function SecurityTab({
     onToggleTwoFactor,
 }) {
     return (
-        <div className="flex min-h-[420px] flex-col">
+        <div className="settings-tab settings-tab--security">
             {!showChangePassword ? (
-                <div className="space-y-6">
+                <div className="settings-tab__body settings-tab__body--large-gap">
                     <button
                         type="button"
                         onClick={() => setShowChangePassword(true)}
-                        className="text-left text-[16px] font-semibold text-white transition-colors hover:text-[#9b84d8]"
+                        className="settings-tab__link-button"
                     >
                         Change Password
                     </button>
 
-                    <div className="flex items-center justify-between">
-                        <p className="text-[16px] font-semibold text-white">Two-Factor Authentication</p>
+                    <div className="settings-tab__toggle-row settings-tab__toggle-row--title">
+                        <p className="settings-tab__toggle-title">Two-Factor Authentication</p>
                         <Switch enabled={twoFactorEnabled} onToggle={onToggleTwoFactor} />
                     </div>
                 </div>
             ) : (
-                <div className="space-y-4">
-                    <label className="block">
+                <div className="settings-tab__body settings-tab__body--compact-gap">
+                    <label className="settings-tab__label-wrap">
                         <Label>Current Password</Label>
                         <Input
                             type="password"
@@ -41,7 +41,7 @@ export default function SecurityTab({
                             placeholder="Enter current password"
                         />
                     </label>
-                    <label className="block">
+                    <label className="settings-tab__label-wrap">
                         <Label>New Password</Label>
                         <Input
                             type="password"
@@ -50,7 +50,7 @@ export default function SecurityTab({
                             placeholder="Enter New Password"
                         />
                     </label>
-                    <label className="block">
+                    <label className="settings-tab__label-wrap">
                         <Label>Confirm Password</Label>
                         <Input
                             type="password"
@@ -62,7 +62,7 @@ export default function SecurityTab({
             )}
 
             {showChangePassword && (
-                <div className="mt-auto flex justify-end gap-5 pt-8">
+                <div className="settings-tab__actions">
                     <button
                         type="button"
                         onClick={() => {
@@ -71,13 +71,13 @@ export default function SecurityTab({
                             setNewPassword('');
                             setConfirmPassword('');
                         }}
-                        className="text-[16px] font-medium text-[#e6e8ef] transition-colors hover:text-[#9b84d8]"
+                        className="settings-tab__text-button"
                     >
                         Cancel
                     </button>
                     <button
                         type="button"
-                        className="h-[34px] w-[80px] rounded-[8px] bg-[#785ebf] text-[14px] font-semibold text-white transition-colors hover:bg-[#8c72d4]"
+                        className="settings-tab__primary-button settings-tab__primary-button--small"
                     >
                         Save
                     </button>

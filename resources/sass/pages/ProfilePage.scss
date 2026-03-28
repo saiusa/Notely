@@ -1,0 +1,151 @@
+@import '../variables';
+
+.profile-page-layout {
+  margin: 0 auto 40px;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+
+  @media (min-width: 1280px) {
+    grid-template-columns: 760px 315px;
+    justify-content: center;
+  }
+
+  &__main {
+    width: 100%;
+    max-width: 760px;
+  }
+
+  &__posts-header {
+    margin-top: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  &__posts-title {
+    margin: 0 0 0 8px;
+    font-size: 24px;
+    font-weight: 600;
+    line-height: 1.1;
+  }
+
+  &__show-all-link {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 14px;
+    line-height: 1.2;
+    color: #cacddd;
+    text-decoration: none;
+
+    &:hover {
+      color: #785ebf;
+    }
+  }
+
+  &__show-all-icon {
+    font-size: 20px;
+  }
+
+  &__posts-grid {
+    margin-top: 20px;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 16px;
+
+    @media (min-width: 640px) {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+}
+
+.profile-card {
+  overflow: hidden;
+  border-radius: 10px;
+  background: #212633;
+
+  &__cover {
+    height: 200px;
+    width: 100%;
+    object-fit: cover;
+  }
+
+  &__content {
+    position: relative;
+    padding: 64px 32px 32px;
+  }
+
+  &__avatar {
+    position: absolute;
+    left: 32px;
+    top: -44px;
+    height: 88px;
+    width: 88px;
+    border: 2px solid #212633;
+    border-radius: 999px;
+    object-fit: cover;
+  }
+
+  &__edit-button {
+    position: absolute;
+    right: 32px;
+    top: 16px;
+    height: 38px;
+    border: 0;
+    border-radius: 999px;
+    background: #343b4f;
+    padding: 0 20px;
+    font-size: 16px;
+    font-weight: 500;
+    line-height: 1;
+    color: #fff;
+
+    &:hover {
+      background: #46506a;
+    }
+  }
+
+  &__name {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 500;
+    line-height: 1.15;
+  }
+
+  &__username {
+    margin: 4px 0 0;
+    font-size: 14px;
+    line-height: 1.2;
+    color: #a2a7b7;
+  }
+
+  &__meta-row {
+    margin-top: 24px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 24px;
+    font-size: 14px;
+    line-height: 1.25;
+    color: #d4d8e3;
+  }
+
+  &__meta-item {
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  &__meta-icon {
+    font-size: 20px;
+  }
+
+  &__description {
+    margin: 24px 0 0;
+    max-width: 92%;
+    font-size: 16px;
+    line-height: 1.5;
+  }
+}

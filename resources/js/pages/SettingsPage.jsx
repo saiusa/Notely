@@ -1,3 +1,4 @@
+import '../../sass/components/settings/Settings.scss';
 import React, { useMemo, useState } from 'react';
 import SocialLayout from '../components/layout/SocialLayout';
 import SettingsLayout from '../components/settings/SettingsLayout';

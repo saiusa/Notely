@@ -1,0 +1,257 @@
+@import '../../variables';
+
+.top-navbar {
+  &__container {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    display: flex;
+    height: 80px;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid #2b3041;
+    background: #1b1c24;
+    padding: 0 32px;
+  }
+
+  &__icon-button {
+    position: relative;
+    display: flex;
+    height: 36px;
+    width: 36px;
+    align-items: center;
+    justify-content: center;
+    border: 0;
+    border-radius: 9999px;
+    background: transparent;
+    transition: color 0.15s ease, background-color 0.15s ease;
+    cursor: pointer;
+
+    &--active {
+      background: #2a3042;
+      color: #8f77d2;
+    }
+
+    &--inactive {
+      color: #f4f5fa;
+
+      &:hover {
+        background: #23283a;
+      }
+    }
+  }
+
+  &__icon {
+    font-size: 20px;
+    line-height: 1;
+  }
+
+  &__search {
+    display: none;
+    height: 36px;
+    width: 208px;
+    align-items: center;
+    gap: 8px;
+    border-radius: 9999px;
+    background: #21232c;
+    padding: 0 16px;
+    color: #6f7689;
+
+    @media (min-width: 768px) {
+      display: flex;
+    }
+  }
+
+  &__search-icon {
+    font-size: 18px;
+  }
+
+  &__search-input {
+    width: 100%;
+    border: 0;
+    background: transparent;
+    color: #d4d8e6;
+    font-size: 15px;
+
+    &::placeholder {
+      color: #62697c;
+    }
+
+    &:focus {
+      outline: none;
+    }
+  }
+
+  &__tabs {
+    display: flex;
+    align-items: center;
+    gap: 56px;
+  }
+
+  &__tab {
+    border: 0;
+    background: transparent;
+    padding: 0 16px;
+    font-size: 20px;
+    font-weight: 600;
+    transition: color 0.15s ease;
+    cursor: pointer;
+
+    &--active {
+      color: #6750a4;
+    }
+
+    &--inactive {
+      color: #8a90a6;
+
+      &:hover {
+        color: #bcc2d8;
+      }
+    }
+  }
+
+  &__tab-divider {
+    height: 40px;
+    width: 1px;
+    background: #2b3041;
+  }
+
+  &__filter-wrap {
+    position: relative;
+  }
+
+  &__filter-dropdown {
+    position: absolute;
+    right: 0;
+    top: 44px;
+    z-index: 50;
+    width: 170px;
+    border-radius: 10px;
+    border: 1px solid #323848;
+    background: #1f2332;
+    padding: 6px;
+    font-size: 13px;
+    color: #fff;
+    box-shadow: 0 20px 25px rgba(0, 0, 0, 0.1);
+  }
+
+  &__filter-item {
+    display: block;
+    height: 32px;
+    width: 100%;
+    border: 0;
+    border-radius: 4px;
+    background: transparent;
+    padding: 0 8px;
+    text-align: left;
+    color: inherit;
+    transition: background-color 0.15s ease;
+    cursor: pointer;
+
+    &:hover {
+      background: #2a3043;
+    }
+  }
+
+  &__notification-badge {
+    position: absolute;
+    right: -4px;
+    top: -4px;
+    display: flex;
+    min-width: 18px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 9999px;
+    background: #785ebf;
+    padding: 0 4px;
+    font-size: 10px;
+    font-weight: 600;
+    line-height: 16px;
+    color: #fff;
+  }
+
+  &__home-center {
+    display: flex;
+    flex: 1;
+    justify-content: center;
+  }
+
+  &__right-controls {
+    display: flex;
+    width: 280px;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 12px;
+  }
+
+  &__left-controls {
+    display: flex;
+    width: 240px;
+    flex-shrink: 0;
+    align-items: center;
+    gap: 16px;
+  }
+
+  &__title {
+    font-size: 20px;
+    font-weight: 600;
+    color: #f4f5fa;
+  }
+}
+
+.recent-journals {
+  &__sidebar {
+    position: sticky;
+    top: 100px;
+    width: 320px;
+    align-self: flex-start;
+    background: #1b1c24;
+    padding: 0 20px 0 32px;
+  }
+
+  &__panel {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    border-radius: 12px;
+    background: #212633;
+    padding: 20px;
+  }
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  &__label {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    color: #fff;
+  }
+
+  &__clear-btn {
+    border: 0;
+    background: transparent;
+    color: #a7aebe;
+    font-size: 13px;
+    transition: color 0.15s ease;
+    cursor: pointer;
+
+    &:hover {
+      color: #9b84d8;
+    }
+  }
+
+  &__content {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  &__empty {
+    color: #a7aebe;
+    font-size: 14px;
+  }
+}

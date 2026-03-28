@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import '../../../sass/components/layout/TopNavbar.scss';
 
 function IconButton({ icon, label, active = false, onClick }) {
   return (
@@ -6,23 +7,23 @@ function IconButton({ icon, label, active = false, onClick }) {
       type="button"
       onClick={onClick}
       aria-label={label}
-      className={`relative flex h-9 w-9 items-center justify-center rounded-full transition-colors ${
-        active ? 'bg-[#2a3042] text-[#8f77d2]' : 'text-[#f4f5fa] hover:bg-[#23283a]'
+      className={`top-navbar__icon-button ${
+        active ? 'top-navbar__icon-button--active' : 'top-navbar__icon-button--inactive'
       }`}
     >
-      <span className="material-symbols-outlined text-[20px] leading-none">{icon}</span>
+      <span className="material-symbols-outlined top-navbar__icon">{icon}</span>
     </button>
   );
 }
 
 function SearchBar() {
   return (
-    <label className="hidden h-9 w-[208px] items-center gap-2 rounded-full bg-[#21232C] px-4 text-[#6f7689] md:flex">
-      <span className="material-symbols-outlined text-[18px]">search</span>
+    <label className="top-navbar__search">
+      <span className="material-symbols-outlined top-navbar__search-icon">search</span>
       <input
         type="text"
         placeholder="Search Notely"
-        className="w-full bg-transparent text-[15px] text-[#d4d8e6] placeholder:text-[#62697c] focus:outline-none"
+        className="top-navbar__search-input"
       />
     </label>
   );
@@ -30,22 +31,22 @@ function SearchBar() {
 
 function HomeTabs({ activeTab, onChange }) {
   return (
-    <div className="flex items-center gap-14">
+    <div className="top-navbar__tabs">
       <button
         type="button"
         onClick={() => onChange('explore')}
-        className={`px-4 text-[20px] font-semibold transition-colors ${
-          activeTab === 'explore' ? 'text-[#6750A4]' : 'text-[#8a90a6] hover:text-[#bcc2d8]'
+        className={`top-navbar__tab ${
+          activeTab === 'explore' ? 'top-navbar__tab--active' : 'top-navbar__tab--inactive'
         }`}
       >
         Explore
       </button>
-      <span className="h-10 w-px bg-[#2b3041]" aria-hidden="true" />
+      <span className="top-navbar__tab-divider" aria-hidden="true" />
       <button
         type="button"
         onClick={() => onChange('community')}
-        className={`px-4 text-[20px] font-semibold transition-colors ${
-          activeTab === 'community' ? 'text-[#6750A4]' : 'text-[#8a90a6] hover:text-[#bcc2d8]'
+        className={`top-navbar__tab ${
+          activeTab === 'community' ? 'top-navbar__tab--active' : 'top-navbar__tab--inactive'
         }`}
       >
         Community
@@ -58,14 +59,14 @@ function FilterDropdown({ open }) {
   if (!open) return null;
 
   return (
-    <div className="absolute right-0 top-[44px] z-50 w-[170px] rounded-[10px] border border-[#323848] bg-[#1f2332] p-1.5 text-[13px] text-white shadow-xl">
-      <button className="block h-8 w-full rounded px-2 text-left transition-colors hover:bg-[#2a3043]">
+    <div className="top-navbar__filter-dropdown">
+      <button className="top-navbar__filter-item">
         Recent
       </button>
-      <button className="block h-8 w-full rounded px-2 text-left transition-colors hover:bg-[#2a3043]">
+      <button className="top-navbar__filter-item">
         Popular
       </button>
-      <button className="block h-8 w-full rounded px-2 text-left transition-colors hover:bg-[#2a3043]">
+      <button className="top-navbar__filter-item">
         Most mood used
       </button>
     </div>
@@ -83,13 +84,13 @@ function NotificationButton({ count, active, onClick }) {
       type="button"
       onClick={onClick}
       aria-label="Notifications"
-      className={`relative flex h-9 w-9 items-center justify-center rounded-full transition-colors ${
-        active ? 'bg-[#2a3042] text-[#8f77d2]' : 'text-[#f4f5fa] hover:bg-[#23283a]'
+      className={`top-navbar__icon-button ${
+        active ? 'top-navbar__icon-button--active' : 'top-navbar__icon-button--inactive'
       }`}
     >
-      <span className="material-symbols-outlined text-[20px] leading-none">notifications</span>
+      <span className="material-symbols-outlined top-navbar__icon">notifications</span>
       {count > 0 && (
-        <span className="absolute -right-1 -top-1 flex min-w-[18px] items-center justify-center rounded-full bg-[#785ebf] px-1 text-[10px] font-semibold leading-4 text-white">
+        <span className="top-navbar__notification-badge">
           {normalizedCount}
         </span>
       )}
@@ -100,12 +101,12 @@ function NotificationButton({ count, active, onClick }) {
 function HomeNavbar({ activeTab, onTabChange, filterOpen, setFilterOpen, notificationCount, notificationActive, onNotificationClick }) {
   return (
     <>
-      <div className="flex flex-1 justify-center">
+      <div className="top-navbar__home-center">
         <HomeTabs activeTab={activeTab} onChange={onTabChange} />
       </div>
 
-      <div className="flex items-center gap-3 w-[280px] justify-end">
-        <div className="relative">
+      <div className="top-navbar__right-controls">
+        <div className="top-navbar__filter-wrap">
           <IconButton
             icon="tune"
             label="Filter"
@@ -128,12 +129,12 @@ function HomeNavbar({ activeTab, onTabChange, filterOpen, setFilterOpen, notific
 function DefaultNavbar({ title, showBack, onBack, notificationCount, notificationActive, onNotificationClick }) {
   return (
     <>
-      <div className="flex items-center gap-4 w-60 flex-shrink-0">
+      <div className="top-navbar__left-controls">
         {showBack && <IconButton icon="arrow_back" label="Back" onClick={onBack} />}
-        {title ? <span className="text-[20px] font-semibold text-[#f4f5fa]">{title}</span> : null}
+        {title ? <span className="top-navbar__title">{title}</span> : null}
       </div>
 
-      <div className="flex items-center gap-3 w-[280px] justify-end">
+      <div className="top-navbar__right-controls">
         <SearchBar />
         <NotificationButton
           count={notificationCount}
@@ -181,7 +182,7 @@ export default function TopNavbar({
     <>
       {/* Top Navbar */}
       <header
-        className="sticky top-0 z-50 flex h-[80px] items-center border-b border-[#2b3041] bg-[#1B1C24] px-8 justify-between">
+        className="top-navbar__container">
           
         {mode === 'tabs' ? (
           <HomeNavbar

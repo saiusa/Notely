@@ -1,0 +1,147 @@
+// Color Palette
+$color-primary: #785ebf;
+$color-primary-hover: #8c72d4;
+$color-primary-light: #9b84d8;
+
+$color-bg-primary: #1b1c24;
+$color-bg-secondary: #1b1f2c;
+$color-bg-tertiary: #212633;
+$color-bg-quaternary: #232838;
+$color-bg-hover: #2f3548;
+$color-bg-hover-secondary: #2a3043;
+$color-bg-hover-tertiary: #252b3c;
+$color-bg-disabled: #262b3b;
+$color-bg-toggle-off: #5e6475;
+
+$color-border: #3b4155;
+
+$color-text-primary: #ffffff;
+$color-text-secondary: #dce0ea;
+$color-text-tertiary: #a5abb9;
+$color-text-quaternary: #9aa0ae;
+$color-text-muted: #83899a;
+$color-text-disabled: #8a8f9f;
+$color-text-dark: #c9cdd8;
+
+$color-overlay-dark: rgba(0, 0, 0, 0.6);
+$color-overlay-hover: rgba(255, 255, 255, 0.1);
+
+// Typography
+$font-size-xs: 12px;
+$font-size-sm: 13px;
+$font-size-base: 14px;
+$font-size-md: 16px;
+$font-size-lg: 18px;
+$font-size-xl: 20px;
+$font-size-2xl: 24px;
+$font-size-3xl: 28px;
+$font-size-4xl: 32px;
+
+$font-weight-normal: 400;
+$font-weight-medium: 500;
+$font-weight-semibold: 600;
+$font-weight-bold: 700;
+
+$line-height-tight: 1.2;
+$line-height-normal: 1.5;
+
+// Spacing
+$spacing-xs: 2px;
+$spacing-sm: 4px;
+$spacing-md: 6px;
+$spacing-lg: 8px;
+$spacing-xl: 12px;
+$spacing-2xl: 16px;
+$spacing-3xl: 24px;
+$spacing-4xl: 32px;
+$spacing-5xl: 40px;
+$spacing-6xl: 60px;
+
+// Border Radius
+$radius-sm: 6px;
+$radius-md: 8px;
+$radius-lg: 10px;
+$radius-xl: 12px;
+$radius-2xl: 16px;
+$radius-full: 9999px;
+
+// Shadows
+$shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.1);
+$shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+$shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+$shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.1);
+$shadow-2xl: 0 25px 50px rgba(0, 0, 0, 0.2);
+
+// Z-index
+$z-index-dropdown: 70;
+$z-index-modal: 60;
+$z-index-sticky: 50;
+
+// Breakpoints
+$breakpoint-sm: 640px;
+$breakpoint-md: 768px;
+$breakpoint-lg: 1024px;
+$breakpoint-xl: 1280px;
+
+// Transitions
+$transition-fast: all 0.15s ease-in-out;
+$transition-normal: all 0.3s ease-in-out;
+$transition-slow: all 0.5s ease-in-out;
+
+// Layout
+$layout-max-width: 1440px;
+$composer-width: 600px;
+$sidebar-width: 340px;
+$sidebar-member-count-width: 500px;
+
+// Component Sizes
+$button-height-sm: 36px;
+$button-height-md: 40px;
+$button-height-lg: 44px;
+
+$input-height-sm: 36px;
+$input-height-md: 40px;
+
+// Mood Colors
+$mood-colors: (
+  'excited':
+    (
+      'bg': #ffd700,
+      'text': #000000,
+    ),
+  'happy':
+    (
+      'bg': #87ceeb,
+      'text': #000000,
+    ),
+  'loved':
+    (
+      'bg': #ff69b4,
+      'text': #ffffff,
+    ),
+  'sad':
+    (
+      'bg': #4169e1,
+      'text': #ffffff,
+    ),
+  'motivated':
+    (
+      'bg': #32cd32,
+      'text': #000000,
+    ),
+  'creative':
+    (
+      'bg': #ff6347,
+      'text': #ffffff,
+    ),
+  'grateful':
+    (
+      'bg': #ffa500,
+      'text': #000000,
+    ),
+  'thoughtful':
+    (
+      'bg': #9370db,
+      'text': #ffffff,
+    ),
+);

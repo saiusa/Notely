@@ -1,0 +1,406 @@
+@import '../../variables';
+
+.composer-modal {
+  &__wrapper {
+    &--modal {
+      position: fixed;
+      inset: 0;
+      z-index: $z-index-modal;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: $color-overlay-dark;
+      padding: $spacing-lg;
+
+      @media (max-width: $breakpoint-md) {
+        padding: $spacing-md;
+      }
+    }
+
+    &--embedded {
+      width: 100%;
+
+      @media (min-width: $breakpoint-md) {
+        width: $composer-width;
+        max-width: $composer-width;
+      }
+    }
+  }
+
+  &__section {
+    width: 100%;
+    border-radius: $radius-2xl;
+    background-color: $color-bg-quaternary;
+    padding: $spacing-2xl;
+
+    &--modal {
+      max-width: $composer-width;
+    }
+
+    &--embedded {
+      border-radius: $radius-2xl;
+    }
+  }
+
+  &__header {
+    position: relative;
+    display: flex;
+    justify-content: space-between;
+  }
+
+  &__content {
+    width: 100%;
+  }
+
+  // Input Styles
+  &__input {
+    width: 100%;
+    background-color: transparent;
+    color: $color-text-primary;
+    outline: none;
+    transition: $transition-fast;
+
+    &::placeholder {
+      color: $color-text-disabled;
+    }
+
+    &:focus {
+      outline: none;
+    }
+
+    &--title {
+      font-size: $font-size-4xl;
+      font-weight: $font-weight-bold;
+    }
+
+    &--tags {
+      height: $spacing-2xl + $spacing-lg;
+      flex: 1;
+      border-radius: $radius-md;
+      padding: 0 $spacing-lg;
+      font-size: $font-size-base;
+      color: $color-text-primary;
+
+      &::placeholder {
+        color: $color-text-muted;
+      }
+    }
+  }
+
+  &__textarea {
+    width: 100%;
+    resize: none;
+    background-color: transparent;
+    color: $color-text-primary;
+    outline: none;
+    font-family: inherit;
+    transition: $transition-fast;
+
+    &::placeholder {
+      color: $color-text-disabled;
+    }
+
+    &:focus {
+      outline: none;
+    }
+
+    &--body {
+      margin-top: $spacing-xl;
+      min-height: 160px;
+      font-size: $font-size-md;
+      font-weight: $font-weight-normal;
+    }
+
+    &--quote {
+      min-height: 140px;
+      font-size: 28px;
+      font-weight: $font-weight-medium;
+      font-style: italic;
+    }
+
+    &--caption {
+      min-height: 90px;
+      font-size: $font-size-md;
+      font-weight: $font-weight-normal;
+    }
+  }
+
+  // Settings Button
+  &__settings-btn {
+    height: 32px;
+    width: 32px;
+    border-radius: $radius-full;
+    color: $color-text-quaternary;
+    transition: $transition-fast;
+    background-color: transparent;
+    font-size: $font-size-lg;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    &:hover {
+      background-color: $color-overlay-hover;
+    }
+  }
+
+  // Settings Menu
+  &__settings-menu {
+    position: absolute;
+    right: 0;
+    top: 40px;
+    z-index: $z-index-dropdown;
+    width: 260px;
+    border-radius: $radius-xl;
+    border: 1px solid $color-border;
+    background-color: $color-bg-secondary;
+    padding: $spacing-sm;
+    box-shadow: $shadow-2xl;
+  }
+
+  &__menu-item {
+    display: flex;
+    height: 40px;
+    width: 100%;
+    align-items: center;
+    justify-content: space-between;
+    border-radius: $radius-md;
+    padding: 0 $spacing-xl;
+    text-align: left;
+    font-size: $font-size-base;
+    color: $color-text-primary;
+    transition: $transition-fast;
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+
+    &:hover {
+      background-color: $color-bg-hover-secondary;
+    }
+  }
+
+  &__menu-item-label {
+    display: flex;
+    align-items: center;
+    gap: $spacing-lg;
+    color: $color-text-tertiary;
+
+    span {
+      font-size: $font-size-base;
+    }
+
+    .menu-icon {
+      display: flex;
+      align-items: center;
+      gap: $spacing-lg;
+      color: $color-text-tertiary;
+      font-size: $font-size-base;
+    }
+  }
+
+  // Privacy Dropdown
+  &__privacy-options {
+    margin-bottom: $spacing-lg;
+    margin-top: $spacing-sm;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: $spacing-lg;
+    padding: 0 $spacing-lg;
+  }
+
+  &__privacy-btn {
+    height: 36px;
+    border-radius: $radius-md;
+    font-size: $font-size-sm;
+    text-transform: capitalize;
+    transition: $transition-fast;
+    border: none;
+    cursor: pointer;
+    font-weight: $font-weight-medium;
+
+    &--active {
+      background-color: $color-primary;
+      color: $color-text-primary;
+    }
+
+    &--inactive {
+      background-color: $color-bg-disabled;
+      color: $color-text-secondary;
+
+      &:hover {
+        background-color: #31384d;
+      }
+    }
+  }
+
+  // Toggle Switch
+  &__toggle {
+    height: 20px;
+    width: 36px;
+    border-radius: $radius-full;
+    padding: $spacing-xs;
+    transition: $transition-fast;
+    display: flex;
+    align-items: center;
+
+    &--on {
+      background-color: $color-primary;
+    }
+
+    &--off {
+      background-color: $color-bg-toggle-off;
+    }
+  }
+
+  &__toggle-knob {
+    display: block;
+    height: 16px;
+    width: 16px;
+    border-radius: $radius-full;
+    background-color: $color-text-primary;
+    transition: $transition-fast;
+
+    &--on {
+      transform: translateX(16px);
+    }
+
+    &--off {
+      transform: translateX(0);
+    }
+  }
+
+  // Image Uploader
+  &__image-uploader {
+    margin-top: $spacing-2xl;
+    display: flex;
+    height: 240px;
+    width: 100%;
+    align-items: center;
+    justify-content: center;
+    border-radius: $radius-lg;
+    border: 2px dashed rgba(255, 255, 255, 0.25);
+    background-color: rgba(255, 255, 255, 0.05);
+    font-size: $font-size-lg;
+    font-weight: $font-weight-medium;
+    color: rgba(255, 255, 255, 0.6);
+    transition: $transition-fast;
+    cursor: pointer;
+
+    &:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+  }
+
+  // Mood & Tags Bar
+  &__bottom-bar {
+    position: relative;
+    margin-top: $spacing-lg;
+    display: flex;
+    align-items: center;
+    gap: $spacing-xl;
+    font-size: $font-size-md;
+    color: $color-text-muted;
+  }
+
+  &__mood-btn {
+    display: flex;
+    align-items: center;
+    gap: $spacing-md;
+    border-radius: $radius-full;
+    padding: $spacing-md $spacing-xl;
+    font-size: $font-size-base;
+    transition: $transition-fast;
+    border: none;
+    cursor: pointer;
+    font-weight: $font-weight-normal;
+
+    .mood-icon {
+      font-size: $font-size-lg;
+    }
+  }
+
+  // Mood Dropdown Menu
+  &__mood-dropdown {
+    position: absolute;
+    left: 0;
+    top: 44px;
+    z-index: $z-index-dropdown;
+    width: 220px;
+    overflow: hidden;
+    border-radius: $radius-xl;
+    border: 1px solid $color-border;
+    background-color: $color-bg-secondary;
+    box-shadow: $shadow-2xl;
+  }
+
+  &__mood-dropdown-content {
+    max-height: 240px;
+    overflow-y: auto;
+    padding: $spacing-sm 0;
+  }
+
+  &__mood-option {
+    width: 100%;
+    padding: $spacing-lg $spacing-2xl;
+    text-align: left;
+    font-size: $font-size-base;
+    transition: $transition-fast;
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+    color: $color-text-secondary;
+
+    &:hover {
+      background-color: $color-bg-hover-tertiary;
+    }
+
+    &--active {
+      background-color: $color-bg-hover-tertiary;
+      color: $color-text-primary;
+    }
+  }
+
+  // Action Buttons
+  &__actions {
+    margin-top: $spacing-4xl;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  &__cancel-btn {
+    font-size: $font-size-3xl;
+    color: $color-text-primary;
+    transition: $transition-fast;
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+
+    &:hover {
+      color: $color-primary-light;
+    }
+  }
+
+  &__post-btn {
+    height: $button-height-sm;
+    width: 76px;
+    border-radius: $radius-md;
+    background-color: $color-primary;
+    font-size: $font-size-xl;
+    font-weight: $font-weight-medium;
+    color: $color-text-primary;
+    transition: $transition-fast;
+    border: none;
+    cursor: pointer;
+
+    &:hover {
+      background-color: $color-primary-hover;
+    }
+
+    &:disabled {
+      background-color: $color-bg-disabled;
+      cursor: not-allowed;
+    }
+  }
+}
