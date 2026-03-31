@@ -1,26 +1,51 @@
 import { defineConfig } from 'vite';
-import laravel from 'laravel-vite-plugin';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
+import fs from 'fs';
+import path from 'path';
 
 export default defineConfig({
     plugins: [
-        laravel({
-            input: [
-                'resources/css/app.css',
-                'resources/sass/app.scss',
-                'resources/js/app.js',
-            ],
-            refresh: true,
-        }),
         tailwindcss(),
         react(),
+        {
+            name: 'copy-assets',
+            writeBundle() {
+                const src = path.resolve(__dirname, 'public/assets');
+                const dest = path.resolve(__dirname, 'backend/public/dist/assets');
+                if (fs.existsSync(src)) {
+                    const files = fs.readdirSync(src);
+                    files.forEach(file => {
+                        fs.copyFileSync(path.join(src, file), path.join(dest, file));
+                    });
+                }
+            }
+        }
     ],
+    build: {
+        outDir: 'backend/public/dist',
+        emptyOutDir: true,
+        rollupOptions: {
+            output: {
+                entryFileNames: 'assets/index.js',
+                chunkFileNames: 'assets/[name].js',
+                assetFileNames: 'assets/[name].[ext]',
+            },
+        },
+    },
     css: {
         preprocessorOptions: {
             scss: {
                 quietDeps: true,
                 silenceDeprecations: ['import', 'global-builtin', 'color-functions', 'if-function'],
+            },
+        },
+    },
+    server: {
+        proxy: {
+            '/api': {
+                target: 'http://localhost:8000',
+                changeOrigin: true,
             },
         },
     },

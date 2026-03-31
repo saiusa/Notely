@@ -1,75 +1,97 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Input } from '../controls';
 
 export default function TwoFactorModal({
     open,
-    step,
-    username,
-    setUsername,
-    password,
-    setPassword,
-    code,
-    setCode,
-    sampleCode,
     onCancel,
-    onSendCode,
     onActivate,
 }) {
+    const [email, setEmail] = useState('');
+    const [step, setStep] = useState('email'); // 'email' or 'verify'
+
+    useEffect(() => {
+        if (open) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = '';
+        }
+        return () => {
+            document.body.style.overflow = '';
+        };
+    }, [open]);
+
+    const handleSendLink = () => {
+        if (!email.trim()) return;
+        // Send verification link via email
+        setStep('verify');
+    };
+
+    const handleVerify = () => {
+        // After user accepts link and comes back
+        onActivate();
+        setEmail('');
+        setStep('email');
+        onCancel();
+    };
+
     if (!open) return null;
 
     return (
-        <div className="settings-modal-overlay">
-            <div className="settings-modal settings-modal--two-factor">
-                {step === 'credentials' ? (
+        <div className="settings-2fa-modal-overlay">
+            <section className="settings-2fa-modal">
+                <h2 className="settings-2fa-modal__title">Enable Two-Factor Authentication</h2>
+                
+                {step === 'email' ? (
                     <>
-                        <p className="settings-modal__title">Enable 2FA</p>
-                        <div className="settings-modal__stack">
-                            <Input value={username} onChange={(e) => setUsername(e.target.value)} placeholder="Username" />
-                            <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password" />
-                        </div>
-                        <div className="settings-modal__actions">
+                        <p className="settings-2fa-modal__description">
+                            Enter your email address to receive a verification link for Two-Factor Authentication.
+                        </p>
+                        <Input 
+                            value={email} 
+                            onChange={(e) => setEmail(e.target.value)} 
+                            placeholder="Enter your email" 
+                        />
+                        <div className="settings-2fa-modal__actions">
                             <button
                                 type="button"
                                 onClick={onCancel}
-                                className="settings-modal__text-button"
+                                className="settings-2fa-modal__text-button"
                             >
                                 Cancel
                             </button>
                             <button
                                 type="button"
-                                onClick={onSendCode}
-                                className="settings-modal__primary-button"
+                                onClick={handleSendLink}
+                                className="settings-2fa-modal__primary-button"
                             >
-                                Send Code
+                                Send Verification Link
                             </button>
                         </div>
                     </>
                 ) : (
                     <>
-                        <p className="settings-modal__title settings-modal__title--compact">Enter verification code</p>
-                        <p className="settings-modal__hint">
-                            Sample code sent to email (simulation): <span className="settings-modal__hint-strong">{sampleCode}</span>
+                        <p className="settings-2fa-modal__description">
+                            Verification link has been sent to {email}. Please check your email and click the link to verify. Once verified, click the button below to complete setup.
                         </p>
-                        <Input value={code} onChange={(e) => setCode(e.target.value)} placeholder="6-digit code" />
-                        <div className="settings-modal__actions">
+                        <div className="settings-2fa-modal__actions">
                             <button
                                 type="button"
                                 onClick={onCancel}
-                                className="settings-modal__text-button"
+                                className="settings-2fa-modal__text-button"
                             >
                                 Cancel
                             </button>
                             <button
                                 type="button"
-                                onClick={onActivate}
-                                className="settings-modal__primary-button"
+                                onClick={handleVerify}
+                                className="settings-2fa-modal__primary-button"
                             >
-                                Activate 2FA
+                                Complete Setup
                             </button>
                         </div>
                     </>
                 )}
-            </div>
+            </section>
         </div>
     );
 }

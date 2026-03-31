@@ -9,14 +9,57 @@
     gap: $spacing-xl;
   }
 
-  // Composer Selector Bar
-  &__composer-selector {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: $spacing-lg;
+  // Compose Bar — icon-only buttons row
+  &__compose-bar {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0;
     border-radius: $radius-lg;
     background-color: $color-bg-tertiary;
-    padding: $spacing-lg;
+    overflow: hidden;
+    max-width: $composer-width;
+    margin: 0 auto;
+    margin-bottom: 12px;
+    width: 100%;
+  }
+
+  &__compose-btn {
+    display: flex;
+    flex: 1;
+    height: 56px;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    cursor: pointer;
+    background-color: transparent;
+    color: $color-text-quaternary;
+    transition: $transition-fast;
+
+    &:hover {
+      background-color: $color-bg-hover;
+      color: $color-text-primary;
+    }
+
+    &:not(:last-child) {
+      border-right: 1px solid $color-border;
+    }
+  }
+
+  &__compose-icon {
+    font-size: 28px;
+  }
+
+  // Composer Selector Bar (legacy)
+  &__composer-selector {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: $spacing-xl;
+    border-radius: $radius-lg;
+    background-color: $color-bg-tertiary;
+    padding: $spacing-lg * 2;
   }
 
   &__composer-btn {
@@ -30,6 +73,7 @@
     border: none;
     cursor: pointer;
     background-color: transparent;
+    min-width: 56px;
 
     .icon {
       font-size: 24px;
@@ -43,6 +87,25 @@
       background-color: $color-primary;
       color: $color-text-primary;
     }
+  }
+
+  // Selector Grid Wrapper
+  .selector-grid {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: $spacing-lg;
+    flex-wrap: wrap;
+  }
+
+  // Feed
+  &__feed {
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-xl;
+    max-width: $composer-width;
+    margin: 0 auto;
+    width: 100%;
   }
 
   // Posts List

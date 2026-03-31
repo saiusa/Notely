@@ -1,10 +1,12 @@
 import React, { useRef, useState } from 'react';
-import { countryOptions, defaultProfile } from './ProfileUser';
+import { defaultProfile } from './ProfileUser';
+import { countryOptions } from './countries';
 import '../../../sass/components/profile/ProfileEditModal.scss';
 
 export default function ProfileEditModal({ profile, onSave, onClose }) {
     const [draft, setDraft] = useState(profile);
     const fileInputRef = useRef(null);
+    const coverInputRef = useRef(null);
 
     const handleFieldChange = (field) => (event) => {
         setDraft((prev) => ({
@@ -19,24 +21,44 @@ export default function ProfileEditModal({ profile, onSave, onClose }) {
         }
     };
 
+    const handlePickCover = () => {
+        if (coverInputRef.current) {
+            coverInputRef.current.click();
+        }
+    };
+
     const handlePhotoChange = (event) => {
         const selectedFile = event.target.files?.[0];
         if (!selectedFile) {
             return;
         }
 
-        const nextPhotoUrl = URL.createObjectURL(selectedFile);
-        setDraft((prev) => ({
-            ...prev,
-            profilePhoto: nextPhotoUrl,
-        }));
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const dataUrl = e.target.result;
+            setDraft((prev) => ({
+                ...prev,
+                profilePhoto: dataUrl,
+            }));
+        };
+        reader.readAsDataURL(selectedFile);
     };
 
-    const handleRemovePhoto = () => {
-        setDraft((prev) => ({
-            ...prev,
-            profilePhoto: '',
-        }));
+    const handleCoverChange = (event) => {
+        const selectedFile = event.target.files?.[0];
+        if (!selectedFile) {
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const dataUrl = e.target.result;
+            setDraft((prev) => ({
+                ...prev,
+                coverPhoto: dataUrl,
+            }));
+        };
+        reader.readAsDataURL(selectedFile);
     };
 
     return (
@@ -44,40 +66,57 @@ export default function ProfileEditModal({ profile, onSave, onClose }) {
             <section className="profile-edit-modal">
                 <h2 className="profile-edit-modal__title">Edit Profile</h2>
 
-                <div className="profile-edit-modal__photo-row">
-                    <img
-                        src={draft.profilePhoto || defaultProfile.profilePhoto}
-                        alt="avatar"
-                        className="profile-edit-modal__photo"
-                    />
-
-                    <div className="profile-edit-modal__photo-actions">
-                        <button
-                            type="button"
-                            onClick={handlePickPhoto}
-                            className="profile-edit-modal__outline-button"
-                        >
-                            <span className="material-symbols-outlined profile-edit-modal__outline-button-icon">image</span>
-                            Change
-                        </button>
-                        <button
-                            type="button"
-                            onClick={handleRemovePhoto}
-                            className="profile-edit-modal__outline-button"
-                        >
-                            <span className="material-symbols-outlined profile-edit-modal__outline-button-icon">delete</span>
-                            Remove
-                        </button>
+                <div className="profile-edit-modal__header-section">
+                    <div className="profile-edit-modal__photo-container">
+                        <img
+                            src={draft.profilePhoto || defaultProfile.profilePhoto}
+                            alt="avatar"
+                            className="profile-edit-modal__photo"
+                        />
+                        <div className="profile-edit-modal__photo-info">
+                            <h3 className="profile-edit-modal__photo-label">Profile Picture</h3>
+                            <button
+                                type="button"
+                                onClick={handlePickPhoto}
+                                className="profile-edit-modal__primary-button"
+                            >
+                                <span className="material-symbols-outlined profile-edit-modal__button-icon">edit</span>
+                                Change
+                            </button>
+                        </div>
                     </div>
 
-                    <input
-                        ref={fileInputRef}
-                        type="file"
-                        accept="image/*"
-                        onChange={handlePhotoChange}
-                        className="profile-edit-modal__hidden-input"
-                    />
+                    <div className="profile-edit-modal__cover-section">
+                        <img
+                            src={draft.coverPhoto || defaultProfile.coverPhoto || 'https://via.placeholder.com/860x180/2a2d3a/2a2d3a?text=Cover'}
+                            alt="cover"
+                            className="profile-edit-modal__cover"
+                        />
+                        <button
+                            type="button"
+                            onClick={handlePickCover}
+                            className="profile-edit-modal__cover-button"
+                        >
+                            <span className="material-symbols-outlined">photo_camera</span>
+                        </button>
+
+                        <input
+                            ref={coverInputRef}
+                            type="file"
+                            accept="image/*"
+                            onChange={handleCoverChange}
+                            className="profile-edit-modal__hidden-input"
+                        />
+                    </div>
                 </div>
+
+                <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handlePhotoChange}
+                    className="profile-edit-modal__hidden-input"
+                />
 
                 <div className="profile-edit-modal__grid">
                     <label className="profile-edit-modal__field-label">
@@ -96,21 +135,23 @@ export default function ProfileEditModal({ profile, onSave, onClose }) {
                             className="profile-edit-modal__input"
                         />
                     </label>
-                    <label className="profile-edit-modal__field-label">
+                    <label className="profile-edit-modal__field-label profile-edit-modal__field-label--with-icon">
                         Birthday
+                        <span className="material-symbols-outlined profile-edit-modal__input-icon">calendar_today</span>
                         <input
                             type="date"
                             value={draft.birthday}
                             onChange={handleFieldChange('birthday')}
-                            className="profile-edit-modal__input"
+                            className="profile-edit-modal__input profile-edit-modal__input--icon"
                         />
                     </label>
-                    <label className="profile-edit-modal__field-label">
+                    <label className="profile-edit-modal__field-label profile-edit-modal__field-label--with-icon">
                         Country
+                        <span className="material-symbols-outlined profile-edit-modal__input-icon">public</span>
                         <select
                             value={draft.country}
                             onChange={handleFieldChange('country')}
-                            className="profile-edit-modal__input"
+                            className="profile-edit-modal__input profile-edit-modal__input--icon"
                         >
                             {countryOptions.map((country) => (
                                 <option key={country.value} value={country.value} className="profile-edit-modal__option">
@@ -119,12 +160,13 @@ export default function ProfileEditModal({ profile, onSave, onClose }) {
                             ))}
                         </select>
                     </label>
-                    <label className="profile-edit-modal__field-label profile-edit-modal__field-label--single-column">
+                    <label className="profile-edit-modal__field-label profile-edit-modal__field-label--single-column profile-edit-modal__field-label--with-icon">
                         Gender
+                        <span className="material-symbols-outlined profile-edit-modal__input-icon">person</span>
                         <select
                             value={draft.gender}
                             onChange={handleFieldChange('gender')}
-                            className="profile-edit-modal__input"
+                            className="profile-edit-modal__input profile-edit-modal__input--icon"
                         >
                             <option className="profile-edit-modal__option" value="Male">
                                 Male

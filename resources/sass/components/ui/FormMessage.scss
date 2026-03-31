@@ -1,0 +1,45 @@
+@import '../../variables';
+
+.form-message {
+  &__container {
+    padding: 12px 16px;
+    border-radius: 8px;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    &--success {
+      background: #d5f4e6;
+      border: 1px solid #a8e6d6;
+      color: #2f6f6a;
+    }
+
+    &--error {
+      background: #fce8e8;
+      border: 1px solid #f5c6c6;
+      color: #a84a4a;
+    }
+
+    &--warning {
+      background: #fff4e6;
+      border: 1px solid #ffe6c6;
+      color: #944d00;
+    }
+
+    &--info {
+      background: #e6f2f9;
+      border: 1px solid #c6e2f5;
+      color: #003d7a;
+    }
+  }
+
+  &__icon {
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+
+  &__text {
+    flex: 1;
+  }
+}

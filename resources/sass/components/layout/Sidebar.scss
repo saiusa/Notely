@@ -44,7 +44,7 @@
     transition: background-color 0.15s ease;
 
     &--active {
-      background: #343b4f;
+      background: #323848;
       color: #fff;
     }
 
@@ -59,6 +59,10 @@
 
   &__nav-icon {
     font-size: 18px;
+    font-weight: 400;
+    display: flex;
+    align-items: center;
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0;
   }
 
   &__community-toggle {
@@ -74,6 +78,7 @@
     font-size: 13px;
     font-weight: 500;
     color: #fff;
+    text-decoration: none;
     transition: background-color 0.15s ease;
     cursor: pointer;
 
@@ -127,7 +132,7 @@
     transition: background-color 0.15s ease;
 
     &--active {
-      background: #343b4f;
+      background: #323848;
       color: #fff;
     }
 
@@ -145,8 +150,17 @@
     border-top: 1px solid #2b3041;
   }
 
-  &__write-btn {
+  &__write-section {
+    position: relative;
     margin-top: auto;
+  }
+
+  &__write-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
     height: 40px;
     border: 0;
     border-radius: 9px;
@@ -163,6 +177,71 @@
 
     &:active {
       background: #6b4fa8;
+    }
+  }
+
+  &__write-icon {
+    font-size: 18px;
+  }
+
+  &__write-menu {
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 0;
+    right: 0;
+    z-index: 70;
+    background-color: #1f2332;
+    border: 1px solid #323848;
+    border-radius: 10px;
+    padding: 8px;
+    box-shadow: 0 20px 25px rgba(0, 0, 0, 0.1);
+    animation: slideUp 0.2s ease-in-out;
+  }
+
+  &__write-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    height: 40px;
+    padding: 0 12px;
+    border: 0;
+    border-radius: 6px;
+    background-color: transparent;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+
+    &:hover {
+      background-color: #2a3043;
+    }
+
+    &:active {
+      background-color: #323848;
+    }
+  }
+
+  &__write-menu-icon {
+    font-size: 18px;
+    color: #785ebf;
+    flex-shrink: 0;
+  }
+
+  &__write-menu-label {
+    flex: 1;
+    text-align: left;
+  }
+
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
     }
   }
 
@@ -203,15 +282,24 @@
     object-fit: cover;
   }
 
+  &__profile-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 0px;
+  }
+
   &__profile-name {
+    margin: 0;
     font-size: 13px;
     font-weight: 600;
     color: #fff;
   }
 
   &__profile-username {
+    margin: 0;
     font-size: 12px;
-    color: #8a8a8a;
+    color: #785ebf;
+    font-weight: 500;
   }
 
   &__profile-chevron {

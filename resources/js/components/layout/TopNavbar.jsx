@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import notificationService from '../../services/notificationService';
 import '../../../sass/components/layout/TopNavbar.scss';
 
 function IconButton({ icon, label, active = false, onClick }) {
@@ -73,6 +74,78 @@ function FilterDropdown({ open }) {
   );
 }
 
+function NotificationDropdown({ open, notifications, isLoading, onNotificationClick, onMarkAsRead }) {
+  if (!open) return null;
+
+  const handleNotificationClick = async (notification) => {
+    // Mark as read
+    if (!notification.is_read && onMarkAsRead) {
+      await onMarkAsRead(notification.notification_id);
+    }
+  };
+
+  const getNotificationMessage = (notification) => {
+    switch (notification.type) {
+      case 'like_post':
+        return `${notification.actor_name} liked your post`;
+      case 'comment_post':
+        return `${notification.actor_name} commented on your post`;
+      case 'mention_post':
+        return `${notification.actor_name} mentioned you`;
+      default:
+        return 'New notification';
+    }
+  };
+
+  const getNotificationIcon = (type) => {
+    switch (type) {
+      case 'like_post':
+        return 'favorite';
+      case 'comment_post':
+        return 'comment';
+      case 'mention_post':
+        return 'person';
+      default:
+        return 'notifications';
+    }
+  };
+
+  return (
+    <div className="top-navbar__notification-dropdown">
+      {isLoading ? (
+        <div className="top-navbar__notification-loading">
+          <span className="material-symbols-outlined">hourglass_empty</span>
+        </div>
+      ) : notifications.length === 0 ? (
+        <div className="top-navbar__notification-empty">
+          <span className="material-symbols-outlined">notifications_none</span>
+          <p>No notifications</p>
+        </div>
+      ) : (
+        <div className="top-navbar__notification-list">
+          {notifications.map((notification) => (
+            <button
+              key={notification.notification_id}
+              type="button"
+              onClick={() => handleNotificationClick(notification)}
+              className={`top-navbar__notification-item ${
+                !notification.is_read ? 'top-navbar__notification-item--unread' : ''
+              }`}
+            >
+              <span className={`material-symbols-outlined top-navbar__notification-item-icon ${getNotificationIcon(notification.type)}`}>
+                {getNotificationIcon(notification.type)}
+              </span>
+              <span className="top-navbar__notification-item-text">
+                {getNotificationMessage(notification)}
+              </span>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function NotificationButton({ count, active, onClick }) {
   const normalizedCount = useMemo(() => {
     if (count > 99) return '99+';
@@ -98,7 +171,18 @@ function NotificationButton({ count, active, onClick }) {
   );
 }
 
-function HomeNavbar({ activeTab, onTabChange, filterOpen, setFilterOpen, notificationCount, notificationActive, onNotificationClick }) {
+function HomeNavbar({
+  activeTab,
+  onTabChange,
+  filterOpen,
+  setFilterOpen,
+  notificationCount,
+  notificationActive,
+  onNotificationClick,
+  notifications,
+  isLoadingNotifications,
+  onMarkNotificationAsRead,
+}) {
   return (
     <>
       <div className="top-navbar__home-center">
@@ -115,18 +199,38 @@ function HomeNavbar({ activeTab, onTabChange, filterOpen, setFilterOpen, notific
           />
           <FilterDropdown open={filterOpen} />
         </div>
-        <SearchBar />
-        <NotificationButton
-          count={notificationCount}
-          active={notificationActive}
-          onClick={onNotificationClick}
-        />
+        <div className="top-navbar__search-notification-wrap">
+          <SearchBar />
+          <div className="top-navbar__notification-wrap">
+            <NotificationButton
+              count={notificationCount}
+              active={notificationActive}
+              onClick={onNotificationClick}
+            />
+            <NotificationDropdown
+              open={notificationActive}
+              notifications={notifications}
+              isLoading={isLoadingNotifications}
+              onMarkAsRead={onMarkNotificationAsRead}
+            />
+          </div>
+        </div>
       </div>
     </>
   );
 }
 
-function DefaultNavbar({ title, showBack, onBack, notificationCount, notificationActive, onNotificationClick }) {
+function DefaultNavbar({
+  title,
+  showBack,
+  onBack,
+  notificationCount,
+  notificationActive,
+  onNotificationClick,
+  notifications,
+  isLoadingNotifications,
+  onMarkNotificationAsRead,
+}) {
   return (
     <>
       <div className="top-navbar__left-controls">
@@ -135,12 +239,22 @@ function DefaultNavbar({ title, showBack, onBack, notificationCount, notificatio
       </div>
 
       <div className="top-navbar__right-controls">
-        <SearchBar />
-        <NotificationButton
-          count={notificationCount}
-          active={notificationActive}
-          onClick={onNotificationClick}
-        />
+        <div className="top-navbar__search-notification-wrap">
+          <SearchBar />
+          <div className="top-navbar__notification-wrap">
+            <NotificationButton
+              count={notificationCount}
+              active={notificationActive}
+              onClick={onNotificationClick}
+            />
+            <NotificationDropdown
+              open={notificationActive}
+              notifications={notifications}
+              isLoading={isLoadingNotifications}
+              onMarkAsRead={onMarkNotificationAsRead}
+            />
+          </div>
+        </div>
       </div>
     </>
   );
@@ -159,6 +273,8 @@ export default function TopNavbar({
 }) {
   const [currentTab, setCurrentTab] = useState(activeTab);
   const [filterOpen, setFilterOpen] = useState(false);
+  const [notifications, setNotifications] = useState([]);
+  const [isLoadingNotifications, setIsLoadingNotifications] = useState(false);
 
   useEffect(() => {
     setCurrentTab(activeTab);
@@ -167,6 +283,46 @@ export default function TopNavbar({
   useEffect(() => {
     if (mode !== 'tabs') setFilterOpen(false);
   }, [mode]);
+
+  // Fetch notifications when dropdown opens
+  useEffect(() => {
+    if (notificationActive) {
+      fetchNotifications();
+    }
+  }, [notificationActive]);
+
+  /**
+   * Fetch notifications from API
+   */
+  const fetchNotifications = async () => {
+    try {
+      setIsLoadingNotifications(true);
+      const response = await notificationService.getNotifications(1);
+      setNotifications(response.data || []);
+    } catch (error) {
+      console.error('Failed to fetch notifications:', error);
+    } finally {
+      setIsLoadingNotifications(false);
+    }
+  };
+
+  /**
+   * Mark notification as read
+   */
+  const handleMarkAsRead = async (notificationId) => {
+    try {
+      await notificationService.markAsRead(notificationId);
+      setNotifications((prevNotifications) =>
+        prevNotifications.map((notif) =>
+          notif.notification_id === notificationId
+            ? { ...notif, is_read: true }
+            : notif
+        )
+      );
+    } catch (error) {
+      console.error('Failed to mark notification as read:', error);
+    }
+  };
 
   const handleTabChange = (tab) => {
     setCurrentTab(tab);
@@ -181,9 +337,7 @@ export default function TopNavbar({
   return (
     <>
       {/* Top Navbar */}
-      <header
-        className="top-navbar__container">
-          
+      <header className="top-navbar__container">
         {mode === 'tabs' ? (
           <HomeNavbar
             activeTab={currentTab}
@@ -193,6 +347,9 @@ export default function TopNavbar({
             notificationCount={notificationCount}
             notificationActive={notificationActive}
             onNotificationClick={onNotificationClick}
+            notifications={notifications}
+            isLoadingNotifications={isLoadingNotifications}
+            onMarkNotificationAsRead={handleMarkAsRead}
           />
         ) : (
           <DefaultNavbar
@@ -202,10 +359,12 @@ export default function TopNavbar({
             notificationCount={notificationCount}
             notificationActive={notificationActive}
             onNotificationClick={onNotificationClick}
+            notifications={notifications}
+            isLoadingNotifications={isLoadingNotifications}
+            onMarkNotificationAsRead={handleMarkAsRead}
           />
         )}
       </header>
-
     </>
   );
 }

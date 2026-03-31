@@ -1,14 +1,28 @@
 import '../../sass/pages/Auth.scss';
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import authService from '../services/authService';
 
 export default function ForgotPassword() {
     const [loading, setLoading] = useState(false);
+    const [email, setEmail] = useState('');
+    const [message, setMessage] = useState('');
+    const [error, setError] = useState('');
 
-    const onSubmit = (event) => {
+    const onSubmit = async (event) => {
         event.preventDefault();
         setLoading(true);
-        setTimeout(() => setLoading(false), 1000);
+        setMessage('');
+        setError('');
+        try {
+            const data = await authService.forgotPassword({ email });
+            setMessage(data.message || 'If the email exists, a password reset link has been sent.');
+        } catch (err) {
+            const msg = err.response?.data?.message || 'Failed to send reset link. Please try again.';
+            setError(msg);
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
@@ -30,6 +44,16 @@ export default function ForgotPassword() {
                         </div>
 
                         <form onSubmit={onSubmit} className="auth-page__form">
+                            {message && (
+                                <div style={{ color: '#4ade80', fontSize: '13px', textAlign: 'center', marginBottom: '8px' }}>
+                                    {message}
+                                </div>
+                            )}
+                            {error && (
+                                <div style={{ color: '#ff6b6b', fontSize: '13px', textAlign: 'center', marginBottom: '8px' }}>
+                                    {error}
+                                </div>
+                            )}
                             <div className="auth-page__field">
                                 <label
                                     htmlFor="forgot-email"
@@ -42,6 +66,8 @@ export default function ForgotPassword() {
                                     type="email"
                                     placeholder="Enter your email"
                                     className="auth-page__input"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
                                     required
                                 />
                             </div>
@@ -51,7 +77,7 @@ export default function ForgotPassword() {
                                 disabled={loading}
                                 className="auth-page__submit"
                             >
-                                {loading ? 'Loading...' : 'Send reset link'}
+                                {loading ? 'Sending...' : 'Send reset link'}
                             </button>
                         </form>
 

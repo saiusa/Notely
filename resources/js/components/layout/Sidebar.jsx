@@ -1,19 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { sidebarUser } from '../../utils/socialMockData';
-import NotelyLogo from './Notely-Logo.svg';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
+import ComposerModal from './ComposerModal';
 import '../../../sass/components/layout/Sidebar.scss';
-
-const navItems = [
-  { key: 'home', label: 'Home', icon: 'home', to: '/home' },
-  { key: 'community', label: 'Community', icon: 'groups', to: '/community' },
-  { key: 'journal', label: 'Journal', icon: 'book_2', to: '/journal' },
-  { key: 'profile', label: 'Profile', icon: 'person', to: '/profile' },
-  { key: 'settings', label: 'Settings', icon: 'settings', to: '/settings' },
-];
 
 export default function Sidebar({ active = 'home', onActiveChange = () => {} }) {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user, logout } = useAuth();
   const pathname = location.pathname;
 
   const isCommunityBrowse = pathname.startsWith('/community/browse');
@@ -21,24 +15,48 @@ export default function Sidebar({ active = 'home', onActiveChange = () => {} }) 
 
   const [menuOpen, setMenuOpen] = useState(false);
   const [communityOpen, setCommunityOpen] = useState(pathname.startsWith('/community'));
+  const [writeMenuOpen, setWriteMenuOpen] = useState(false);
+  const [composerMode, setComposerMode] = useState(null);
+  const [showComposer, setShowComposer] = useState(false);
 
-  
   useEffect(() => {
     if (pathname.startsWith('/community')) {
       setCommunityOpen(true);
     }
   }, [pathname]);
 
+  // Derive display values from auth user (fallback to defaults)
+  const displayName = user?.profile
+    ? `${user.profile.first_name || ''} ${user.profile.last_name || ''}`.trim() || user.username
+    : user?.username || 'User';
+  const displayUsername = user ? `@${user.username}` : '@user';
+  const displayAvatar = user?.profile?.profile_picture
+    || 'https://images.unsplash.com/photo-1543852786-1cf6624b9987?auto=format&fit=crop&w=120&q=80';
+
+  const handleLogout = async () => {
+    await logout();
+    navigate('/login', { replace: true });
+  };
+
+  const handleWriteMenuSelect = (mode) => {
+    setComposerMode(mode);
+    setShowComposer(true);
+    setWriteMenuOpen(false);
+  };
+
+  const handleCloseComposer = () => {
+    setShowComposer(false);
+    setComposerMode(null);
+  };
+
   return (
     <aside className="sidebar__container">
-      
       {/* Logo */}
       <div className="sidebar__logo">
-        <img src={NotelyLogo} alt="Notely" className="sidebar__logo-image" />
+        <img src="/dist/assets/Notely-Logo.svg" alt="Notely" className="sidebar__logo-image" />
       </div>
 
       <nav className="sidebar__nav">
-        
         {/* Home */}
         <Link
           to="/home"
@@ -60,7 +78,7 @@ export default function Sidebar({ active = 'home', onActiveChange = () => {} }) 
           className="sidebar__community-toggle"
         >
           <span className="sidebar__community-left">
-            <span className="material-symbols-outlined sidebar__nav-icon">groups</span>
+            <span className="material-symbols-outlined sidebar__nav-icon" style={{fontVariationSettings: '"FILL" 0'}}>groups</span>
             Community
           </span>
           <span
@@ -144,13 +162,44 @@ export default function Sidebar({ active = 'home', onActiveChange = () => {} }) 
         </Link>
       </nav>
 
-      {/* Write Button */}
-      <button
-        type="button"
-        className="sidebar__write-btn"
-      >
-        Write
-      </button>
+      {/* Write Button with Menu */}
+      <div className="sidebar__write-section">
+        <button
+          type="button"
+          className="sidebar__write-btn"
+          onClick={() => setWriteMenuOpen(!writeMenuOpen)}
+        >
+          Write
+        </button>
+
+        {writeMenuOpen && (
+          <div className="sidebar__write-menu">
+            <button
+              type="button"
+              className="sidebar__write-menu-item"
+              onClick={() => handleWriteMenuSelect('text')}
+            >
+              <span className="sidebar__write-menu-label">Text</span>
+            </button>
+
+            <button
+              type="button"
+              className="sidebar__write-menu-item"
+              onClick={() => handleWriteMenuSelect('quote')}
+            >
+              <span className="sidebar__write-menu-label">Quote</span>
+            </button>
+
+            <button
+              type="button"
+              className="sidebar__write-menu-item"
+              onClick={() => handleWriteMenuSelect('image')}
+            >
+              <span className="sidebar__write-menu-label">Image</span>
+            </button>
+          </div>
+        )}
+      </div>
 
       {/* Profile Section */}
       <div className="sidebar__profile-section">
@@ -161,16 +210,16 @@ export default function Sidebar({ active = 'home', onActiveChange = () => {} }) 
         >
           <div className="sidebar__profile-left">
             <img
-              src={sidebarUser.avatar}
-              alt={sidebarUser.name}
+              src={displayAvatar}
+              alt={displayName}
               className="sidebar__profile-avatar"
             />
             <div className="sidebar__profile-meta">
               <p className="sidebar__profile-name">
-                {sidebarUser.name}
+                {displayName}
               </p>
               <p className="sidebar__profile-username">
-                {sidebarUser.username}
+                {displayUsername}
               </p>
             </div>
           </div>
@@ -186,14 +235,17 @@ export default function Sidebar({ active = 'home', onActiveChange = () => {} }) 
 
         {menuOpen && (
           <div className="sidebar__profile-menu">
-            <button className="sidebar__profile-menu-item">
+            <button
+              className="sidebar__profile-menu-item"
+              onClick={() => { setMenuOpen(false); navigate('/profile'); }}
+            >
               <span className="material-symbols-outlined sidebar__profile-menu-icon">
                 person
               </span>
               View Profile
             </button>
 
-            <button className="sidebar__profile-menu-item">
+            <button className="sidebar__profile-menu-item" onClick={handleLogout}>
               <span className="material-symbols-outlined sidebar__profile-menu-icon">
                 logout
               </span>
@@ -202,6 +254,14 @@ export default function Sidebar({ active = 'home', onActiveChange = () => {} }) 
           </div>
         )}
       </div>
+
+      {/* Composer Modal */}
+      {showComposer && composerMode && (
+        <ComposerModal
+          mode={composerMode}
+          onClose={handleCloseComposer}
+        />
+      )}
     </aside>
   );
 }

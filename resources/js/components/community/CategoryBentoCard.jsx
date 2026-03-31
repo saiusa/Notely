@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import '../../../sass/components/community/Community.scss';
+import '../../../sass/components/community/CategoryBentoCard.scss';
 
 
 export default function CategoryBentoCard({ category }) {

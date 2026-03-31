@@ -1,5 +1,5 @@
 import React from 'react';
-import '../../../sass/components/community/Community.scss';
+import '../../../sass/components/community/CommunityMembersPanel.scss';
 
 export default function CommunityMembersPanel({ memberSearch, onSearchChange, visibleMembers, memberCount }) {
     const formatMemberCount = (value) => {
@@ -43,7 +43,7 @@ export default function CommunityMembersPanel({ memberSearch, onSearchChange, vi
                         <img src={member.avatar} alt={member.name} className="community-members-panel__avatar" />
                         <div className="community-members-panel__info">
                             <p className="community-members-panel__name">{member.name}</p>
-                            <p className="community-members-panel__joined">{member.joinedDate}</p>
+                            <p className="community-members-panel__handle">@{member.name?.toLowerCase().replace(/\s+/g, '-') || 'user'}</p>
                         </div>
                     </article>
                 ))}

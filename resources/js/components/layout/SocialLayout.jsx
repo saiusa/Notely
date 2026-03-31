@@ -1,23 +1,68 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Sidebar from './Sidebar';
 import TopNavbar from './TopNavbar';
 import RecentJournals from './RecentJournals';
+import notificationService from '../../services/notificationService';
 import '../../../sass/components/layout/SocialLayout.scss';
 
-export default function SocialLayout({
-    activeNav,
-    communitySub,
-    onCommunitySubChange,
-    navbarMode,
-    title,
-    showBack,
-    onBack,
-    activeTab,
-    onTabChange,
-    recentJournals,
-    onClearRecentJournals,
-    children,
-}) {
+export default function SocialLayout(props) {
+    const {
+        activeNav,
+        communitySub,
+        onCommunitySubChange,
+        navbarMode,
+        title,
+        showBack,
+        onBack,
+        activeTab,
+        onTabChange,
+        recentJournals,
+        onClearRecentJournals,
+        notificationCount = 0,
+        children,
+    } = props;
+
+    const [showNotifications, setShowNotifications] = useState(false);
+    const [unreadCount, setUnreadCount] = useState(0);
+
+    // Fetch unread count on mount
+    useEffect(() => {
+        fetchUnreadCount();
+    }, []);
+
+    /**
+     * Fetch unread notification count
+     */
+    const fetchUnreadCount = async () => {
+        try {
+            const response = await notificationService.getUnreadCount();
+            setUnreadCount(response.unread_count || 0);
+        } catch (error) {
+            console.error('Failed to fetch unread count:', error);
+        }
+    };
+
+    /**
+     * Handle notification modal toggle
+     */
+    const handleNotificationClick = () => {
+        setShowNotifications((prev) => !prev);
+    };
+
+    /**
+     * Close notification modal
+     */
+    const handleCloseNotifications = () => {
+        setShowNotifications(false);
+    };
+
+    /**
+     * Update unread count when notification is read
+     */
+    const handleNotificationRead = () => {
+        setUnreadCount((prev) => Math.max(0, prev - 1));
+    };
+
     const contentContainerClassName =
         navbarMode === 'tabs' ? 'social-layout__content-container--tabs' : 'social-layout__content-container--default';
 
@@ -40,6 +85,9 @@ export default function SocialLayout({
                     onBack={onBack}
                     activeTab={activeTab}
                     onTabChange={onTabChange}
+                    notificationCount={unreadCount}
+                    notificationActive={showNotifications}
+                    onNotificationClick={handleNotificationClick}
                 />
 
                 <div className="social-layout__content-area">

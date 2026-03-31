@@ -62,15 +62,6 @@ export default function AccountTab({
                     </div>
                 </div>
 
-                <button
-                    type="button"
-                    onClick={onOpenDeactivate}
-                    className="settings-tab__danger-button"
-                >
-                    Deactivate Account
-                </button>
-
-                {deactivateDone && <p className="settings-tab__success-text">Account deactivation confirmed (simulation only).</p>}
             </div>
 
             <div className="settings-tab__actions">

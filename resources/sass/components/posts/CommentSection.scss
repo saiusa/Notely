@@ -1,0 +1,139 @@
+@import '../../variables';
+
+.comment-section {
+  &__container {
+    width: 100%;
+    max-width: 600px;
+  }
+
+  &__header {
+    margin: 24px 0 16px;
+    font-size: 16px;
+    font-weight: 500;
+    color: #fff;
+  }
+
+  &__list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  &__item {
+    display: flex;
+    gap: 12px;
+  }
+
+  &__avatar {
+    height: 36px;
+    width: 36px;
+    border-radius: 9999px;
+    object-fit: cover;
+    flex-shrink: 0;
+  }
+
+  &__body {
+    flex: 1;
+    background: #212633;
+    border-radius: 8px;
+    padding: 12px;
+  }
+
+  &__author {
+    font-size: 14px;
+    font-weight: 500;
+    color: #fff;
+  }
+
+  &__time {
+    margin-left: 8px;
+    font-size: 12px;
+    color: #9ca0ad;
+  }
+
+  &__text {
+    margin-top: 4px;
+    font-size: 14px;
+    line-height: 1.5;
+    color: #e3e7ef;
+    white-space: pre-wrap;
+  }
+
+  &__actions {
+    margin-top: 8px;
+    display: flex;
+    gap: 12px;
+    font-size: 12px;
+  }
+
+  &__action-btn {
+    border: 0;
+    background: transparent;
+    color: #9ca0ad;
+    transition: color 0.15s ease;
+    cursor: pointer;
+
+    &:hover {
+      color: #fff;
+    }
+
+    &--liked {
+      color: #d5c9e5;
+    }
+  }
+
+  &__input-wrap {
+    margin-top: 16px;
+    display: flex;
+    gap: 8px;
+  }
+
+  &__avatar--input {
+    height: 32px;
+    width: 32px;
+    border-radius: 9999px;
+    object-fit: cover;
+    flex-shrink: 0;
+  }
+
+  &__input {
+    flex: 1;
+    border: 1px solid #404858;
+    border-radius: 8px;
+    background: #212633;
+    padding: 8px 12px;
+    font-size: 14px;
+    color: #fff;
+
+    &::placeholder {
+      color: #7d8498;
+    }
+
+    &:focus {
+      outline: none;
+      border-color: #785ebf;
+    }
+  }
+
+  &__submit-btn {
+    height: 32px;
+    border: 0;
+    border-radius: 6px;
+    background: #785ebf;
+    padding: 0 16px;
+    font-size: 12px;
+    font-weight: 500;
+    color: #fff;
+    transition: background-color 0.15s ease;
+    cursor: pointer;
+
+    &:hover {
+      background: #8b70d4;
+    }
+
+    &:disabled {
+      background: #5a4a8a;
+      cursor: not-allowed;
+    }
+  }
+}

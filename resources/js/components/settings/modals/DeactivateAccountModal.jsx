@@ -1,7 +1,18 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Input } from '../controls';
 
 export default function DeactivateAccountModal({ open, usernameInput, setUsernameInput, canConfirm, onCancel, onConfirm }) {
+    useEffect(() => {
+        if (open) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = '';
+        }
+        return () => {
+            document.body.style.overflow = '';
+        };
+    }, [open]);
+
     if (!open) return null;
 
     return (

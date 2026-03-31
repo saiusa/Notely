@@ -1,0 +1,81 @@
+@import '../../variables';
+
+.text-field {
+  &__container {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  &__label {
+    font-size: 14px;
+    font-weight: 500;
+    color: #fff;
+  }
+
+  &__input {
+    height: 40px;
+    border: 1px solid #404858;
+    border-radius: 8px;
+    background: #212633;
+    padding: 0 12px;
+    font-size: 14px;
+    color: #fff;
+    transition: border-color 0.15s ease, background-color 0.15s ease;
+
+    &::placeholder {
+      color: #7d8498;
+    }
+
+    &:focus {
+      outline: none;
+      border-color: #785ebf;
+      background: #2a3043;
+    }
+
+    &:disabled {
+      background: #1b1c24;
+      color: #5a5f6f;
+      cursor: not-allowed;
+    }
+  }
+
+  &__textarea {
+    min-height: 100px;
+    border: 1px solid #404858;
+    border-radius: 8px;
+    background: #212633;
+    padding: 12px;
+    font-size: 14px;
+    font-family: inherit;
+    color: #fff;
+    transition: border-color 0.15s ease, background-color 0.15s ease;
+    resize: vertical;
+
+    &::placeholder {
+      color: #7d8498;
+    }
+
+    &:focus {
+      outline: none;
+      border-color: #785ebf;
+      background: #2a3043;
+    }
+
+    &:disabled {
+      background: #1b1c24;
+      color: #5a5f6f;
+      cursor: not-allowed;
+    }
+  }
+
+  &__error {
+    font-size: 12px;
+    color: #f08b8b;
+  }
+
+  &__hint {
+    font-size: 12px;
+    color: #9ca0ad;
+  }
+}

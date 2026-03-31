@@ -9,7 +9,7 @@
     height: 80px;
     align-items: center;
     justify-content: space-between;
-    border-bottom: 1px solid #2b3041;
+    border-bottom: 1px solid #323848;
     background: #1b1c24;
     padding: 0 32px;
   }
@@ -55,7 +55,7 @@
     border-radius: 9999px;
     background: #21232c;
     padding: 0 16px;
-    color: #6f7689;
+    color: #757575;
 
     @media (min-width: 768px) {
       display: flex;
@@ -113,7 +113,7 @@
   &__tab-divider {
     height: 40px;
     width: 1px;
-    background: #2b3041;
+    background: #323848;
   }
 
   &__filter-wrap {
@@ -170,6 +170,127 @@
     color: #fff;
   }
 
+  &__search-notification-wrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    position: relative;
+  }
+
+  &__notification-wrap {
+    position: relative;
+  }
+
+  &__notification-dropdown {
+    position: absolute;
+    right: 0;
+    top: 44px;
+    z-index: 70;
+    max-width: 400px;
+    max-height: 500px;
+    border-radius: 10px;
+    border: 1px solid #323848;
+    background: #1f2332;
+    box-shadow: 0 20px 25px rgba(0, 0, 0, 0.2);
+    overflow: hidden;
+    animation: slideDownNotification 0.2s ease-out;
+  }
+
+  &__notification-list {
+    display: flex;
+    flex-direction: column;
+    max-height: 500px;
+    overflow-y: auto;
+  }
+
+  &__notification-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 12px;
+    border: 0;
+    border-bottom: 1px solid #303548;
+    border-radius: 0;
+    background: transparent;
+    color: #e8e8e8;
+    font-size: 13px;
+    text-align: left;
+    transition: background-color 0.15s ease;
+    cursor: pointer;
+    line-height: 1.4;
+
+    &:last-child {
+      border-bottom: 0;
+    }
+
+    &:hover {
+      background-color: #27293d;
+    }
+
+    &--unread {
+      background-color: #252b3d;
+
+      &:hover {
+        background-color: #2a3043;
+      }
+
+      &::before {
+        content: '';
+        position: absolute;
+        left: 4px;
+        width: 4px;
+        height: 4px;
+        border-radius: 50%;
+        background-color: #785ebf;
+      }
+    }
+  }
+
+  &__notification-item-icon {
+    flex-shrink: 0;
+    font-size: 20px;
+    color: #785ebf;
+  }
+
+  &__notification-item-text {
+    flex: 1;
+    line-height: 1.4;
+  }
+
+  &__notification-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+
+    .material-symbols-outlined {
+      font-size: 32px;
+      color: #785ebf;
+      animation: spin 1s linear infinite;
+    }
+  }
+
+  &__notification-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 32px 16px;
+    text-align: center;
+
+    .material-symbols-outlined {
+      font-size: 32px;
+      color: #666a75;
+    }
+
+    p {
+      margin: 0;
+      font-size: 14px;
+      color: #9ca0ad;
+    }
+  }
+
   &__home-center {
     display: flex;
     flex: 1;
@@ -199,6 +320,26 @@
   }
 }
 
+@keyframes slideDownNotification {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .recent-journals {
   &__sidebar {
     position: sticky;
@@ -214,7 +355,7 @@
     flex-direction: column;
     gap: 20px;
     border-radius: 12px;
-    background: #212633;
+    background: #21232c;
     padding: 20px;
   }
 

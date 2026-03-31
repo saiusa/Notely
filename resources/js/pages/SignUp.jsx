@@ -1,14 +1,49 @@
 import '../../sass/pages/Auth.scss';
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 export default function SignUp() {
+    const { register, isAuthenticated } = useAuth();
+    const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
+    const [error, setError] = useState('');
+    const [fieldErrors, setFieldErrors] = useState({});
 
-    const onSubmit = (event) => {
+    const [firstName, setFirstName] = useState('');
+    const [lastName, setLastName] = useState('');
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [phone, setPhone] = useState('');
+
+    if (isAuthenticated) {
+        navigate('/home', { replace: true });
+        return null;
+    }
+
+    const onSubmit = async (event) => {
         event.preventDefault();
         setLoading(true);
-        setTimeout(() => setLoading(false), 1000);
+        setError('');
+        setFieldErrors({});
+        try {
+            await register({
+                username: `${firstName.toLowerCase()}.${lastName.toLowerCase()}`,
+                email,
+                password,
+                password_confirmation: password,
+                phone_number: phone || undefined,
+            });
+            navigate('/home', { replace: true });
+        } catch (err) {
+            if (err.response?.data?.errors) {
+                setFieldErrors(err.response.data.errors);
+            }
+            const msg = err.response?.data?.message || 'Registration failed. Please try again.';
+            setError(msg);
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
@@ -30,6 +65,11 @@ export default function SignUp() {
                         </div>
 
                         <form onSubmit={onSubmit} className="auth-page__form">
+                            {error && (
+                                <div style={{ color: '#ff6b6b', fontSize: '13px', textAlign: 'center', marginBottom: '8px' }}>
+                                    {error}
+                                </div>
+                            )}
                             <div className="auth-page__grid auth-page__grid--two-columns">
                                 <div className="auth-page__field">
                                     <label className="auth-page__label">
@@ -39,7 +79,13 @@ export default function SignUp() {
                                         type="text"
                                         placeholder="John"
                                         className="auth-page__input"
+                                        value={firstName}
+                                        onChange={(e) => setFirstName(e.target.value)}
+                                        required
                                     />
+                                    {fieldErrors.username && (
+                                        <span style={{ color: '#ff6b6b', fontSize: '11px' }}>{fieldErrors.username[0]}</span>
+                                    )}
                                 </div>
 
                                 <div className="auth-page__field">
@@ -50,6 +96,9 @@ export default function SignUp() {
                                         type="text"
                                         placeholder="Doe"
                                         className="auth-page__input"
+                                        value={lastName}
+                                        onChange={(e) => setLastName(e.target.value)}
+                                        required
                                     />
                                 </div>
                             </div>
@@ -62,7 +111,13 @@ export default function SignUp() {
                                     type="email"
                                     placeholder="Enter your email"
                                     className="auth-page__input"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    required
                                 />
+                                {fieldErrors.email && (
+                                    <span style={{ color: '#ff6b6b', fontSize: '11px' }}>{fieldErrors.email[0]}</span>
+                                )}
                             </div>
 
                             <div className="auth-page__field">
@@ -73,7 +128,13 @@ export default function SignUp() {
                                     type="password"
                                     placeholder="Enter your password"
                                     className="auth-page__input"
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    required
                                 />
+                                {fieldErrors.password && (
+                                    <span style={{ color: '#ff6b6b', fontSize: '11px' }}>{fieldErrors.password[0]}</span>
+                                )}
                             </div>
 
                             <div className="auth-page__field">
@@ -82,8 +143,10 @@ export default function SignUp() {
                                 </label>
                                 <input
                                     type="tel"
-                                    placeholder="Enter your password"
+                                    placeholder="Enter your phone number"
                                     className="auth-page__input"
+                                    value={phone}
+                                    onChange={(e) => setPhone(e.target.value)}
                                 />
                             </div>
 
@@ -92,7 +155,7 @@ export default function SignUp() {
                                 disabled={loading}
                                 className="auth-page__submit"
                             >
-                                {loading ? 'Loading...' : 'Create Account'}
+                                {loading ? 'Creating...' : 'Create Account'}
                             </button>
                         </form>
 

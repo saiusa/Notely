@@ -1,11 +1,12 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { moodOptions } from './moodOptions';
+import postService from '../../services/postService';
 import '../../../sass/components/layout/ComposerModal.scss';
 
 const modeConfig = {
     text: {
         header: 'Title',
-        placeholder: 'Write your story...',
+        placeholder: 'Start writing your day...',
     },
     quote: {
         header: 'Quote',
@@ -17,7 +18,7 @@ const modeConfig = {
     },
 };
 
-export default function ComposerModal({ mode, onClose, embedded = false }) {
+export default function ComposerModal({ mode, onClose, onPostCreated, communityId, embedded = false }) {
     const config = modeConfig[mode] || modeConfig.text;
     const [isMoodOpen, setIsMoodOpen] = useState(false);
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -26,6 +27,11 @@ export default function ComposerModal({ mode, onClose, embedded = false }) {
     const [privacy, setPrivacy] = useState('public');
     const [allowComments, setAllowComments] = useState(true);
     const [isAnonymous, setIsAnonymous] = useState(false);
+    const [title, setTitle] = useState('');
+    const [body, setBody] = useState('');
+    const [tags, setTags] = useState('');
+    const [posting, setPosting] = useState(false);
+    const [error, setError] = useState('');
 
     const selectedMood = useMemo(() => {
         return moodOptions.find((option) => option.id === selectedMoodId) || null;
@@ -51,6 +57,56 @@ export default function ComposerModal({ mode, onClose, embedded = false }) {
         };
     }, [embedded]);
 
+    const handlePost = async () => {
+        if (!selectedMoodId) {
+            setError('Please select a mood.');
+            return;
+        }
+
+        const content = mode === 'text'
+            ? (title ? `${title}\n\n${body}` : body)
+            : body;
+
+        if (!content.trim()) {
+            setError('Please write something.');
+            return;
+        }
+
+        setPosting(true);
+        setError('');
+
+        try {
+            // Parse hashtags from comma/space separated string
+            const hashtags = tags
+                .split(/[,\s]+/)
+                .map((t) => t.replace(/^#/, '').trim())
+                .filter(Boolean);
+
+            const postData = {
+                content,
+                mood_id: moodOptions.findIndex((m) => m.id === selectedMoodId) + 1, // mood DB IDs are 1-indexed
+                privacy,
+                allow_comments: allowComments,
+                is_anonymous: isAnonymous,
+                hashtags: hashtags.length > 0 ? hashtags : undefined,
+                community_id: communityId || undefined,
+            };
+
+            const newPost = await postService.createPost(postData);
+
+            if (onPostCreated) {
+                onPostCreated(newPost);
+            }
+
+            onClose();
+        } catch (err) {
+            const msg = err.response?.data?.message || 'Failed to create post.';
+            setError(msg);
+        } finally {
+            setPosting(false);
+        }
+    };
+
     return (
         <div className={wrapperClassName}>
             <section className={sectionClassName}>
@@ -62,6 +118,8 @@ export default function ComposerModal({ mode, onClose, embedded = false }) {
                                 placeholder={config.header}
                                 className="composer-modal__input composer-modal__input--title"
                                 aria-label="Post title"
+                                value={title}
+                                onChange={(e) => setTitle(e.target.value)}
                             />
                         ) : null}
 
@@ -70,6 +128,8 @@ export default function ComposerModal({ mode, onClose, embedded = false }) {
                                 placeholder={config.placeholder}
                                 className="composer-modal__textarea composer-modal__textarea--quote"
                                 aria-label="Quote text"
+                                value={body}
+                                onChange={(e) => setBody(e.target.value)}
                             />
                         ) : null}
 
@@ -78,6 +138,8 @@ export default function ComposerModal({ mode, onClose, embedded = false }) {
                                 placeholder={config.placeholder}
                                 className="composer-modal__textarea composer-modal__textarea--caption"
                                 aria-label="Image caption"
+                                value={body}
+                                onChange={(e) => setBody(e.target.value)}
                             />
                         ) : null}
 
@@ -86,6 +148,8 @@ export default function ComposerModal({ mode, onClose, embedded = false }) {
                                 placeholder={config.placeholder}
                                 className="composer-modal__textarea composer-modal__textarea--body"
                                 aria-label="Post body"
+                                value={body}
+                                onChange={(e) => setBody(e.target.value)}
                             />
                         ) : null}
                     </div>
@@ -188,6 +252,12 @@ export default function ComposerModal({ mode, onClose, embedded = false }) {
                     </button>
                 )}
 
+                {error && (
+                    <div style={{ color: '#ff6b6b', fontSize: '12px', padding: '0 16px', marginBottom: '4px' }}>
+                        {error}
+                    </div>
+                )}
+
                 <div className="composer-modal__bottom-bar">
                     <button
                         type="button"
@@ -210,6 +280,8 @@ export default function ComposerModal({ mode, onClose, embedded = false }) {
                         placeholder="#add tags"
                         className="composer-modal__input composer-modal__input--tags"
                         aria-label="Hashtags"
+                        value={tags}
+                        onChange={(e) => setTags(e.target.value)}
                     />
 
                     {isMoodOpen ? (
@@ -238,11 +310,11 @@ export default function ComposerModal({ mode, onClose, embedded = false }) {
                 </div>
 
                 <div className="composer-modal__actions">
-                    <button type="button" onClick={onClose} className="composer-modal__cancel-btn">
+                    <button type="button" onClick={onClose} className="composer-modal__cancel-btn" disabled={posting}>
                         Cancel
                     </button>
-                    <button type="button" onClick={onClose} className="composer-modal__post-btn">
-                        Post
+                    <button type="button" onClick={handlePost} className="composer-modal__post-btn" disabled={posting}>
+                        {posting ? 'Posting...' : 'Post'}
                     </button>
                 </div>
             </section>

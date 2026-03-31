@@ -1,5 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import CommentSection from './CommentSection';
+import postService from '../../services/postService';
+import { useAuth } from '../../context/AuthContext';
 import '../../../sass/components/posts/PostCard.scss';
 
 function RecentJournalCard({ post }) {
@@ -7,17 +9,17 @@ function RecentJournalCard({ post }) {
         <article className="post-card__recent-item">
             <div className="post-card__recent-header">
                 <img
-                    src={post.avatar}
-                    alt={post.user}
+                    src={post.avatar || post.user?.profile?.profile_picture || ''}
+                    alt={post.user?.username || post.username || ''}
                     className="post-card__recent-avatar"
                 />
                 <p className="post-card__recent-meta">
-                    {post.user} • {post.time}
+                    {post.user?.username || post.username || ''} • {post.time || post.created_at || ''}
                 </p>
             </div>
 
             <div className="post-card__recent-body">
-                <p className="post-card__recent-text">{post.body}</p>
+                <p className="post-card__recent-text">{post.body || post.content || ''}</p>
                 {post.image && (
                     <img
                         src={post.image}
@@ -30,58 +32,148 @@ function RecentJournalCard({ post }) {
     );
 }
 
-export default function PostCard({ post, compact = false, variant = 'feed', currentUserUsername = 'jin.bts' }) {
+export default function PostCard({ post, compact = false, variant = 'feed', onPostDeleted }) {
+    const { user } = useAuth();
     const [menuOpen, setMenuOpen] = useState(false);
     const [showComments, setShowComments] = useState(false);
-    const [reacted, setReacted] = useState(false);
+    const [reacted, setReacted] = useState(post.liked_by_user || false);
+    const [likesCount, setLikesCount] = useState(post.likes_count ?? post.likes ?? 0);
+    const [commentsCount, setCommentsCount] = useState(post.comments_count ?? post.comments ?? 0);
     const [shared, setShared] = useState(false);
     const [expanded, setExpanded] = useState(false);
     const [commentInput, setCommentInput] = useState('');
     const [localComments, setLocalComments] = useState(post.commentList || []);
+    const [loadingComments, setLoadingComments] = useState(false);
+    const [commentsLoaded, setCommentsLoaded] = useState(false);
 
     const longTextLimit = 270;
 
+    // Normalize data fields — supports both mock and API shapes
+    const postUsername = post.user?.username || post.username || '';
+    const postAvatar = post.user?.profile?.profile_picture || post.avatar || '';
+    const postContent = post.content || post.body || '';
+    const postTime = post.created_at || post.time || '';
+    const postTitle = post.title || '';
+    const postMood = post.mood?.name || post.mood || '';
+    const postHashtags = post.hashtags?.map((h) => (typeof h === 'string' ? h : `#${h.name}`)) || [];
+    const postImage = post.image || null;
+    const isQuote = post.quote || false;
+
     const ownsPost = useMemo(() => {
-        if (typeof post.isOwner === 'boolean') {
-            return post.isOwner;
-        }
-        return post.username === currentUserUsername;
-    }, [currentUserUsername, post.isOwner, post.username]);
+        if (typeof post.isOwner === 'boolean') return post.isOwner;
+        if (user) return (post.user_id === user.user_id) || (postUsername === user.username);
+        return false;
+    }, [user, post.isOwner, post.user_id, postUsername]);
 
     const handleShare = async () => {
-        const shareLink = post.link || `${window.location.origin}/#/post/${post.id}`;
-
+        const shareLink = post.link || `${window.location.origin}/#/post/${post.post_id || post.id}`;
         try {
             await navigator.clipboard.writeText(shareLink);
             setShared(true);
             setTimeout(() => setShared(false), 1600);
-        } catch (error) {
+        } catch (_) {
             setShared(false);
         }
     };
 
-    const bodyText = post.body || '';
-    const shouldTruncate = bodyText.length > longTextLimit;
-    const visibleBody = shouldTruncate && !expanded ? `${bodyText.slice(0, longTextLimit)}...` : bodyText;
+    const handleToggleLike = async () => {
+        const postId = post.post_id || post.id;
+        try {
+            if (reacted) {
+                await postService.unlikePost(postId);
+                setReacted(false);
+                setLikesCount((prev) => Math.max(0, (typeof prev === 'number' ? prev : 0) - 1));
+            } else {
+                await postService.likePost(postId);
+                setReacted(true);
+                setLikesCount((prev) => (typeof prev === 'number' ? prev : 0) + 1);
+            }
+        } catch (_) {
+            // Silently fail — optimistic UI will revert on next load
+        }
+    };
 
-    const handleAddComment = () => {
-        const trimmed = commentInput.trim();
-
-        if (!trimmed) {
+    const handleLoadComments = async () => {
+        if (commentsLoaded) {
+            setShowComments((prev) => !prev);
             return;
         }
-
-        setLocalComments((prev) => [
-            ...prev,
-            {
-                id: `${post.id}-new-${Date.now()}`,
-                username: currentUserUsername,
-                avatar: post.avatar,
-                text: trimmed,
-            },
-        ]);
-        setCommentInput('');
+        setShowComments(true);
+        setLoadingComments(true);
+        try {
+            const postId = post.post_id || post.id;
+            const res = await postService.getComments(postId);
+            const apiComments = (res.data || res || []).map((c) => ({
+                id: c.comment_id || c.id,
+                username: c.user?.username || c.username || '',
+                avatar: c.user?.profile?.profile_picture || c.avatar || '',
+                text: c.content || c.text || '',
+            }));
+            setLocalComments(apiComments);
+            setCommentsLoaded(true);
+        } catch (_) {
+            // Fall back to existing local comments
+        } finally {
+            setLoadingComments(false);
+        }
     };
+
+    const handleAddComment = async () => {
+        const trimmed = commentInput.trim();
+        if (!trimmed) return;
+
+        const postId = post.post_id || post.id;
+        try {
+            const newComment = await postService.createComment(postId, trimmed);
+            setLocalComments((prev) => [
+                ...prev,
+                {
+                    id: newComment.comment_id || `${postId}-new-${Date.now()}`,
+                    username: user?.username || '',
+                    avatar: user?.profile?.profile_picture || '',
+                    text: trimmed,
+                },
+            ]);
+            setCommentInput('');
+            setCommentsCount((prev) => (typeof prev === 'number' ? prev : 0) + 1);
+        } catch (_) {
+            // Fallback: add locally
+            setLocalComments((prev) => [
+                ...prev,
+                {
+                    id: `${postId}-new-${Date.now()}`,
+                    username: user?.username || 'you',
+                    avatar: '',
+                    text: trimmed,
+                },
+            ]);
+            setCommentInput('');
+        }
+    };
+
+    const handleDeletePost = async () => {
+        const postId = post.post_id || post.id;
+        try {
+            await postService.deletePost(postId);
+            setMenuOpen(false);
+            if (onPostDeleted) onPostDeleted(postId);
+        } catch (_) {
+            // ignore
+        }
+    };
+
+    const handleReportPost = async () => {
+        const postId = post.post_id || post.id;
+        try {
+            await postService.reportPost(postId, 'Reported by user');
+            setMenuOpen(false);
+        } catch (_) {
+            // ignore
+        }
+    };
+
+    const shouldTruncate = postContent.length > longTextLimit;
+    const visibleBody = shouldTruncate && !expanded ? `${postContent.slice(0, longTextLimit)}...` : postContent;
 
     if (variant === 'recent') {
         return <RecentJournalCard post={post} />;
@@ -91,10 +183,10 @@ export default function PostCard({ post, compact = false, variant = 'feed', curr
         <article className="post-card__container">
             <div className="post-card__header">
                 <div className="post-card__author-wrap">
-                    <img src={post.avatar} alt={post.user} className="post-card__author-avatar" />
+                    <img src={postAvatar} alt={postUsername} className="post-card__author-avatar" />
                     <div className="post-card__author-meta">
-                        <p className="post-card__author-name">{post.user}</p>
-                        <p className="post-card__author-time">• {post.time}</p>
+                        <p className="post-card__author-name">{postUsername}</p>
+                        <p className="post-card__author-time">• {postTime}</p>
                     </div>
                 </div>
 
@@ -118,12 +210,12 @@ export default function PostCard({ post, compact = false, variant = 'feed', curr
                                     <button type="button" className="post-card__menu-item">
                                         Change Privacy
                                     </button>
-                                    <button type="button" className="post-card__menu-item post-card__menu-item--danger">
+                                    <button type="button" className="post-card__menu-item post-card__menu-item--danger" onClick={handleDeletePost}>
                                         Delete Post
                                     </button>
                                 </>
                             ) : (
-                                <button type="button" className="post-card__menu-item">
+                                <button type="button" className="post-card__menu-item" onClick={handleReportPost}>
                                     Report Post
                                 </button>
                             )}
@@ -132,16 +224,16 @@ export default function PostCard({ post, compact = false, variant = 'feed', curr
                 </div>
             </div>
 
-            {!compact && post.title && <h3 className="post-card__title">{post.title}</h3>}
+            {!compact && postTitle && <h3 className="post-card__title">{postTitle}</h3>}
 
             <p
                 className={`post-card__body ${
-                    post.quote
+                    isQuote
                         ? 'post-card__body--quote'
                         : 'post-card__body--default'
                 }`}
             >
-                {post.quote ? `"${visibleBody}"` : visibleBody}
+                {isQuote ? `"${visibleBody}"` : visibleBody}
             </p>
 
             {shouldTruncate && (
@@ -154,15 +246,15 @@ export default function PostCard({ post, compact = false, variant = 'feed', curr
                 </button>
             )}
 
-            {post.image && <img src={post.image} alt="post media" className="post-card__image" />}
+            {postImage && <img src={postImage} alt="post media" className="post-card__image" />}
 
             <div className="post-card__tags-row">
-                {post.mood && (
+                {postMood && (
                     <span className="post-card__mood-pill">
-                        {post.mood}
+                        {postMood}
                     </span>
                 )}
-                {post.hashtags?.map((tag) => (
+                {postHashtags.map((tag) => (
                     <span key={tag}>{tag}</span>
                 ))}
             </div>
@@ -171,7 +263,7 @@ export default function PostCard({ post, compact = false, variant = 'feed', curr
                 <div className="post-card__actions-grid">
                     <button
                         type="button"
-                        onClick={() => setReacted((prev) => !prev)}
+                        onClick={handleToggleLike}
                         className={`post-card__action-btn ${
                             reacted ? 'post-card__action-btn--active' : ''
                         }`}
@@ -179,18 +271,18 @@ export default function PostCard({ post, compact = false, variant = 'feed', curr
                         <span className={`material-symbols-outlined post-card__action-icon ${reacted ? 'post-card__action-icon--active' : ''}`}>
                             {reacted ? 'favorite' : 'favorite_border'}
                         </span>
-                        {post.likes}
+                        {likesCount}
                     </button>
 
                     <button
                         type="button"
-                        onClick={() => setShowComments((prev) => !prev)}
+                        onClick={handleLoadComments}
                         className={`post-card__action-btn ${
                             showComments ? 'post-card__action-btn--active' : ''
                         }`}
                     >
                         <span className="material-symbols-outlined post-card__action-icon">chat_bubble_outline</span>
-                        {post.comments}
+                        {commentsCount}
                     </button>
 
                     <button
@@ -212,6 +304,7 @@ export default function PostCard({ post, compact = false, variant = 'feed', curr
                         <input
                             value={commentInput}
                             onChange={(event) => setCommentInput(event.target.value)}
+                            onKeyDown={(e) => e.key === 'Enter' && handleAddComment()}
                             placeholder="Write a comment..."
                             className="post-card__comment-input"
                         />
@@ -225,7 +318,11 @@ export default function PostCard({ post, compact = false, variant = 'feed', curr
                         </button>
                     </div>
 
-                    <CommentSection comments={localComments} />
+                    {loadingComments ? (
+                        <p style={{ color: '#a5abb9', fontSize: '13px', padding: '8px 0' }}>Loading comments...</p>
+                    ) : (
+                        <CommentSection comments={localComments} />
+                    )}
                 </div>
             )}
         </article>

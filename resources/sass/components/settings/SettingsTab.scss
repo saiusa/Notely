@@ -1,0 +1,214 @@
+@import '../../variables';
+
+.settings-tab {
+  display: flex;
+  min-height: 420px;
+  flex-direction: column;
+
+  &__body {
+    display: flex;
+    flex-direction: column;
+
+    &--compact-gap {
+      gap: 16px;
+    }
+
+    &--large-gap {
+      gap: 24px;
+    }
+  }
+
+  &__label-wrap {
+    display: block;
+  }
+
+  &__phone-section {
+    display: block;
+  }
+
+  &__phone-row {
+    display: flex;
+    max-width: 420px;
+    gap: 8px;
+  }
+
+  &__country-select-wrap {
+    position: relative;
+  }
+
+  &__country-select {
+    display: flex;
+    height: 40px;
+    align-items: center;
+    gap: 4px;
+    border: 1px solid #38405a;
+    border-radius: 8px;
+    background: transparent;
+    padding: 0 12px;
+    font-size: 18px;
+    color: #fff;
+  }
+
+  &__country-select-icon {
+    font-size: 16px;
+  }
+
+  &__country-menu {
+    position: absolute;
+    left: 0;
+    top: 44px;
+    z-index: 30;
+    width: 220px;
+    border: 1px solid #323848;
+    border-radius: 10px;
+    background: #1f2332;
+    padding: 6px;
+    font-size: 13px;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, .35), 0 10px 10px -5px rgba(0, 0, 0, .2);
+  }
+
+  &__country-menu-item {
+    display: block;
+    height: 32px;
+    width: 100%;
+    border: 0;
+    border-radius: 4px;
+    background: transparent;
+    padding: 0 8px;
+    text-align: left;
+    color: #fff;
+    transition: background-color .2s ease;
+
+    &:hover {
+      background: #2a3043;
+    }
+  }
+
+  &__danger-button {
+    margin-top: 20px;
+    height: 34px;
+    width: fit-content;
+    border: 0;
+    border-radius: 8px;
+    background: #ef3d35;
+    padding: 0 24px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #fff;
+    transition: background-color .2s ease;
+
+    &:hover {
+      background: #f0564f;
+    }
+  }
+
+  &__success-text {
+    margin: 0;
+    font-size: 13px;
+    color: #8fd3a8;
+  }
+
+  &__actions {
+    margin-top: auto;
+    display: flex;
+    justify-content: flex-end;
+    gap: 20px;
+    padding-top: 32px;
+  }
+
+  &__text-button {
+    border: 0;
+    background: transparent;
+    font-size: 16px;
+    font-weight: 500;
+    color: #e6e8ef;
+    transition: color .2s ease;
+
+    &:hover {
+      color: #9b84d8;
+    }
+  }
+
+  &__primary-button {
+    height: 34px;
+    border: 0;
+    border-radius: 8px;
+    background: #785ebf;
+    font-size: 14px;
+    font-weight: 600;
+    color: #fff;
+    transition: background-color .2s ease;
+
+    &:hover {
+      background: #8c72d4;
+    }
+
+    &--small {
+      width: 80px;
+    }
+  }
+
+  &__link-button {
+    border: 0;
+    background: transparent;
+    text-align: left;
+    font-size: 16px;
+    font-weight: 600;
+    color: #fff;
+    transition: color .2s ease;
+
+    &:hover {
+      color: #9b84d8;
+    }
+  }
+
+  &__toggle-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    &--title {
+      align-items: center;
+    }
+  }
+
+  &__toggle-title {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: #fff;
+
+    &--small-gap {
+      margin-bottom: 8px;
+    }
+  }
+
+  &__toggle-label {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 500;
+    color: #fff;
+  }
+
+  &__checkbox-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    padding: 8px 0;
+    cursor: pointer;
+    font-size: 14px;
+    color: #fff;
+
+    &--spaced {
+      margin-bottom: 8px;
+    }
+  }
+
+  &__checkbox {
+    height: 18px;
+    width: 18px;
+    cursor: pointer;
+    accent-color: #785ebf;
+  }
+}

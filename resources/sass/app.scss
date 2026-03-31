@@ -7,4 +7,17 @@
 // Fonts
 @import url('https://fonts.bunny.net/css?family=Nunito');
 
-@import 'https://fonts.google.com/icons';
+// Components
+@import './components/layout/index';
+@import './components/community/index';
+@import './components/posts/index';
+@import './components/profile/index';
+@import './components/settings/index';
+@import './components/journal/index';
+@import './components/ui/index';
+@import './components/notifications/index';
+
+// Pages
+@import './pages/index';
+
+// @import 'https://fonts.google.com/icons';

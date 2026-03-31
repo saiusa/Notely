@@ -1,31 +1,110 @@
-import React, { useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import JournalCard from '../components/journal/JournalCard';
 import SocialLayout from '../components/layout/SocialLayout';
 import '../../sass/pages/ProfilePage.scss';
 import {
-    defaultProfile,
     formatBirthday,
     getCountryLabel,
-    getPublicJournalPosts,
 } from '../components/profile/ProfileUser';
 import ProfileCommunityPanel from '../components/profile/ProfileCommunityPanel';
 import ProfileEditModal from '../components/profile/ProfileEditModal';
-import { journalCards, profileCommunities } from '../utils/socialMockData';
+import { useAuth } from '../context/AuthContext';
+import profileService from '../services/profileService';
+import postService from '../services/postService';
+import communityService from '../services/communityService';
 
 export default function ProfilePage() {
-    const [profileData, setProfileData] = useState(defaultProfile);
+    const { user, refreshUser } = useAuth();
     const [showEdit, setShowEdit] = useState(false);
+    const [posts, setPosts] = useState([]);
+    const [communities, setCommunities] = useState([]);
+    const [loadingPosts, setLoadingPosts] = useState(true);
 
-    const recentPublicPosts = useMemo(() => {
-        return getPublicJournalPosts(journalCards)
-            .slice()
-            .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-            .slice(0, 4);
+    // Build profile data from auth user
+    const profileData = useMemo(() => ({
+        firstName: user?.profile?.first_name || '',
+        lastName: user?.profile?.last_name || '',
+        username: user ? `@${user.username}` : '@user',
+        birthday: user?.profile?.birthday || '',
+        country: user?.profile?.location || 'south-korea',
+        gender: user?.profile?.gender || '',
+        description: user?.profile?.description || '',
+        coverPhoto: 'https://images.unsplash.com/photo-1473643068424-cd2485f9a97f?auto=format&fit=crop&w=1400&q=80',
+        profilePhoto: user?.profile?.profile_picture || 'https://images.unsplash.com/photo-1543852786-1cf6624b9987?auto=format&fit=crop&w=130&q=80',
+    }), [user]);
+
+    // Fetch user's posts
+    const fetchPosts = useCallback(async () => {
+        setLoadingPosts(true);
+        try {
+            const res = await postService.getFeed();
+            const allPosts = res.data || res || [];
+            // Filter to only user's own public posts
+            const userPosts = allPosts
+                .filter((p) => p.user_id === user?.user_id && p.privacy === 'public')
+                .map((post) => ({
+                    id: post.post_id || post.id,
+                    date: post.created_at ? new Date(post.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : '',
+                    time: post.created_at ? new Date(post.created_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false }) : '',
+                    createdAt: post.created_at || new Date().toISOString(),
+                    isPublic: post.privacy === 'public',
+                    text: post.content || '',
+                    mood: post.mood?.name || '',
+                    image: post.image || null,
+                    likes: post.likes_count ?? 0,
+                    comments: post.comments_count ?? 0,
+                }));
+            setPosts(userPosts);
+        } catch (_) {
+            setPosts([]);
+        } finally {
+            setLoadingPosts(false);
+        }
+    }, [user?.user_id]);
+
+    // Fetch user's communities
+    const fetchCommunities = useCallback(async () => {
+        try {
+            const res = await communityService.getMyCommunities();
+            const data = res.data || res || [];
+            setCommunities(data.map((c) => ({
+                id: c.community_id || c.id,
+                name: c.name,
+                handle: `@${c.name.toLowerCase().replace(/\s+/g, '-')}`,
+            })));
+        } catch (_) {
+            setCommunities([]);
+        }
     }, []);
 
-    const handleSaveProfile = (nextProfile) => {
-        setProfileData(nextProfile);
+    useEffect(() => {
+        fetchPosts();
+        fetchCommunities();
+    }, [fetchPosts, fetchCommunities]);
+
+    const recentPublicPosts = useMemo(() => {
+        return posts
+            .filter((p) => p.isPublic)
+            .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+            .slice(0, 4);
+    }, [posts]);
+
+    const handleSaveProfile = async (nextProfile) => {
+        try {
+            await profileService.updateProfile({
+                first_name: nextProfile.firstName,
+                last_name: nextProfile.lastName,
+                location: nextProfile.country,
+                birthday: nextProfile.birthday,
+                gender: nextProfile.gender,
+                description: nextProfile.description,
+                profile_picture: nextProfile.profilePhoto,
+            });
+            await refreshUser();
+        } catch (_) {
+            // ignore
+        }
         setShowEdit(false);
     };
 
@@ -38,11 +117,11 @@ export default function ProfilePage() {
             <div className="profile-page-layout">
                 <section className="profile-page-layout__main">
                     <article className="profile-card">
-                        <img src={profileData.coverPhoto || defaultProfile.coverPhoto} alt="cover" className="profile-card__cover" />
+                        <img src={profileData.coverPhoto} alt="cover" className="profile-card__cover" />
 
                         <div className="profile-card__content">
                             <img
-                                src={profileData.profilePhoto || defaultProfile.profilePhoto}
+                                src={profileData.profilePhoto}
                                 alt="avatar"
                                 className="profile-card__avatar"
                             />
@@ -82,21 +161,27 @@ export default function ProfilePage() {
                     </div>
 
                     <div className="profile-page-layout__posts-grid">
-                        {recentPublicPosts.map((post) => (
-                            <JournalCard
-                                key={`profile-overview-${post.id}`}
-                                card={post}
-                                isPublicView
-                                compact
-                                onEdit={() => {}}
-                                onTogglePrivacy={() => {}}
-                                onCopyLink={() => {}}
-                            />
-                        ))}
+                        {loadingPosts ? (
+                            <p style={{ color: '#a5abb9', padding: '20px 0' }}>Loading posts...</p>
+                        ) : recentPublicPosts.length === 0 ? (
+                            <p style={{ color: '#a5abb9', padding: '20px 0' }}>No public posts yet.</p>
+                        ) : (
+                            recentPublicPosts.map((post) => (
+                                <JournalCard
+                                    key={`profile-overview-${post.id}`}
+                                    card={post}
+                                    isPublicView
+                                    compact
+                                    onEdit={() => {}}
+                                    onTogglePrivacy={() => {}}
+                                    onCopyLink={() => {}}
+                                />
+                            ))
+                        )}
                     </div>
                 </section>
 
-                <ProfileCommunityPanel communities={profileCommunities} />
+                <ProfileCommunityPanel communities={communities} />
             </div>
 
             {showEdit ? (

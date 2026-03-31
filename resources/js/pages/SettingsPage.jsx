@@ -1,5 +1,5 @@
-import '../../sass/components/settings/Settings.scss';
-import React, { useMemo, useState } from 'react';
+import '../../sass/components/settings/index.scss';
+import React, { useEffect, useState } from 'react';
 import SocialLayout from '../components/layout/SocialLayout';
 import SettingsLayout from '../components/settings/SettingsLayout';
 import { COUNTRY_OPTIONS } from '../components/settings/constants';
@@ -7,22 +7,24 @@ import AccountTab from '../components/settings/tabs/AccountTab';
 import SecurityTab from '../components/settings/tabs/SecurityTab';
 import PrivacyTab from '../components/settings/tabs/PrivacyTab';
 import NotificationTab from '../components/settings/tabs/NotificationTab';
-import DeactivateAccountModal from '../components/settings/modals/DeactivateAccountModal';
 import TwoFactorModal from '../components/settings/modals/TwoFactorModal';
+import { useAuth } from '../context/AuthContext';
+import settingsService from '../services/settingsService';
 
 export default function SettingsPage() {
+    const { user, logout, refreshUser } = useAuth();
     const [activeMenu, setActiveMenu] = useState('account');
+    const [saving, setSaving] = useState(false);
+    const [saveMessage, setSaveMessage] = useState('');
 
-    const [username, setUsername] = useState('jin.bts');
-    const [email, setEmail] = useState('jin.bts@gmail.com');
+    // Account fields — initialized from auth user
+    const [username, setUsername] = useState('');
+    const [email, setEmail] = useState('');
     const [country, setCountry] = useState(COUNTRY_OPTIONS[0]);
-    const [phone, setPhone] = useState('000-0000-000');
+    const [phone, setPhone] = useState('');
     const [showCountryMenu, setShowCountryMenu] = useState(false);
 
-    const [showDeactivateModal, setShowDeactivateModal] = useState(false);
-    const [deactivateInput, setDeactivateInput] = useState('');
-    const [deactivateDone, setDeactivateDone] = useState(false);
-
+    // Security
     const [showChangePassword, setShowChangePassword] = useState(false);
     const [currentPassword, setCurrentPassword] = useState('');
     const [newPassword, setNewPassword] = useState('');
@@ -30,21 +32,35 @@ export default function SettingsPage() {
 
     const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
     const [showTwoFactorModal, setShowTwoFactorModal] = useState(false);
-    const [twoFactorStep, setTwoFactorStep] = useState('credentials');
-    const [twoFactorUsername, setTwoFactorUsername] = useState('');
-    const [twoFactorPassword, setTwoFactorPassword] = useState('');
-    const [twoFactorCode, setTwoFactorCode] = useState('');
-    const [sampleCode, setSampleCode] = useState('');
 
+    // Privacy
     const [defaultPrivacy, setDefaultPrivacy] = useState('public');
     const [hideComments, setHideComments] = useState(false);
     const [showReactions, setShowReactions] = useState(true);
 
+    // Notifications
     const [notifLikes, setNotifLikes] = useState(true);
     const [notifComments, setNotifComments] = useState(true);
     const [notifEmail, setNotifEmail] = useState(true);
 
-    const deactivateMatches = useMemo(() => deactivateInput.trim() === username.trim(), [deactivateInput, username]);
+    // Load user settings on mount
+    useEffect(() => {
+        if (user) {
+            setUsername(user.username || '');
+            setEmail(user.email || '');
+            setPhone(user.phone_number || '');
+
+            if (user.setting) {
+                setTwoFactorEnabled(user.setting.two_factor_enabled || false);
+                setDefaultPrivacy(user.setting.default_post_privacy || 'public');
+                setHideComments(user.setting.hide_comments || false);
+                setShowReactions(user.setting.show_reaction_counts !== false);
+                setNotifLikes(user.setting.notify_likes !== false);
+                setNotifComments(user.setting.notify_comments !== false);
+                setNotifEmail(user.setting.email_notifications !== false);
+            }
+        }
+    }, [user]);
 
     const handleCountrySelect = (selected) => {
         setCountry(selected);
@@ -52,46 +68,109 @@ export default function SettingsPage() {
         setShowCountryMenu(false);
     };
 
-    const handleDeactivateConfirm = () => {
-        if (!deactivateMatches) return;
-        setDeactivateDone(true);
-        setShowDeactivateModal(false);
-        setDeactivateInput('');
+    // ── Save Account ──
+    const handleSaveAccount = async () => {
+        setSaving(true);
+        setSaveMessage('');
+        try {
+            await settingsService.updateAccount({ username, email, phone_number: phone });
+            await refreshUser();
+            setSaveMessage('Account updated successfully.');
+        } catch (err) {
+            setSaveMessage(err.response?.data?.message || 'Failed to update account.');
+        } finally {
+            setSaving(false);
+            setTimeout(() => setSaveMessage(''), 3000);
+        }
     };
 
+    // ── Save Password ──
+    const handleSavePassword = async () => {
+        if (newPassword !== confirmPassword) {
+            setSaveMessage('Passwords do not match.');
+            return;
+        }
+        setSaving(true);
+        setSaveMessage('');
+        try {
+            await settingsService.updatePassword({
+                current_password: currentPassword,
+                new_password: newPassword,
+                new_password_confirmation: confirmPassword,
+            });
+            setCurrentPassword('');
+            setNewPassword('');
+            setConfirmPassword('');
+            setShowChangePassword(false);
+            setSaveMessage('Password updated successfully.');
+        } catch (err) {
+            setSaveMessage(err.response?.data?.message || 'Failed to update password.');
+        } finally {
+            setSaving(false);
+            setTimeout(() => setSaveMessage(''), 3000);
+        }
+    };
+
+    // ── Save Privacy ──
+    const handleSavePrivacy = async (field, value) => {
+        try {
+            await settingsService.updatePrivacy({
+                default_post_privacy: field === 'defaultPrivacy' ? value : defaultPrivacy,
+                hide_comments: field === 'hideComments' ? value : hideComments,
+                show_reaction_counts: field === 'showReactions' ? value : showReactions,
+            });
+        } catch (_) {
+            // ignore
+        }
+    };
+
+    // ── Save Notifications ──
+    const handleSaveNotifications = async (field, value) => {
+        try {
+            await settingsService.updateNotifications({
+                notify_likes: field === 'notifLikes' ? value : notifLikes,
+                notify_comments: field === 'notifComments' ? value : notifComments,
+                email_notifications: field === 'notifEmail' ? value : notifEmail,
+            });
+        } catch (_) {
+            // ignore
+        }
+    };
+
+    // ── 2FA ──
     const handleToggleTwoFactor = () => {
         if (twoFactorEnabled) {
             setTwoFactorEnabled(false);
+            settingsService.updateTwoFactor({ two_factor_enabled: false }).catch(() => {});
             return;
         }
-
-        setTwoFactorStep('credentials');
-        setTwoFactorUsername(username);
-        setTwoFactorPassword('');
-        setTwoFactorCode('');
-        setSampleCode('');
         setShowTwoFactorModal(true);
     };
 
-    const handleSendCode = () => {
-        if (!twoFactorUsername.trim() || !twoFactorPassword.trim()) return;
-
-        const generated = String(Math.floor(100000 + Math.random() * 900000));
-        setSampleCode(generated);
-        setTwoFactorStep('code');
-    };
-
-    const handleActivateTwoFactor = () => {
-        if (twoFactorCode.trim() !== sampleCode) return;
-
+    const handleActivateTwoFactor = async () => {
+        try {
+            await settingsService.updateTwoFactor({ two_factor_enabled: true });
+        } catch (_) {
+            // ignore
+        }
         setTwoFactorEnabled(true);
         setShowTwoFactorModal(false);
-        setTwoFactorCode('');
-        setTwoFactorPassword('');
     };
 
     return (
         <SocialLayout activeNav="settings" navbarMode="title" title="Settings">
+            {saveMessage && (
+                <div style={{
+                    padding: '8px 16px',
+                    marginBottom: '12px',
+                    borderRadius: '8px',
+                    fontSize: '13px',
+                    background: saveMessage.includes('Failed') || saveMessage.includes('match') ? '#3a1c1c' : '#1c3a2a',
+                    color: saveMessage.includes('Failed') || saveMessage.includes('match') ? '#ff6b6b' : '#4ade80',
+                }}>
+                    {saveMessage}
+                </div>
+            )}
             <SettingsLayout activeMenu={activeMenu} onMenuChange={setActiveMenu}>
                 {activeMenu === 'account' && (
                     <AccountTab
@@ -106,8 +185,8 @@ export default function SettingsPage() {
                         showCountryMenu={showCountryMenu}
                         setShowCountryMenu={setShowCountryMenu}
                         onCountrySelect={handleCountrySelect}
-                        onOpenDeactivate={() => setShowDeactivateModal(true)}
-                        deactivateDone={deactivateDone}
+                        onSave={handleSaveAccount}
+                        saving={saving}
                     />
                 )}
 
@@ -123,56 +202,37 @@ export default function SettingsPage() {
                         setConfirmPassword={setConfirmPassword}
                         twoFactorEnabled={twoFactorEnabled}
                         onToggleTwoFactor={handleToggleTwoFactor}
+                        onSavePassword={handleSavePassword}
+                        saving={saving}
                     />
                 )}
 
                 {activeMenu === 'privacy' && (
                     <PrivacyTab
                         defaultPrivacy={defaultPrivacy}
-                        setDefaultPrivacy={setDefaultPrivacy}
+                        setDefaultPrivacy={(v) => { setDefaultPrivacy(v); handleSavePrivacy('defaultPrivacy', v); }}
                         hideComments={hideComments}
-                        setHideComments={setHideComments}
+                        setHideComments={(v) => { setHideComments(v); handleSavePrivacy('hideComments', v); }}
                         showReactions={showReactions}
-                        setShowReactions={setShowReactions}
+                        setShowReactions={(v) => { setShowReactions(v); handleSavePrivacy('showReactions', v); }}
                     />
                 )}
 
                 {activeMenu === 'notification' && (
                     <NotificationTab
                         notifLikes={notifLikes}
-                        setNotifLikes={setNotifLikes}
+                        setNotifLikes={(v) => { setNotifLikes(v); handleSaveNotifications('notifLikes', v); }}
                         notifComments={notifComments}
-                        setNotifComments={setNotifComments}
+                        setNotifComments={(v) => { setNotifComments(v); handleSaveNotifications('notifComments', v); }}
                         notifEmail={notifEmail}
-                        setNotifEmail={setNotifEmail}
+                        setNotifEmail={(v) => { setNotifEmail(v); handleSaveNotifications('notifEmail', v); }}
                     />
                 )}
             </SettingsLayout>
 
-            <DeactivateAccountModal
-                open={showDeactivateModal}
-                usernameInput={deactivateInput}
-                setUsernameInput={setDeactivateInput}
-                canConfirm={deactivateMatches}
-                onCancel={() => {
-                    setShowDeactivateModal(false);
-                    setDeactivateInput('');
-                }}
-                onConfirm={handleDeactivateConfirm}
-            />
-
             <TwoFactorModal
                 open={showTwoFactorModal}
-                step={twoFactorStep}
-                username={twoFactorUsername}
-                setUsername={setTwoFactorUsername}
-                password={twoFactorPassword}
-                setPassword={setTwoFactorPassword}
-                code={twoFactorCode}
-                setCode={setTwoFactorCode}
-                sampleCode={sampleCode}
                 onCancel={() => setShowTwoFactorModal(false)}
-                onSendCode={handleSendCode}
                 onActivate={handleActivateTwoFactor}
             />
         </SocialLayout>

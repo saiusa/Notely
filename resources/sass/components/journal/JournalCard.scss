@@ -1,0 +1,60 @@
+@import '../../variables';
+
+.journal-card {
+  &__container {
+    display: flex;
+    gap: 12px;
+    padding: 16px;
+    border-radius: 8px;
+    background: #212633;
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+
+    &:hover {
+      background: #2a3043;
+    }
+  }
+
+  &__thumbnail {
+    height: 80px;
+    width: 80px;
+    min-width: 80px;
+    border-radius: 6px;
+    object-fit: cover;
+  }
+
+  &__content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+
+  &__date {
+    font-size: 12px;
+    color: #9ca0ad;
+  }
+
+  &__title {
+    margin-top: 4px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #fff;
+    line-height: 1.3;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+  }
+
+  &__snippet {
+    margin-top: 4px;
+    font-size: 12px;
+    color: #b9bdc8;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 1;
+    line-clamp: 1;
+  }
+}

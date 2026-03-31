@@ -1,0 +1,87 @@
+@import '../../variables';
+
+.community-sidebar {
+  &__container {
+    height: fit-content;
+    border-radius: 10px;
+    background: #212633;
+    padding: 16px;
+  }
+
+  &__header {
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-bottom: 1px solid #303548;
+    padding-bottom: 16px;
+  }
+
+  &__image {
+    height: 48px;
+    width: 48px;
+    border-radius: 6px;
+    object-fit: cover;
+  }
+
+  &__info {
+    display: flex;
+    flex-direction: column;
+    gap: 0px;
+  }
+
+  &__name {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 1.2;
+    color: #fff;
+  }
+
+  &__username {
+    margin: 0;
+    font-size: 13px;
+    color: #785ebf;
+    font-weight: 500;
+  }
+
+  &__tab-btn {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    justify-content: space-between;
+    border: 0;
+    background: transparent;
+    padding: 12px 0;
+    text-align: left;
+    transition: color 0.15s ease;
+    cursor: pointer;
+
+    &--active {
+      color: #fff;
+    }
+
+    &--inactive {
+      color: #b3b7c4;
+
+      &:hover {
+        color: #fff;
+      }
+    }
+  }
+
+  &__tab-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  &__tab-icon {
+    font-size: 18px;
+  }
+
+  &__tab-label,
+  &__tab-count {
+    font-size: 14px;
+  }
+}

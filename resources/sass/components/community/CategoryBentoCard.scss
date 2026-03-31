@@ -1,0 +1,47 @@
+@import '../../variables';
+
+.category-bento-card {
+  &__container {
+    display: block;
+    height: 296px;
+    width: 100%;
+    max-width: 400px;
+    border-radius: 10px;
+    background: #212633;
+    text-decoration: none;
+    overflow: hidden;
+    transition: all 0.3s ease;
+
+    &:hover .category-bento-card__image {
+      transform: scale(1.02);
+    }
+
+    &:hover .category-bento-card__title {
+      color: #785ebf;
+    }
+  }
+
+  &__image {
+    height: 250px;
+    width: 100%;
+    border-radius: 8px 8px 0 0;
+    object-fit: cover;
+    transition: transform 0.4s ease;
+  }
+
+  &__footer {
+    display: flex;
+    height: 46px;
+    align-items: center;
+  }
+
+  &__title {
+    padding-top: 10px;
+    margin-left: 16px;
+    font-size: 16px;
+    font-weight: 500;
+    line-height: 1.2;
+    color: #fff;
+    transition: color 0.3s ease;
+  }
+}

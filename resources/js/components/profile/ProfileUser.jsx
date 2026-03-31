@@ -1,5 +1,6 @@
 import React from 'react';
-import '../../../sass/components/profile/ProfileShared.scss';
+import { countryOptions } from './countries';
+import '../../../sass/components/profile/ProfileUser.scss';
 
 export const defaultProfile = {
     firstName: 'Jungkook',
@@ -14,13 +15,6 @@ export const defaultProfile = {
     profilePhoto:
         'https://images.unsplash.com/photo-1543852786-1cf6624b9987?auto=format&fit=crop&w=130&q=80',
 };
-
-export const countryOptions = [
-    { value: 'south-korea', label: 'Seoul, South Korea' },
-    { value: 'japan', label: 'Tokyo, Japan' },
-    { value: 'united-states', label: 'Los Angeles, United States' },
-    { value: 'canada', label: 'Toronto, Canada' },
-];
 
 export function formatBirthday(dateString) {
     if (!dateString) {
@@ -42,6 +36,8 @@ export function getCountryLabel(countryValue) {
     const country = countryOptions.find((item) => item.value === countryValue);
     return country?.label || countryOptions[0].label;
 }
+
+export { countryOptions };
 
 function trimPostText(text, limit) {
     if (!text) {

@@ -1,5 +1,5 @@
 import React from 'react';
-import '../../../sass/components/community/Community.scss';
+import '../../../sass/components/community/CommunityAboutPanel.scss';
 
 export default function CommunityAboutPanel({ community }) {
     return (

@@ -1,19 +1,35 @@
 import '../../sass/pages/Auth.scss';
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 export default function Login() {
+    const { login, isAuthenticated } = useAuth();
+    const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [error, setError] = useState('');
 
-    const loginFields = [
-        { id: 'login-email', label: 'Email address', type: 'email', placeholder: 'Enter your email' },
-        { id: 'login-password', label: 'Password', type: 'password', placeholder: 'Enter your password' },
-    ];
+    // If already authenticated, redirect to home
+    if (isAuthenticated) {
+        navigate('/home', { replace: true });
+        return null;
+    }
 
-    const onSubmit = (event) => {
+    const onSubmit = async (event) => {
         event.preventDefault();
         setLoading(true);
-        setTimeout(() => setLoading(false), 1000);
+        setError('');
+        try {
+            await login(email, password);
+            navigate('/home', { replace: true });
+        } catch (err) {
+            const msg = err.response?.data?.message || 'Login failed. Please try again.';
+            setError(msg);
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
@@ -26,23 +42,45 @@ export default function Login() {
 
                     <form onSubmit={onSubmit} className="auth-page__form">
                         <div className="auth-page__fields auth-page__fields--spaced">
-                            {loginFields.map((field) => (
-                                <div key={field.id} className="auth-page__field">
-                                    <label
-                                        htmlFor={field.id}
-                                        className="auth-page__label"
-                                    >
-                                        {field.label}
-                                    </label>
-                                    <input
-                                        id={field.id}
-                                        type={field.type}
-                                        placeholder={field.placeholder}
-                                        className="auth-page__input"
-                                        required
-                                    />
+                            {error && (
+                                <div style={{ color: '#ff6b6b', fontSize: '13px', textAlign: 'center', marginBottom: '8px' }}>
+                                    {error}
                                 </div>
-                            ))}
+                            )}
+                            <div className="auth-page__field">
+                                <label
+                                    htmlFor="login-email"
+                                    className="auth-page__label"
+                                >
+                                    Email address
+                                </label>
+                                <input
+                                    id="login-email"
+                                    type="email"
+                                    placeholder="Enter your email"
+                                    className="auth-page__input"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    required
+                                />
+                            </div>
+                            <div className="auth-page__field">
+                                <label
+                                    htmlFor="login-password"
+                                    className="auth-page__label"
+                                >
+                                    Password
+                                </label>
+                                <input
+                                    id="login-password"
+                                    type="password"
+                                    placeholder="Enter your password"
+                                    className="auth-page__input"
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    required
+                                />
+                            </div>
                         </div>
 
                         <div className="auth-page__utility-row">
@@ -66,7 +104,7 @@ export default function Login() {
                             disabled={loading}
                             className="auth-page__submit"
                         >
-                            {loading ? 'Loading...' : 'Sign in'}
+                            {loading ? 'Signing in...' : 'Sign in'}
                         </button>
 
                         <p className="auth-page__footer-text">

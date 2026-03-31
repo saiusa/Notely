@@ -1,0 +1,136 @@
+@import '../../variables';
+
+.community-detail-header {
+  &__container {
+    position: relative;
+    overflow: hidden;
+    border-radius: 10px;
+    background: #212633;
+  }
+
+  &__cover {
+    height: 300px;
+    width: 100%;
+    object-fit: cover;
+  }
+
+  &__menu-container {
+    position: absolute;
+    right: 16px;
+    top: 16px;
+  }
+
+  &__menu-wrap {
+    position: relative;
+  }
+
+  &__menu-btn {
+    display: flex;
+    height: 32px;
+    width: 32px;
+    align-items: center;
+    justify-content: center;
+    border: 0;
+    border-radius: 9999px;
+    background: rgba(0, 0, 0, 0.3);
+    color: #fff;
+    transition: background-color 0.15s ease;
+    cursor: pointer;
+
+    &:hover {
+      background: rgba(0, 0, 0, 0.45);
+    }
+  }
+
+  &__menu-icon {
+    font-size: 20px;
+  }
+
+  &__menu {
+    position: absolute;
+    right: 0;
+    top: 36px;
+    z-index: 30;
+    width: 140px;
+    border-radius: 10px;
+    border: 1px solid #323848;
+    background: #1f2332;
+    padding: 6px;
+    font-size: 13px;
+    box-shadow: 0 20px 25px rgba(0, 0, 0, 0.1);
+  }
+
+  &__menu-item {
+    display: block;
+    height: 32px;
+    width: 100%;
+    border: 0;
+    border-radius: 4px;
+    background: transparent;
+    padding: 0 8px;
+    text-align: left;
+    color: #fff;
+    transition: background-color 0.15s ease;
+    cursor: pointer;
+
+    &:hover {
+      background: #2a3043;
+    }
+  }
+
+  &__bottom {
+    position: absolute;
+    inset-inline: 0;
+    bottom: 0;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.7), transparent);
+    padding: 40px 24px 32px;
+  }
+
+  &__name {
+    font-size: 22px;
+    font-weight: 600;
+    line-height: 1.2;
+    color: #fff;
+  }
+
+  &__description {
+    margin-top: 12px;
+    font-size: 14px;
+    line-height: 1.45;
+    color: #e4e7ef;
+  }
+
+  &__actions {
+    margin-left: 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  &__join-btn {
+    height: 40px;
+    min-width: 150px;
+    border: 0;
+    border-radius: 9999px;
+    padding: 0 24px;
+    font-size: 16px;
+    font-weight: 500;
+    color: #fff;
+
+    &--default {
+      background: #343b4f;
+
+      &:hover {
+        background: #46506a;
+      }
+    }
+
+    &--joined {
+      cursor: not-allowed;
+      background: #785ebf;
+    }
+  }
+}

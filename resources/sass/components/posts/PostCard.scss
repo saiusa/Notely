@@ -5,7 +5,7 @@
     width: 100%;
     max-width: 600px;
     border-radius: 10px;
-    background: #212633;
+    background: #21232c;
     padding: 20px;
     color: #fff;
   }
@@ -29,14 +29,21 @@
     object-fit: cover;
   }
 
+  &__author-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
   &__author-name {
+    margin: 0;
     font-size: 15px;
     font-weight: 500;
     line-height: 1;
   }
 
   &__author-time {
-    margin-top: 4px;
+    margin: 0;
     font-size: 13px;
     line-height: 1;
     color: #9ca0ad;
@@ -166,11 +173,11 @@
 
   &__mood-pill {
     border-radius: 9999px;
-    background: #d4ece5;
-    padding: 2px 8px;
-    font-size: 14px;
+    background: #e6f4f1;
+    padding: 4px 14px;
+    font-size: 12px;
     font-weight: 500;
-    color: #4a4459;
+    color: #2f6f6a;
   }
 
   &__actions-wrap {

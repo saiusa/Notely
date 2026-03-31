@@ -1,0 +1,31 @@
+{
+  "resources/css/app.css": {
+    "file": "assets/app-YTJkS0Fe.css",
+    "src": "resources/css/app.css"
+  },
+  "resources/js/app.js": {
+    "file": "assets/app-Cy016kP7.js",
+    "name": "app",
+    "src": "resources/js/app.js",
+    "isEntry": true,
+    "css": [
+      "assets/app-BjLOW9Ap.css"
+    ],
+    "assets": [
+      "assets/Notely-Logo-VfT0AM-T.svg"
+    ]
+  },
+  "resources/js/components/layout/Notely-Logo.svg": {
+    "file": "assets/Notely-Logo-VfT0AM-T.svg",
+    "src": "resources/js/components/layout/Notely-Logo.svg"
+  },
+  "resources/sass/app.scss": {
+    "file": "assets/app-BdEcp9ga.css",
+    "src": "resources/sass/app.scss",
+    "isEntry": true,
+    "name": "app",
+    "names": [
+      "app.css"
+    ]
+  }
+}

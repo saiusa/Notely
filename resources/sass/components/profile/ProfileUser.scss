@@ -1,0 +1,104 @@
+@import '../../variables';
+
+.profile-user {
+  &__container {
+    border-radius: 10px;
+    background: #212633;
+    padding: 24px;
+  }
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+
+  &__avatar {
+    height: 80px;
+    width: 80px;
+    border-radius: 9999px;
+    object-fit: cover;
+  }
+
+  &__info {
+    flex: 1;
+  }
+
+  &__name {
+    font-size: 22px;
+    font-weight: 600;
+    line-height: 1.2;
+    color: #fff;
+  }
+
+  &__username {
+    margin-top: 4px;
+    font-size: 14px;
+    color: #9ca0ad;
+  }
+
+  &__actions {
+    display: flex;
+    gap: 8px;
+  }
+
+  &__btn {
+    height: 36px;
+    border: 1px solid #404858;
+    border-radius: 8px;
+    background: transparent;
+    padding: 0 16px;
+    font-size: 13px;
+    font-weight: 500;
+    color: #fff;
+    transition: background-color 0.15s ease, border-color 0.15s ease;
+    cursor: pointer;
+
+    &:hover {
+      background: #303548;
+      border-color: #505968;
+    }
+
+    &--primary {
+      background: #785ebf;
+      border-color: #785ebf;
+
+      &:hover {
+        background: #8b70d4;
+        border-color: #8b70d4;
+      }
+    }
+  }
+
+  &__bio {
+    margin-top: 24px;
+    font-size: 14px;
+    line-height: 1.6;
+    color: #e3e7ef;
+  }
+
+  &__stats {
+    margin-top: 24px;
+    display: flex;
+    gap: 24px;
+    border-top: 1px solid #303548;
+    padding-top: 24px;
+  }
+
+  &__stat {
+    text-align: center;
+  }
+
+  &__stat-value {
+    font-size: 18px;
+    font-weight: 600;
+    color: #fff;
+  }
+
+  &__stat-label {
+    margin-top: 4px;
+    font-size: 12px;
+    color: #9ca0ad;
+  }
+}
