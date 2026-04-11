@@ -1,5 +1,8 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import notificationService from '../../services/notificationService';
+import NotificationButton from '../notification/NotificationButton';
+import NotificationDropdown from '../notification/NotificationDropdown';
 import '../../../sass/components/layout/TopNavbar.scss';
 
 function IconButton({ icon, label, active = false, onClick }) {
@@ -74,103 +77,6 @@ function FilterDropdown({ open }) {
   );
 }
 
-function NotificationDropdown({ open, notifications, isLoading, onNotificationClick, onMarkAsRead }) {
-  if (!open) return null;
-
-  const handleNotificationClick = async (notification) => {
-    // Mark as read
-    if (!notification.is_read && onMarkAsRead) {
-      await onMarkAsRead(notification.notification_id);
-    }
-  };
-
-  const getNotificationMessage = (notification) => {
-    switch (notification.type) {
-      case 'like_post':
-        return `${notification.actor_name} liked your post`;
-      case 'comment_post':
-        return `${notification.actor_name} commented on your post`;
-      case 'mention_post':
-        return `${notification.actor_name} mentioned you`;
-      default:
-        return 'New notification';
-    }
-  };
-
-  const getNotificationIcon = (type) => {
-    switch (type) {
-      case 'like_post':
-        return 'favorite';
-      case 'comment_post':
-        return 'comment';
-      case 'mention_post':
-        return 'person';
-      default:
-        return 'notifications';
-    }
-  };
-
-  return (
-    <div className="top-navbar__notification-dropdown">
-      {isLoading ? (
-        <div className="top-navbar__notification-loading">
-          <span className="material-symbols-outlined">hourglass_empty</span>
-        </div>
-      ) : notifications.length === 0 ? (
-        <div className="top-navbar__notification-empty">
-          <span className="material-symbols-outlined">notifications_none</span>
-          <p>No notifications</p>
-        </div>
-      ) : (
-        <div className="top-navbar__notification-list">
-          {notifications.map((notification) => (
-            <button
-              key={notification.notification_id}
-              type="button"
-              onClick={() => handleNotificationClick(notification)}
-              className={`top-navbar__notification-item ${
-                !notification.is_read ? 'top-navbar__notification-item--unread' : ''
-              }`}
-            >
-              <span className={`material-symbols-outlined top-navbar__notification-item-icon ${getNotificationIcon(notification.type)}`}>
-                {getNotificationIcon(notification.type)}
-              </span>
-              <span className="top-navbar__notification-item-text">
-                {getNotificationMessage(notification)}
-              </span>
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
-function NotificationButton({ count, active, onClick }) {
-  const normalizedCount = useMemo(() => {
-    if (count > 99) return '99+';
-    return String(Math.max(count, 0));
-  }, [count]);
-
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-label="Notifications"
-      className={`top-navbar__icon-button ${
-        active ? 'top-navbar__icon-button--active' : 'top-navbar__icon-button--inactive'
-      }`}
-    >
-      <span className="material-symbols-outlined top-navbar__icon">notifications</span>
-      {count > 0 && (
-        <span className="top-navbar__notification-badge">
-          {normalizedCount}
-        </span>
-      )}
-    </button>
-  );
-}
-
 function HomeNavbar({
   activeTab,
   onTabChange,
@@ -182,6 +88,10 @@ function HomeNavbar({
   notifications,
   isLoadingNotifications,
   onMarkNotificationAsRead,
+  onMarkAllAsRead,
+  onSettingsClick,
+  onDeleteNotification,
+  onCloseNotification,
 }) {
   return (
     <>
@@ -212,6 +122,10 @@ function HomeNavbar({
               notifications={notifications}
               isLoading={isLoadingNotifications}
               onMarkAsRead={onMarkNotificationAsRead}
+              onMarkAllAsRead={onMarkAllAsRead}
+              onSettingsClick={onSettingsClick}
+              onDeleteNotification={onDeleteNotification}
+              onClose={onCloseNotification}
             />
           </div>
         </div>
@@ -230,6 +144,10 @@ function DefaultNavbar({
   notifications,
   isLoadingNotifications,
   onMarkNotificationAsRead,
+  onMarkAllAsRead,
+  onSettingsClick,
+  onDeleteNotification,
+  onCloseNotification,
 }) {
   return (
     <>
@@ -252,6 +170,10 @@ function DefaultNavbar({
               notifications={notifications}
               isLoading={isLoadingNotifications}
               onMarkAsRead={onMarkNotificationAsRead}
+              onMarkAllAsRead={onMarkAllAsRead}
+              onSettingsClick={onSettingsClick}
+              onDeleteNotification={onDeleteNotification}
+              onClose={onCloseNotification}
             />
           </div>
         </div>
@@ -270,7 +192,9 @@ export default function TopNavbar({
   notificationCount = 0,
   notificationActive = false,
   onNotificationClick = () => {},
+  onSettingsClick = () => {},
 }) {
+  const navigate = useNavigate();
   const [currentTab, setCurrentTab] = useState(activeTab);
   const [filterOpen, setFilterOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
@@ -324,6 +248,50 @@ export default function TopNavbar({
     }
   };
 
+  /**
+   * Mark all notifications as read
+   */
+  const handleMarkAllAsRead = async () => {
+    try {
+      await notificationService.markAllAsRead();
+      setNotifications((prevNotifications) =>
+        prevNotifications.map((notif) => ({ ...notif, is_read: true }))
+      );
+    } catch (error) {
+      console.error('Failed to mark all notifications as read:', error);
+    }
+  };
+
+  /**
+   * Delete notification
+   */
+  const handleDeleteNotification = async (notificationId) => {
+    try {
+      await notificationService.deleteNotification(notificationId);
+      setNotifications((prevNotifications) =>
+        prevNotifications.filter((notif) => notif.notification_id !== notificationId)
+      );
+    } catch (error) {
+      console.error('Failed to delete notification:', error);
+    }
+  };
+
+  /**
+   * Close notification dropdown
+   */
+  const handleCloseNotification = () => {
+    if (notificationActive) {
+      onNotificationClick();
+    }
+  };
+
+  /**
+   * Navigate to notification settings
+   */
+  const handleNavigateToSettings = () => {
+    navigate('/settings/notification');
+  };
+
   const handleTabChange = (tab) => {
     setCurrentTab(tab);
     onTabChange(tab);
@@ -350,6 +318,10 @@ export default function TopNavbar({
             notifications={notifications}
             isLoadingNotifications={isLoadingNotifications}
             onMarkNotificationAsRead={handleMarkAsRead}
+            onMarkAllAsRead={handleMarkAllAsRead}
+            onSettingsClick={handleNavigateToSettings}
+            onDeleteNotification={handleDeleteNotification}
+            onCloseNotification={handleCloseNotification}
           />
         ) : (
           <DefaultNavbar
@@ -362,6 +334,10 @@ export default function TopNavbar({
             notifications={notifications}
             isLoadingNotifications={isLoadingNotifications}
             onMarkNotificationAsRead={handleMarkAsRead}
+            onMarkAllAsRead={handleMarkAllAsRead}
+            onSettingsClick={handleNavigateToSettings}
+            onDeleteNotification={handleDeleteNotification}
+            onCloseNotification={handleCloseNotification}
           />
         )}
       </header>

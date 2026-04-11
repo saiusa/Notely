@@ -1,8 +1,10 @@
 <?php
 
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\CommunityController;
 use App\Http\Controllers\Api\CommunityMembershipController;
+use App\Http\Controllers\Api\FileUploadController;
 use App\Http\Controllers\Api\MeController;
 use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\PasswordResetController;
@@ -33,6 +35,8 @@ Route::middleware('auth:sanctum')->group(function (): void {
     Route::put('/me/settings/notifications', [SettingsController::class, 'updateNotifications']);
     Route::delete('/me', [SettingsController::class, 'destroyAccount']);
 
+    Route::post('/uploads', [FileUploadController::class, 'upload']);
+
     Route::get('/posts', [PostController::class, 'index']);
     Route::post('/posts', [PostController::class, 'store']);
     Route::get('/posts/{post}', [PostController::class, 'show']);
@@ -42,7 +46,9 @@ Route::middleware('auth:sanctum')->group(function (): void {
 
     Route::get('/posts/{post}/comments', [PostCommentController::class, 'index']);
     Route::post('/posts/{post}/comments', [PostCommentController::class, 'store']);
+    Route::put('/posts/{post}/comments/{comment}', [PostCommentController::class, 'update']);
     Route::delete('/posts/{post}/comments/{comment}', [PostCommentController::class, 'destroy']);
+    Route::post('/posts/{post}/comments/{comment}/reports', [PostCommentController::class, 'report']);
 
     Route::get('/posts/{post}/likes', [PostLikeController::class, 'index']);
     Route::post('/posts/{post}/likes', [PostLikeController::class, 'store']);
@@ -58,8 +64,14 @@ Route::middleware('auth:sanctum')->group(function (): void {
     Route::patch('/notifications/read-all', [NotificationController::class, 'markAllAsRead']);
     Route::delete('/notifications/{notification}', [NotificationController::class, 'destroy']);
 
+    Route::get('/categories', [CategoryController::class, 'index']);
+    Route::get('/categories/with-counts', [CategoryController::class, 'withCounts']);
+    Route::get('/categories/{category}', [CategoryController::class, 'show']);
+
     Route::get('/communities', [CommunityController::class, 'index']);
     Route::post('/communities', [CommunityController::class, 'store']);
+    Route::put('/communities/{community}', [CommunityController::class, 'update']);
+    Route::patch('/communities/{community}', [CommunityController::class, 'update']);
     Route::get('/communities/me', [CommunityMembershipController::class, 'myCommunities']);
     Route::get('/communities/{community}', [CommunityController::class, 'show']);
     Route::get('/communities/{community}/posts', [CommunityController::class, 'posts']);

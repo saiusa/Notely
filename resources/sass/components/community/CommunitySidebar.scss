@@ -27,7 +27,7 @@
   &__info {
     display: flex;
     flex-direction: column;
-    gap: 0px;
+    gap: 2px;
   }
 
   &__name {
@@ -38,9 +38,9 @@
     color: #fff;
   }
 
-  &__username {
+  &__slug {
     margin: 0;
-    font-size: 13px;
+    font-size: 12px;
     color: #785ebf;
     font-weight: 500;
   }

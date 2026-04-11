@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import SocialLayout from '../components/layout/SocialLayout';
 import PostCard from '../components/posts/PostCard';
 import ComposerModal from '../components/layout/ComposerModal';
+import Loader from '../components/common/Loader';
 import postService from '../services/postService';
 import notificationService from '../services/notificationService';
 import '../../sass/pages/HomePage.scss';
@@ -183,7 +184,9 @@ export default function HomePage() {
                 {/* Feed */}
                 <div className="home-page__feed">
                     {loading ? (
-                        <p style={{ color: '#a5abb9', textAlign: 'center', padding: '40px 0' }}>Loading feed...</p>
+                        <div style={{ display: 'flex', justifyContent: 'center', padding: '60px 0' }}>
+                            <Loader />
+                        </div>
                     ) : posts.length === 0 ? (
                         <p style={{ color: '#a5abb9', textAlign: 'center', padding: '40px 0' }}>No posts yet. Write your first one!</p>
                     ) : (

@@ -1,5 +1,6 @@
 import React from 'react';
 import PostCard from '../posts/PostCard';
+import '../../../sass/components/layout/RecentJournals.scss';
 
 function toShortTimeLabel(value) {
   if (!value) return value;

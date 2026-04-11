@@ -1,15 +1,20 @@
 import '../../sass/pages/JournalPage.scss';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import JournalCard from '../components/journal/JournalCard';
+import { useAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
+import SmallPostCard from '../components/journal/SmallPostCard';
+import JournalHeader from '../components/journal/JournalHeader';
+import { PostDetailModal } from '../components/posts/modals';
 import ComposerModal from '../components/layout/ComposerModal';
-import SocialLayout from '../components/layout/SocialLayout';
+import JournalLayout from '../components/layout/JournalLayout';
+import Loader from '../components/common/Loader';
 import postService from '../services/postService';
 
 export default function JournalPage() {
     const [visibilityTab, setVisibilityTab] = useState('private');
     const [sortBy, setSortBy] = useState('recent');
-    const [filterOpen, setFilterOpen] = useState(false);
     const [editingCard, setEditingCard] = useState(null);
+    const [selectedPost, setSelectedPost] = useState(null);
     const [cards, setCards] = useState([]);
     const [loading, setLoading] = useState(true);
 
@@ -19,22 +24,56 @@ export default function JournalPage() {
         try {
             const res = await postService.getFeed();
             const allPosts = res.data || res || [];
+            console.log('Fetched posts:', allPosts); // Debug logging
+            
             // Map API posts to journal card shape
-            const mapped = allPosts.map((post) => ({
-                id: post.post_id || post.id,
-                date: post.created_at ? new Date(post.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : '',
-                time: post.created_at ? new Date(post.created_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false }) : '',
-                createdAt: post.created_at || new Date().toISOString(),
-                isPublic: post.privacy === 'public',
-                text: post.content || '',
-                mood: post.mood?.name || '',
-                image: post.image || null,
-                likes: post.likes_count ?? 0,
-                comments: post.comments_count ?? 0,
-                link: `${window.location.origin}/#/post/${post.post_id || post.id}`,
-            }));
+            const mapped = allPosts.map((post) => {
+                const createdTime = new Date(post.created_at);
+                const now = new Date();
+                const seconds = Math.max(0, Math.floor((now - createdTime) / 1000));
+                let relativeTime = 'just now';
+                
+                if (seconds < 60) {
+                    relativeTime = `${seconds} ${seconds === 1 ? 'second' : 'seconds'} ago`;
+                } else if (seconds < 3600) {
+                    const minutes = Math.floor(seconds / 60);
+                    relativeTime = `${minutes} ${minutes === 1 ? 'minute' : 'minutes'} ago`;
+                } else if (seconds < 86400) {
+                    const hours = Math.floor(seconds / 3600);
+                    relativeTime = `${hours} ${hours === 1 ? 'hour' : 'hours'} ago`;
+                } else {
+                    const days = Math.floor(seconds / 86400);
+                    relativeTime = `${days} ${days === 1 ? 'day' : 'days'} ago`;
+                }
+
+                return {
+                    id: post.post_id || post.id,
+                    date: createdTime.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
+                    createdAt: post.created_at || new Date().toISOString(),
+                    isPublic: post.privacy === 'public',
+                    privacy: post.privacy || 'private',
+                    text: post.content || '',
+                    body: post.content || '',
+                    content: post.content || '',
+                    mood: post.mood?.name || '',
+                    image: post.image || null,
+                    image_url: post.image || null,
+                    likes_count: post.likes_count ?? 0,
+                    likes: post.likes_count ?? 0,
+                    comments_count: post.comments_count ?? 0,
+                    comments: post.comments_count ?? 0,
+                    hashtags: post.hashtags || [],
+                    user_id: post.user_id,
+                    username: post.user?.username,
+                    avatar: post.user?.profile?.profile_picture,
+                    link: `${window.location.origin}/#/post/${post.post_id || post.id}`,
+                    time: relativeTime, // Relative time for SmallPostCard display
+                };
+            });
+            console.log('Mapped posts:', mapped); // Debug logging
             setCards(mapped);
-        } catch (_) {
+        } catch (error) {
+            console.error('Error fetching posts:', error); // Debug logging
             setCards([]);
         } finally {
             setLoading(false);
@@ -70,84 +109,43 @@ export default function JournalPage() {
         }
     };
 
-    const handleCopyLink = async (card) => {
-        const link = card.link || `${window.location.origin}/#/journal/${card.id}`;
+    const handleCopyLink = async (post) => {
+        const link = post.link || `${window.location.origin}/#/journal/${post.id}`;
         try {
             await navigator.clipboard.writeText(link);
-        } catch (_) {
-            // no-op
+            console.log('Link copied to clipboard');
+        } catch (error) {
+            console.error('Error copying link:', error);
         }
     };
 
+    const handleEditPost = (post) => {
+        setEditingCard(post);
+    };
+
     return (
-        <SocialLayout activeNav="journal" navbarMode="title" title="My Journal">
-            <div className="mb-4 flex items-center justify-between">
-                <div className="flex w-[220px] items-center gap-1 rounded-[10px] p-1">
-                    {['private', 'public'].map((tab) => (
-                        <button
-                            key={tab}
-                            type="button"
-                            onClick={() => setVisibilityTab(tab)}
-                            className={`h-[40px] flex-1 rounded-[8px] text-[16px] capitalize transition-colors ${
-                                visibilityTab === tab
-                                    ? 'bg-[#212633] text-white'
-                                    : 'bg-transparent text-[#c9ccda] hover:text-white'
-                            }`}
-                        >
-                            {tab}
-                        </button>
-                    ))}
-                </div>
+        <JournalLayout activeNav="journal" navbarMode="title" title="My Journal">
+            <JournalHeader 
+                visibilityTab={visibilityTab}
+                setVisibilityTab={setVisibilityTab}
+                sortBy={sortBy}
+                setSortBy={setSortBy}
+            />
 
-                <div className="relative">
-                    <button
-                        type="button"
-                        onClick={() => setFilterOpen((prev) => !prev)}
-                        className="flex h-9 w-9 items-center justify-center rounded-full text-[#b6bac6] transition-colors hover:bg-[#23283a] hover:text-white"
-                        aria-label="Filter posts"
-                    >
-                        <span className="material-symbols-outlined text-[20px]">tune</span>
-                    </button>
-
-                    {filterOpen && (
-                        <div className="absolute right-0 top-[44px] z-30 w-[150px] rounded-[10px] border border-[#323848] bg-[#1f2332] p-1.5 text-[13px] shadow-xl">
-                            <button
-                                type="button"
-                                onClick={() => {
-                                    setSortBy('recent');
-                                    setFilterOpen(false);
-                                }}
-                                className="block h-8 w-full rounded px-2 text-left text-white transition-colors hover:bg-[#2a3043]"
-                            >
-                                Recent post
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => {
-                                    setSortBy('older');
-                                    setFilterOpen(false);
-                                }}
-                                className="block h-8 w-full rounded px-2 text-left text-white transition-colors hover:bg-[#2a3043]"
-                            >
-                                Older post
-                            </button>
-                        </div>
-                    )}
-                </div>
-            </div>
-
-            <section className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
+            <section className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3" style={{ padding: '0 20px' }}>
                 {loading ? (
-                    <p style={{ color: '#a5abb9', padding: '40px 0', gridColumn: '1 / -1', textAlign: 'center' }}>Loading journals...</p>
+                    <div style={{ display: 'flex', justifyContent: 'center', padding: '60px 0', gridColumn: '1 / -1' }}>
+                        <Loader />
+                    </div>
                 ) : visibleCards.length === 0 ? (
                     <p style={{ color: '#a5abb9', padding: '40px 0', gridColumn: '1 / -1', textAlign: 'center' }}>No {visibilityTab} journal entries yet.</p>
                 ) : (
                     visibleCards.map((card) => (
-                        <JournalCard
+                        <SmallPostCard 
                             key={card.id}
-                            card={card}
-                            isPublicView={visibilityTab === 'public'}
-                            onEdit={setEditingCard}
+                            post={card}
+                            onCardClick={() => setSelectedPost(card)}
+                            onEdit={handleEditPost}
                             onTogglePrivacy={handleTogglePrivacy}
                             onCopyLink={handleCopyLink}
                         />
@@ -162,6 +160,13 @@ export default function JournalPage() {
                     onPostCreated={fetchPosts}
                 />
             )}
-        </SocialLayout>
+
+            {/* Post detail modal */}
+            <PostDetailModal 
+                post={selectedPost} 
+                isOpen={!!selectedPost} 
+                onClose={() => setSelectedPost(null)}
+            />
+        </JournalLayout>
     );
 }

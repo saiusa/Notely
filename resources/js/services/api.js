@@ -14,11 +14,19 @@ const api = axios.create({
     },
 });
 
-// ── Request interceptor: attach Bearer token ──
+// ── Request interceptor: attach Bearer token & handle FormData ──
 api.interceptors.request.use((config) => {
     const token = localStorage.getItem('auth_token');
     if (token) {
         config.headers.Authorization = `Bearer ${token}`;
+    }
+
+    // For FormData requests, let axios auto-set Content-Type with boundary
+    if (config.data instanceof FormData) {
+        // Delete the default application/json Content-Type
+        delete config.headers['Content-Type'];
+        // Also don't override Accept for multipart uploads
+        delete config.headers['Accept'];
     }
 
     return config;

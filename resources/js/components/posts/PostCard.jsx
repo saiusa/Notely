@@ -1,5 +1,7 @@
 import React, { useMemo, useState } from 'react';
-import CommentSection from './CommentSection';
+import { CommentFloatingModal, ReportModal } from './comments';
+import PostDisplay from './PostDisplay';
+import ComposerModal from '../layout/ComposerModal';
 import postService from '../../services/postService';
 import { useAuth } from '../../context/AuthContext';
 import '../../../sass/components/posts/PostCard.scss';
@@ -41,10 +43,15 @@ export default function PostCard({ post, compact = false, variant = 'feed', onPo
     const [commentsCount, setCommentsCount] = useState(post.comments_count ?? post.comments ?? 0);
     const [shared, setShared] = useState(false);
     const [expanded, setExpanded] = useState(false);
-    const [commentInput, setCommentInput] = useState('');
     const [localComments, setLocalComments] = useState(post.commentList || []);
+    const [isEditing, setIsEditing] = useState(false);
+    const [showPrivacyModal, setShowPrivacyModal] = useState(false);
+    const [postData, setPostData] = useState(post);
     const [loadingComments, setLoadingComments] = useState(false);
-    const [commentsLoaded, setCommentsLoaded] = useState(false);
+    const [reportingCommentId, setReportingCommentId] = useState(null);
+    const [isSubmittingReport, setIsSubmittingReport] = useState(false);
+    const [editingCommentId, setEditingCommentId] = useState(null);
+    const [isSubmittingEdit, setIsSubmittingEdit] = useState(false);
 
     const longTextLimit = 270;
 
@@ -94,60 +101,136 @@ export default function PostCard({ post, compact = false, variant = 'feed', onPo
     };
 
     const handleLoadComments = async () => {
-        if (commentsLoaded) {
-            setShowComments((prev) => !prev);
-            return;
-        }
-        setShowComments(true);
-        setLoadingComments(true);
-        try {
-            const postId = post.post_id || post.id;
-            const res = await postService.getComments(postId);
-            const apiComments = (res.data || res || []).map((c) => ({
-                id: c.comment_id || c.id,
-                username: c.user?.username || c.username || '',
-                avatar: c.user?.profile?.profile_picture || c.avatar || '',
-                text: c.content || c.text || '',
-            }));
-            setLocalComments(apiComments);
-            setCommentsLoaded(true);
-        } catch (_) {
-            // Fall back to existing local comments
-        } finally {
-            setLoadingComments(false);
-        }
+        setShowComments((prev) => !prev);
     };
 
-    const handleAddComment = async () => {
-        const trimmed = commentInput.trim();
-        if (!trimmed) return;
+    // Fetch comments from database when modal opens
+    React.useEffect(() => {
+        if (!showComments) return;
+        
+        const fetchComments = async () => {
+            const postId = post.post_id || post.id;
+            setLoadingComments(true);
+            try {
+                const response = await postService.getComments(postId);
+                // Response can be paginated or direct array
+                const commentsData = response.data || response || [];
+                // Normalize comments to have both 'id' and 'comment_id' for consistency
+                const normalized = Array.isArray(commentsData) ? commentsData.map((c) => ({
+                    ...c,
+                    id: c.comment_id || c.id,
+                    replies: (c.replies || []).map((r) => ({
+                        ...r,
+                        id: r.comment_id || r.id,
+                    })),
+                })) : [];
+                setLocalComments(normalized);
+            } catch (error) {
+                console.error('Failed to fetch comments:', error);
+                // Keep local comments if fetch fails
+            } finally {
+                setLoadingComments(false);
+            }
+        };
 
+        fetchComments();
+    }, [showComments, post.post_id, post.id]);
+
+    const handleAddComment = async (commentText) => {
         const postId = post.post_id || post.id;
         try {
-            const newComment = await postService.createComment(postId, trimmed);
+            const newComment = await postService.createComment(postId, commentText);
             setLocalComments((prev) => [
                 ...prev,
                 {
-                    id: newComment.comment_id || `${postId}-new-${Date.now()}`,
-                    username: user?.username || '',
-                    avatar: user?.profile?.profile_picture || '',
-                    text: trimmed,
+                    id: newComment.comment_id,
+                    user: {
+                        user_id: user?.user_id,
+                        username: user?.username,
+                    },
+                    content: commentText,
+                    created_at: newComment.created_at || new Date().toISOString(),
+                    replies: [],
+                    user_id: user?.user_id,
                 },
             ]);
-            setCommentInput('');
             setCommentsCount((prev) => (typeof prev === 'number' ? prev : 0) + 1);
         } catch (_) {
-            // Fallback: add locally
+            // Fallback: add locally with optimistic update
             setLocalComments((prev) => [
                 ...prev,
                 {
                     id: `${postId}-new-${Date.now()}`,
-                    username: user?.username || 'you',
-                    avatar: '',
-                    text: trimmed,
+                    user: {
+                        user_id: user?.user_id,
+                        username: user?.username,
+                    },
+                    content: commentText,
+                    created_at: new Date().toISOString(),
+                    replies: [],
+                    user_id: user?.user_id,
                 },
             ]);
-            setCommentInput('');
+        }
+    };
+
+    const handleAddReply = async (parentCommentId, replyText) => {
+        const postId = post.post_id || post.id;
+        try {
+            const newReply = await postService.createComment(postId, replyText, parentCommentId);
+            setLocalComments((prev) =>
+                prev.map((comment) => {
+                    if ((comment.comment_id || comment.id) === parentCommentId) {
+                        return {
+                            ...comment,
+                            replies: [
+                                ...(comment.replies || []),
+                                {
+                                    comment_id: newReply.comment_id,
+                                    id: newReply.comment_id,
+                                    user: {
+                                        user_id: user?.user_id,
+                                        username: user?.username,
+                                        profile: {
+                                            profile_picture: user?.profile?.profile_picture,
+                                        }
+                                    },
+                                    content: replyText,
+                                    created_at: newReply.created_at || new Date().toISOString(),
+                                    user_id: user?.user_id,
+                                },
+                            ],
+                        };
+                    }
+                    return comment;
+                })
+            );
+            setCommentsCount((prev) => (typeof prev === 'number' ? prev : 0) + 1);
+        } catch (error) {
+            // Fallback: add locally with optimistic update
+            setLocalComments((prev) =>
+                prev.map((comment) => {
+                    if ((comment.comment_id || comment.id) === parentCommentId) {
+                        return {
+                            ...comment,
+                            replies: [
+                                ...(comment.replies || []),
+                                {
+                                    id: `reply-${Date.now()}`,
+                                    user: {
+                                        user_id: user?.user_id,
+                                        username: user?.username,
+                                    },
+                                    content: replyText,
+                                    created_at: new Date().toISOString(),
+                                    user_id: user?.user_id,
+                                },
+                            ],
+                        };
+                    }
+                    return comment;
+                })
+            );
         }
     };
 
@@ -172,6 +255,100 @@ export default function PostCard({ post, compact = false, variant = 'feed', onPo
         }
     };
 
+    const handleEditPost = () => {
+        setMenuOpen(false);
+        setIsEditing(true);
+    };
+
+    const handleTogglePrivacy = () => {
+        setMenuOpen(false);
+        setShowPrivacyModal(true);
+    };
+
+    const handlePrivacyChange = async (newPrivacy) => {
+        const postId = post.post_id || post.id;
+        try {
+            await postService.updatePost(postId, {
+                privacy: newPrivacy,
+            });
+            setPostData((prev) => ({ ...prev, privacy: newPrivacy }));
+            setShowPrivacyModal(false);
+        } catch (_) {
+            // Fallback: toggle locally
+            const currentPrivacy = postData.privacy || 'private';
+            const toggledPrivacy = currentPrivacy === 'public' ? 'private' : 'public';
+            setPostData((prev) => ({ ...prev, privacy: toggledPrivacy }));
+            setShowPrivacyModal(false);
+        }
+    };
+
+    const handlePostEdited = async () => {
+        setIsEditing(false);
+        // Refresh post data or callback to parent
+        if (onPostDeleted) {
+            // In real app, you'd fetch the updated post
+            onPostDeleted(post.post_id || post.id);
+        }
+    };
+
+    const handleDeleteComment = async (commentId) => {
+        const postId = post.post_id || post.id;
+        try {
+            await postService.deleteComment(postId, commentId);
+            setLocalComments((prev) => prev.filter((c) => (c.comment_id || c.id) !== commentId));
+            setCommentsCount((prev) => Math.max(0, (typeof prev === 'number' ? prev : 0) - 1));
+        } catch (error) {
+            console.error('Failed to delete comment:', error);
+            // Fallback: remove locally anyway
+            setLocalComments((prev) => prev.filter((c) => (c.comment_id || c.id) !== commentId));
+        }
+    };
+
+    const handleReportComment = (commentId) => {
+        setReportingCommentId(commentId);
+    };
+
+    const handleSubmitReport = async (reportData) => {
+        const postId = post.post_id || post.id;
+        setIsSubmittingReport(true);
+        try {
+            // Call the API to report the comment
+            await postService.reportComment(postId, reportingCommentId, reportData);
+            setReportingCommentId(null);
+            // Show success message (could use toast notification)
+            console.log('Comment reported successfully');
+        } catch (error) {
+            console.error('Failed to report comment:', error);
+        } finally {
+            setIsSubmittingReport(false);
+        }
+    };
+
+    const handleEditComment = (commentId) => {
+        setEditingCommentId(commentId);
+    };
+
+    const handleSubmitEdit = async (commentId, newContent) => {
+        const postId = post.post_id || post.id;
+        setIsSubmittingEdit(true);
+        try {
+            await postService.updateComment(postId, commentId, newContent);
+            setLocalComments((prev) =>
+                prev.map((c) => {
+                    if ((c.comment_id || c.id) === commentId) {
+                        return { ...c, content: newContent };
+                    }
+                    return c;
+                })
+            );
+            setEditingCommentId(null);
+        } catch (error) {
+            console.error('Failed to update comment:', error);
+        } finally {
+            setIsSubmittingEdit(false);
+        }
+    };
+
     const shouldTruncate = postContent.length > longTextLimit;
     const visibleBody = shouldTruncate && !expanded ? `${postContent.slice(0, longTextLimit)}...` : postContent;
 
@@ -181,149 +358,105 @@ export default function PostCard({ post, compact = false, variant = 'feed', onPo
 
     return (
         <article className="post-card__container">
-            <div className="post-card__header">
-                <div className="post-card__author-wrap">
-                    <img src={postAvatar} alt={postUsername} className="post-card__author-avatar" />
-                    <div className="post-card__author-meta">
-                        <p className="post-card__author-name">{postUsername}</p>
-                        <p className="post-card__author-time">• {postTime}</p>
-                    </div>
-                </div>
+            <PostDisplay
+                post={post}
+                compact={compact}
+                hideMenu={false}
+                onLike={handleToggleLike}
+                onShare={handleShare}
+                liked={reacted}
+                likesCount={likesCount}
+                commentsCount={commentsCount}
+                onCommentsClick={handleLoadComments}
+                onMenuClick={() => setMenuOpen((prev) => !prev)}
+                menuOpen={menuOpen}
+                ownsPost={ownsPost}
+                onDelete={handleDeletePost}
+                onReport={handleReportPost}
+                onEdit={handleEditPost}
+                onTogglePrivacy={handleTogglePrivacy}
+                shared={shared}
+            />
 
-                <div className="post-card__menu-wrap">
-                    <button
-                        type="button"
-                        onClick={() => setMenuOpen((prev) => !prev)}
-                        className="post-card__menu-btn"
-                        aria-label="Post options"
-                    >
-                        <span className="material-symbols-outlined post-card__menu-icon">more_vert</span>
-                    </button>
+            {/* Floating Comments Modal */}
+            <CommentFloatingModal
+                post={post}
+                comments={localComments}
+                isOpen={showComments}
+                onClose={() => setShowComments(false)}
+                onAddComment={handleAddComment}
+                onAddReply={handleAddReply}
+                onDeleteComment={handleDeleteComment}
+                onReportComment={handleReportComment}
+                onEditComment={handleEditComment}
+                onSubmitEditComment={handleSubmitEdit}
+                onShare={handleShare}
+                liked={reacted}
+                likesCount={likesCount}
+                loadingComments={loadingComments}
+            />
 
-                    {menuOpen && (
-                        <div className="post-card__menu-dropdown">
-                            {ownsPost ? (
-                                <>
-                                    <button type="button" className="post-card__menu-item">
-                                        Edit Post
-                                    </button>
-                                    <button type="button" className="post-card__menu-item">
-                                        Change Privacy
-                                    </button>
-                                    <button type="button" className="post-card__menu-item post-card__menu-item--danger" onClick={handleDeletePost}>
-                                        Delete Post
-                                    </button>
-                                </>
-                            ) : (
-                                <button type="button" className="post-card__menu-item" onClick={handleReportPost}>
-                                    Report Post
-                                </button>
-                            )}
-                        </div>
-                    )}
-                </div>
-            </div>
-
-            {!compact && postTitle && <h3 className="post-card__title">{postTitle}</h3>}
-
-            <p
-                className={`post-card__body ${
-                    isQuote
-                        ? 'post-card__body--quote'
-                        : 'post-card__body--default'
-                }`}
-            >
-                {isQuote ? `"${visibleBody}"` : visibleBody}
-            </p>
-
-            {shouldTruncate && (
-                <button
-                    type="button"
-                    onClick={() => setExpanded((prev) => !prev)}
-                    className="post-card__expand-btn"
-                >
-                    {expanded ? 'Show less' : 'Show more'}
-                </button>
+            {/* Edit Post Modal */}
+            {isEditing && (
+                <ComposerModal
+                    mode={post.image ? 'image' : 'text'}
+                    onClose={() => setIsEditing(false)}
+                    onPostCreated={handlePostEdited}
+                    existingPost={post}
+                    isEditing={true}
+                />
             )}
 
-            {postImage && <img src={postImage} alt="post media" className="post-card__image" />}
-
-            <div className="post-card__tags-row">
-                {postMood && (
-                    <span className="post-card__mood-pill">
-                        {postMood}
-                    </span>
-                )}
-                {postHashtags.map((tag) => (
-                    <span key={tag}>{tag}</span>
-                ))}
-            </div>
-
-            <div className="post-card__actions-wrap">
-                <div className="post-card__actions-grid">
-                    <button
-                        type="button"
-                        onClick={handleToggleLike}
-                        className={`post-card__action-btn ${
-                            reacted ? 'post-card__action-btn--active' : ''
-                        }`}
-                    >
-                        <span className={`material-symbols-outlined post-card__action-icon ${reacted ? 'post-card__action-icon--active' : ''}`}>
-                            {reacted ? 'favorite' : 'favorite_border'}
-                        </span>
-                        {likesCount}
-                    </button>
-
-                    <button
-                        type="button"
-                        onClick={handleLoadComments}
-                        className={`post-card__action-btn ${
-                            showComments ? 'post-card__action-btn--active' : ''
-                        }`}
-                    >
-                        <span className="material-symbols-outlined post-card__action-icon">chat_bubble_outline</span>
-                        {commentsCount}
-                    </button>
-
-                    <button
-                        type="button"
-                        onClick={handleShare}
-                        className={`post-card__action-btn ${
-                            shared ? 'post-card__action-btn--active' : ''
-                        }`}
-                    >
-                        <span className="material-symbols-outlined post-card__action-icon">share</span>
-                        <span className="post-card__share-label">{shared ? 'Copied' : 'Share'}</span>
-                    </button>
-                </div>
-            </div>
-
-            {showComments && (
-                <div className="post-card__comments-section">
-                    <div className="post-card__comment-input-row">
-                        <input
-                            value={commentInput}
-                            onChange={(event) => setCommentInput(event.target.value)}
-                            onKeyDown={(e) => e.key === 'Enter' && handleAddComment()}
-                            placeholder="Write a comment..."
-                            className="post-card__comment-input"
-                        />
-                        <button
-                            type="button"
-                            onClick={handleAddComment}
-                            className="post-card__comment-send"
-                            aria-label="Send comment"
-                        >
-                            <span className="material-symbols-outlined post-card__comment-send-icon">send</span>
-                        </button>
+            {/* Privacy Toggle Modal */}
+            {showPrivacyModal && (
+                <div className="privacy-modal-overlay" onClick={() => setShowPrivacyModal(false)}>
+                    <div className="privacy-modal" onClick={(e) => e.stopPropagation()}>
+                        <h3 className="privacy-modal__title">Change Privacy</h3>
+                        <p className="privacy-modal__description">
+                            {postData.privacy === 'public' 
+                                ? 'Change this post to private?' 
+                                : 'Change this post to public?'}
+                        </p>
+                        <div className="privacy-modal__actions">
+                            <button 
+                                type="button" 
+                                className="privacy-modal__btn privacy-modal__btn--cancel"
+                                onClick={() => setShowPrivacyModal(false)}
+                            >
+                                Cancel
+                            </button>
+                            <button 
+                                type="button" 
+                                className="privacy-modal__btn privacy-modal__btn--confirm"
+                                onClick={() => handlePrivacyChange(
+                                    postData.privacy === 'public' ? 'private' : 'public'
+                                )}
+                            >
+                                {postData.privacy === 'public' ? 'Make Private' : 'Make Public'}
+                            </button>
+                        </div>
                     </div>
-
-                    {loadingComments ? (
-                        <p style={{ color: '#a5abb9', fontSize: '13px', padding: '8px 0' }}>Loading comments...</p>
-                    ) : (
-                        <CommentSection comments={localComments} />
-                    )}
                 </div>
+            )}
+
+            {/* Report Comment Modal */}
+            {reportingCommentId && (
+                <ReportModal
+                    commentId={reportingCommentId}
+                    onSubmit={handleSubmitReport}
+                    onClose={() => setReportingCommentId(null)}
+                    isSubmitting={isSubmittingReport}
+                />
+            )}
+
+            {/* Edit Comment Modal */}
+            {editingCommentId && (
+                <CommentEditModal
+                    comment={localComments.find((c) => (c.comment_id || c.id) === editingCommentId)}
+                    onSubmit={handleSubmitEdit}
+                    onClose={() => setEditingCommentId(null)}
+                    isSubmitting={isSubmittingEdit}
+                />
             )}
         </article>
     );

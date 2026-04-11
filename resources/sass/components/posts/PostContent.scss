@@ -1,0 +1,103 @@
+@import '../../variables';
+
+.post-content {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  &__title {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 1.35;
+    color: #ffffff;
+  }
+
+  &__body-section {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  &__text {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.6;
+    color: #d8dce8;
+    word-break: break-word;
+    white-space: pre-wrap;
+
+    &--quote {
+      border-left: 3px solid #8e74d5;
+      padding-left: 12px;
+      font-style: italic;
+      font-weight: 500;
+      color: #d4d8e6;
+      background: rgba(142, 116, 213, 0.05);
+      padding: 12px 12px 12px 12px;
+      border-radius: 4px;
+    }
+  }
+
+  &__expand-btn {
+    align-self: flex-start;
+    border: 0;
+    background: transparent;
+    color: #8e74d5;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: all 0.15s ease;
+    margin-top: 2px;
+
+    &:hover {
+      color: #a58be5;
+      background: rgba(142, 116, 213, 0.1);
+    }
+  }
+
+  &__image-section {
+    display: flex;
+    margin-top: 4px;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  &__image {
+    width: 100%;
+    max-height: 500px;
+    object-fit: cover;
+    display: block;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+
+    &:hover {
+      filter: brightness(1.05);
+    }
+  }
+}
+
+// Modal context adjustments
+.comment-floating-modal {
+  .post-content {
+    &__text {
+      font-size: 13px;
+      line-height: 1.5;
+
+      &--quote {
+        padding: 10px 12px 10px 12px;
+        font-size: 12px;
+      }
+    }
+
+    &__title {
+      font-size: 15px;
+    }
+
+    &__image {
+      max-height: 280px;
+    }
+  }
+}

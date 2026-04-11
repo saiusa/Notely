@@ -61,7 +61,9 @@
   }
 
   &__menu-item {
-    display: block;
+    display: flex;
+    align-items: center;
+    gap: 8px;
     height: 32px;
     width: 100%;
     border: 0;
@@ -70,12 +72,25 @@
     padding: 0 8px;
     text-align: left;
     color: #fff;
-    transition: background-color 0.15s ease;
+    transition: background-color 0.15s ease, color 0.15s ease;
     cursor: pointer;
 
     &:hover {
       background: #2a3043;
     }
+
+    &--success {
+      color: #785ebf;
+
+      &:hover {
+        background: #2a3043;
+      }
+    }
+  }
+
+  &__menu-item-icon {
+    flex-shrink: 0;
+    font-size: 18px;
   }
 
   &__bottom {
@@ -86,7 +101,11 @@
     align-items: flex-end;
     justify-content: space-between;
     background: linear-gradient(to top, rgba(0, 0, 0, 0.7), transparent);
-    padding: 40px 24px 32px;
+    padding: 90px 24px 32px;
+  }
+
+  &__info {
+    flex: 1;
   }
 
   &__name {
@@ -98,6 +117,7 @@
 
   &__description {
     margin-top: 12px;
+    margin-bottom: 12px;
     font-size: 14px;
     line-height: 1.45;
     color: #e4e7ef;
@@ -119,6 +139,8 @@
     font-size: 16px;
     font-weight: 500;
     color: #fff;
+    transition: background-color 0.15s ease;
+    cursor: pointer;
 
     &--default {
       background: #343b4f;
@@ -131,6 +153,15 @@
     &--joined {
       cursor: not-allowed;
       background: #785ebf;
+    }
+
+    &--owner {
+      cursor: not-allowed;
+      background: #785ebf;
+
+      &:disabled {
+        opacity: 1;
+      }
     }
   }
 }

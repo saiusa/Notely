@@ -14,8 +14,6 @@ class Post extends Model
 
     protected $primaryKey = 'post_id';
 
-    const UPDATED_AT = null;
-
     protected $fillable = [
         'user_id',
         'community_id',
@@ -33,6 +31,7 @@ class Post extends Model
             'allow_comments' => 'boolean',
             'is_anonymous' => 'boolean',
             'created_at' => 'datetime',
+            'updated_at' => 'datetime',
         ];
     }
 

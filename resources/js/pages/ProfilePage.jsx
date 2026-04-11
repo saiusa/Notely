@@ -1,7 +1,8 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
-import JournalCard from '../components/journal/JournalCard';
-import SocialLayout from '../components/layout/SocialLayout';
+import { Link, useParams } from 'react-router-dom';
+import SmallPostCard from '../components/journal/SmallPostCard';
+import ProfileLayout from '../components/layout/ProfileLayout';
+import Loader from '../components/common/Loader';
 import '../../sass/pages/ProfilePage.scss';
 import {
     formatBirthday,
@@ -109,7 +110,7 @@ export default function ProfilePage() {
     };
 
     return (
-        <SocialLayout
+        <ProfileLayout
             activeNav="profile"
             navbarMode="title"
             title="Profile"
@@ -162,16 +163,17 @@ export default function ProfilePage() {
 
                     <div className="profile-page-layout__posts-grid">
                         {loadingPosts ? (
-                            <p style={{ color: '#a5abb9', padding: '20px 0' }}>Loading posts...</p>
+                            <div style={{ display: 'flex', justifyContent: 'center', padding: '40px 0', gridColumn: '1 / -1' }}>
+                                <Loader />
+                            </div>
                         ) : recentPublicPosts.length === 0 ? (
                             <p style={{ color: '#a5abb9', padding: '20px 0' }}>No public posts yet.</p>
                         ) : (
                             recentPublicPosts.map((post) => (
-                                <JournalCard
+                                <SmallPostCard
                                     key={`profile-overview-${post.id}`}
-                                    card={post}
-                                    isPublicView
-                                    compact
+                                    post={post}
+                                    onCardClick={() => {}}
                                     onEdit={() => {}}
                                     onTogglePrivacy={() => {}}
                                     onCopyLink={() => {}}
@@ -191,6 +193,6 @@ export default function ProfilePage() {
                     onClose={() => setShowEdit(false)}
                 />
             ) : null}
-        </SocialLayout>
+        </ProfileLayout>
     );
 }

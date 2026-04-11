@@ -2,14 +2,15 @@
 
 .social-layout {
   &__wrapper {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
     display: flex;
-    min-height: 100vh;
+    padding-left: 260px;
     background-color: $color-bg-primary;
     color: $color-text-primary;
-  }
-
-  &__sidebar {
-    // Sidebar styles (in Sidebar.scss)
   }
 
   &__main {
@@ -18,16 +19,19 @@
     min-width: 0;
     flex: 1;
     flex-direction: column;
-  }
-
-  &__navbar {
-    // Navbar styles (in TopNavbar.scss)
+    margin-top: 80px;
   }
 
   &__content-area {
     display: flex;
     min-height: 0;
     flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+
+    @media (min-width: $breakpoint-xl) {
+      padding-right: 300px;
+    }
   }
 
   &__main-content {
@@ -57,21 +61,11 @@
       margin: 0 auto;
       width: 100%;
       max-width: 720px;
+      padding-bottom: 20px;
     }
 
     &--default {
       width: 100%;
-    }
-  }
-
-  &__recent-journals {
-    display: none;
-    width: 320px;
-    border-left: 1px solid $color-border;
-    background-color: $color-bg-primary;
-
-    @media (min-width: $breakpoint-xl) {
-      display: flex;
     }
   }
 }

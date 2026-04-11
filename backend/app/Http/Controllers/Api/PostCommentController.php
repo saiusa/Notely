@@ -7,6 +7,7 @@ use App\Models\Comment;
 use App\Models\CommunityMember;
 use App\Models\Notification;
 use App\Models\Post;
+use App\Models\Report;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -21,7 +22,21 @@ class PostCommentController extends Controller
         }
 
         $comments = $post->comments()
-            ->with('user:user_id,username')
+            ->with([
+                'user' => function ($query) {
+                    $query->select('user_id', 'username')
+                        ->with('profile:user_id,profile_picture');
+                },
+                'replies' => function ($query) {
+                    $query->with([
+                        'user' => function ($userQuery) {
+                            $userQuery->select('user_id', 'username')
+                                ->with('profile:user_id,profile_picture');
+                        }
+                    ])->orderBy('created_at');
+                }
+            ])
+            ->whereNull('parent_id')  // Only get top-level comments
             ->orderByDesc('created_at')
             ->paginate(20);
 
@@ -44,14 +59,17 @@ class PostCommentController extends Controller
 
         $validated = $request->validate([
             'content' => ['required', 'string'],
+            'parent_id' => ['nullable', 'exists:comments,comment_id'],
         ]);
 
         $comment = $post->comments()->create([
             'user_id' => $request->user()->user_id,
             'content' => $validated['content'],
+            'parent_id' => $validated['parent_id'] ?? null,
         ]);
 
-        if ((int) $post->user_id !== (int) $request->user()->user_id) {
+        // Notify post owner about top-level comments
+        if ((int) $post->user_id !== (int) $request->user()->user_id && ! $comment->parent_id) {
             Notification::create([
                 'user_id' => $post->user_id,
                 'type' => 'comment',
@@ -60,7 +78,25 @@ class PostCommentController extends Controller
             ]);
         }
 
-        $comment->load('user:user_id,username');
+        // Notify parent comment author about replies
+        if ($comment->parent_id) {
+            $parentComment = Comment::find($comment->parent_id);
+            if ($parentComment && (int) $parentComment->user_id !== (int) $request->user()->user_id) {
+                Notification::create([
+                    'user_id' => $parentComment->user_id,
+                    'type' => 'reply',
+                    'reference_id' => $comment->comment_id,
+                    'is_read' => false,
+                ]);
+            }
+        }
+
+        $comment->load([
+            'user' => function ($query) {
+                $query->select('user_id', 'username')
+                    ->with('profile:user_id,profile_picture');
+            }
+        ]);
 
         return response()->json($comment, 201);
     }
@@ -88,6 +124,82 @@ class PostCommentController extends Controller
         return response()->json([
             'message' => 'Comment deleted successfully.',
         ]);
+    }
+
+    public function update(Request $request, Post $post, Comment $comment): JsonResponse
+    {
+        if ((int) $comment->post_id !== (int) $post->post_id) {
+            return response()->json([
+                'message' => 'Comment not found for this post.',
+            ], 404);
+        }
+
+        $userId = (int) $request->user()->user_id;
+        if ((int) $comment->user_id !== $userId) {
+            return response()->json([
+                'message' => 'You can only edit your own comments.',
+            ], 403);
+        }
+
+        $validated = $request->validate([
+            'content' => ['required', 'string'],
+        ]);
+
+        $comment->update(['content' => $validated['content']]);
+
+        $comment->load([
+            'user' => function ($query) {
+                $query->select('user_id', 'username')
+                    ->with('profile:user_id,profile_picture');
+            }
+        ]);
+
+        return response()->json($comment);
+    }
+
+    public function report(Request $request, Post $post, Comment $comment): JsonResponse
+    {
+        if ((int) $comment->post_id !== (int) $post->post_id) {
+            return response()->json([
+                'message' => 'Comment not found for this post.',
+            ], 404);
+        }
+
+        if (! $this->canInteractWithPost($request, $post)) {
+            return response()->json([
+                'message' => 'You are not allowed to report comments on this post.',
+            ], 403);
+        }
+
+        $validated = $request->validate([
+            'reason' => ['required', 'string', 'in:spam,inappropriate,harassment,misinformation,other'],
+            'description' => ['nullable', 'string', 'max:1000'],
+        ]);
+
+        // Check if user has already reported this comment
+        $existingReport = Report::where('user_id', $request->user()->user_id)
+            ->where('comment_id', $comment->comment_id)
+            ->first();
+
+        if ($existingReport) {
+            return response()->json([
+                'message' => 'You have already reported this comment.',
+            ], 422);
+        }
+
+        $report = Report::create([
+            'user_id' => $request->user()->user_id,
+            'comment_id' => $comment->comment_id,
+            'post_id' => $post->post_id,
+            'report_type' => 'comment',
+            'reason' => $validated['reason'],
+            'description' => $validated['description'] ?? null,
+        ]);
+
+        return response()->json([
+            'message' => 'Comment reported successfully.',
+            'report_id' => $report->report_id,
+        ], 201);
     }
 
     private function canInteractWithPost(Request $request, Post $post): bool

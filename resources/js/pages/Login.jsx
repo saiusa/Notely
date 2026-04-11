@@ -36,9 +36,9 @@ export default function Login() {
         <div className="auth-page auth-page--login">
             <div className="auth-page__container auth-page__container--login">
                 <section className="auth-page__content">
-                    <h1 className="auth-page__brand">
-                        Notely
-                    </h1>
+                    <div className="auth-page__brand">
+                        <img src="/storage/logo/Notely-Logo.svg" alt="Notely" className="auth-page__logo" />
+                    </div>
 
                     <form onSubmit={onSubmit} className="auth-page__form">
                         <div className="auth-page__fields auth-page__fields--spaced">
@@ -104,7 +104,7 @@ export default function Login() {
                             disabled={loading}
                             className="auth-page__submit"
                         >
-                            {loading ? 'Signing in...' : 'Sign in'}
+                            Sign in
                         </button>
 
                         <p className="auth-page__footer-text">

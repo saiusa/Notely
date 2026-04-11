@@ -1,34 +1,175 @@
 @import '../../variables';
 
 .community-about-panel {
-  &__container {
+  &__wrapper {
     display: flex;
-    height: 400px;
     flex-direction: column;
-    overflow: hidden;
+    gap: 16px;
+  }
+
+  // Bento Box Card Styling (matches CommunitySidebar)
+  &__card {
+    height: fit-content;
     border-radius: 10px;
     background: #212633;
-    padding: 24px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
   }
 
-  &__title {
-    font-size: 22px;
-    font-weight: 500;
-    line-height: 1.1;
-    color: #fff;
+  // Stats & Metadata Grid
+  &__stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
   }
 
-  &__meta {
-    margin-top: 12px;
-    font-size: 14px;
+  &__stat-item {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  &__stat-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
     color: #9ca0ad;
   }
 
-  &__description {
-    margin-top: 24px;
-    overflow: hidden;
+  &__stat-value {
     font-size: 16px;
-    line-height: 1.5;
+    font-weight: 500;
+    line-height: 1.4;
     color: #e3e7ef;
+    margin: 0;
+  }
+
+  // Divider between sections
+  &__divider {
+    height: 1px;
+    background: #303548;
+    width: 100%;
+  }
+
+  // Sections (Description, Creator, Rules)
+  &__section {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  &__section-heading {
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #fff;
+    margin: 0;
+    padding: 0;
+  }
+
+  &__section-text {
+    font-size: 13px;
+    line-height: 1.6;
+    color: #d1d5db;
+    margin: 0;
+  }
+
+  // Creator Profile Section
+  &__creator-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  &__creator-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    background: #2a2d38;
+    border: 1px solid #3a3f4d;
+  }
+
+  &__creator-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  &__creator-name {
+    font-size: 13px;
+    font-weight: 500;
+    color: #e3e7ef;
+    margin: 0;
+  }
+
+  // Community Rules Section
+  &__rules-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+  }
+
+  &__edit-button {
+    padding: 6px 10px;
+    font-size: 11px;
+    font-weight: 500;
+    color: #9ca0ad;
+    background: transparent;
+    border: 1px solid #3a3f4d;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+
+    &:hover {
+      color: #e3e7ef;
+      border-color: #4a505d;
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    &:active {
+      transform: scale(0.98);
+    }
+  }
+
+  &__rules-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    list-style: decimal;
+    list-style-position: inside;
+    margin: 0;
+    padding: 0;
+  }
+
+  &__rule-item {
+    font-size: 13px;
+    line-height: 1.5;
+    color: #d1d5db;
+    margin: 0;
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    list-style-position: inside;
+
+    &::marker {
+      color: #9ca0ad;
+      font-weight: 500;
+    }
+  }
+
+  &__edit-placeholder {
+    font-size: 13px;
+    line-height: 1.6;
+    color: #6b7280;
+    font-style: italic;
+    margin: 0;
   }
 }
+

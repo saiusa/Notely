@@ -50,9 +50,9 @@ export default function SignUp() {
         <div className="auth-page auth-page--signup">
             <div className="auth-page__container auth-page__container--signup">
                 <section className="auth-page__content">
-                    <h1 className="auth-page__brand">
-                        Notely
-                    </h1>
+                    <div className="auth-page__brand">
+                        <img src="/storage/logo/Notely-Logo.svg" alt="Notely" className="auth-page__logo" />
+                    </div>
 
                     <div className="auth-page__panel">
                         <div className="auth-page__intro">
@@ -155,7 +155,7 @@ export default function SignUp() {
                                 disabled={loading}
                                 className="auth-page__submit"
                             >
-                                {loading ? 'Creating...' : 'Create Account'}
+                                Create Account
                             </button>
                         </form>
 

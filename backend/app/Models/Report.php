@@ -17,7 +17,10 @@ class Report extends Model
     protected $fillable = [
         'user_id',
         'post_id',
+        'comment_id',
+        'report_type',
         'reason',
+        'description',
     ];
 
     protected function casts(): array

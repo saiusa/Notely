@@ -1,6 +1,7 @@
 import '../../sass/pages/Auth.scss';
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import Loader from '../components/common/Loader';
 import authService from '../services/authService';
 
 export default function ForgotPassword() {
@@ -77,7 +78,7 @@ export default function ForgotPassword() {
                                 disabled={loading}
                                 className="auth-page__submit"
                             >
-                                {loading ? 'Sending...' : 'Send reset link'}
+                                {loading ? <Loader /> : 'Send reset link'}
                             </button>
                         </form>
 

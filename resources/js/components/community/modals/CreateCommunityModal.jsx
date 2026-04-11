@@ -5,22 +5,46 @@ export default function CreateCommunityModal({
     open,
     onCancel,
     onCreate,
+    categories = [],
+    defaultCategoryId = null,
+    communityData = null,
 }) {
     const [name, setName] = useState('');
     const [description, setDescription] = useState('');
+    const [categoryId, setCategoryId] = useState(defaultCategoryId || '');
     const [image, setImage] = useState(null);
     const [imagePreview, setImagePreview] = useState(null);
+    const isEditMode = !!communityData;
 
     useEffect(() => {
         if (open) {
             document.body.style.overflow = 'hidden';
+            
+            if (isEditMode && communityData) {
+                // Pre-fill form with community data for edit mode
+                setName(communityData.name || '');
+                setDescription(communityData.description || '');
+                setCategoryId(communityData.category_id || '');
+                // Set existing image preview if available
+                if (communityData.cardImage) {
+                    setImagePreview(communityData.cardImage);
+                }
+                setImage(null);
+            } else {
+                // Reset form for create mode
+                setName('');
+                setDescription('');
+                setCategoryId(defaultCategoryId || '');
+                setImage(null);
+                setImagePreview(null);
+            }
         } else {
             document.body.style.overflow = '';
         }
         return () => {
             document.body.style.overflow = '';
         };
-    }, [open]);
+    }, [open, defaultCategoryId, isEditMode, communityData]);
 
     const generateHandle = (inputName) => {
         return `@${inputName.toLowerCase().replace(/\s+/g, '-')}`;
@@ -46,18 +70,19 @@ export default function CreateCommunityModal({
         }
     };
 
-    const handleCreate = () => {
-        if (!name.trim()) return;
+    const handleSubmit = () => {
+        if (!name.trim() || !categoryId) return;
 
         onCreate({
             name,
             description,
+            category_id: categoryId,
             image,
-            handle: generateHandle(name),
         });
 
         setName('');
         setDescription('');
+        setCategoryId(defaultCategoryId || '');
         setImage(null);
         setImagePreview(null);
     };
@@ -67,7 +92,9 @@ export default function CreateCommunityModal({
     return (
         <div className="create-community-modal-overlay">
             <section className="create-community-modal">
-                <h2 className="create-community-modal__title">Create Community</h2>
+                <h2 className="create-community-modal__title">
+                    {isEditMode ? 'Edit Community' : 'Create Community'}
+                </h2>
                 
                 <div className="create-community-modal__field">
                     <label className="create-community-modal__label">Community Name</label>
@@ -83,6 +110,22 @@ export default function CreateCommunityModal({
                             Handle: {generateHandle(name)}
                         </p>
                     )}
+                </div>
+
+                <div className="create-community-modal__field">
+                    <label className="create-community-modal__label">Category</label>
+                    <select
+                        value={categoryId}
+                        onChange={(e) => setCategoryId(e.target.value)}
+                        className="create-community-modal__select"
+                    >
+                        <option value="">Select a category</option>
+                        {categories.map((cat) => (
+                            <option key={cat.category_id} value={cat.category_id}>
+                                {cat.name}
+                            </option>
+                        ))}
+                    </select>
                 </div>
 
                 <div className="create-community-modal__field">
@@ -129,11 +172,11 @@ export default function CreateCommunityModal({
                     </button>
                     <button
                         type="button"
-                        onClick={handleCreate}
-                        disabled={!name.trim()}
+                        onClick={handleSubmit}
+                        disabled={!name.trim() || !categoryId}
                         className="create-community-modal__primary-button"
                     >
-                        Create
+                        {isEditMode ? 'Save Changes' : 'Create'}
                     </button>
                 </div>
             </section>

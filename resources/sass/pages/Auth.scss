@@ -60,6 +60,14 @@
     color: #785ebf;
   }
 
+  &__logo {
+    display: block;
+    height: 64px;
+    max-width: 200px;
+    object-fit: contain;
+    object-position: center;
+  }
+
   &__panel {
     width: 100%;
     display: flex;

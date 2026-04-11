@@ -32,6 +32,8 @@
     border-radius: $radius-2xl;
     background-color: $color-bg-quaternary;
     padding: $spacing-2xl;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.05);
 
     &--modal {
       max-width: $composer-width;
@@ -46,6 +48,8 @@
     position: relative;
     display: flex;
     justify-content: space-between;
+    align-items: flex-start;
+    gap: $spacing-lg;
   }
 
   &__content {
@@ -58,7 +62,7 @@
     background-color: transparent;
     color: $color-text-primary;
     outline: none;
-    transition: $transition-fast;
+    transition: all 0.2s ease;
 
     &::placeholder {
       color: $color-text-disabled;
@@ -71,18 +75,27 @@
     &--title {
       font-size: $font-size-4xl;
       font-weight: $font-weight-bold;
+      margin-bottom: $spacing-lg;
     }
 
     &--tags {
-      height: $spacing-2xl + $spacing-lg;
+      height: 40px;
       flex: 1;
       border-radius: $radius-md;
-      padding: 0 $spacing-lg;
+      padding: $spacing-md $spacing-lg;
       font-size: $font-size-base;
       color: $color-text-primary;
+      background-color: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      transition: all 0.2s ease;
 
       &::placeholder {
         color: $color-text-muted;
+      }
+
+      &:focus {
+        background-color: rgba(255, 255, 255, 0.08);
+        border-color: #785ebf;
       }
     }
   }
@@ -94,7 +107,8 @@
     color: $color-text-primary;
     outline: none;
     font-family: inherit;
-    transition: $transition-fast;
+    transition: all 0.2s ease;
+    border: none;
 
     &::placeholder {
       color: $color-text-disabled;
@@ -109,6 +123,7 @@
       min-height: 160px;
       font-size: $font-size-md;
       font-weight: $font-weight-normal;
+      line-height: 1.6;
     }
 
     &--quote {
@@ -116,12 +131,14 @@
       font-size: 28px;
       font-weight: $font-weight-medium;
       font-style: italic;
+      line-height: 1.6;
     }
 
     &--caption {
       min-height: 90px;
       font-size: $font-size-md;
       font-weight: $font-weight-normal;
+      line-height: 1.6;
     }
   }
 
@@ -131,17 +148,17 @@
     width: 32px;
     border-radius: $radius-full;
     color: $color-text-quaternary;
-    transition: $transition-fast;
-    background-color: transparent;
+    transition: all 0.2s ease;
+    background-color: rgba(255, 255, 255, 0.05);
     font-size: $font-size-lg;
-    border: none;
+    border: 1px solid rgba(255, 255, 255, 0.1);
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
 
     &:hover {
-      background-color: $color-overlay-hover;
+      background-color: rgba(255, 255, 255, 0.1);
     }
   }
 
@@ -272,33 +289,50 @@
 
   // Image Uploader
   &__image-uploader {
-    margin-top: $spacing-2xl;
+    margin-top: $spacing-lg;
     display: flex;
-    height: 240px;
+    height: 160px;
     width: 100%;
     align-items: center;
     justify-content: center;
     border-radius: $radius-lg;
-    border: 2px dashed rgba(255, 255, 255, 0.25);
-    background-color: rgba(255, 255, 255, 0.05);
-    font-size: $font-size-lg;
+    border: 2px dashed rgba(120, 94, 191, 0.3);
+    background: linear-gradient(135deg, rgba(120, 94, 191, 0.08) 0%, rgba(120, 94, 191, 0.04) 100%);
+    font-size: $font-size-base;
     font-weight: $font-weight-medium;
-    color: rgba(255, 255, 255, 0.6);
-    transition: $transition-fast;
+    color: rgba(255, 255, 255, 0.7);
+    transition: all 0.2s ease;
     cursor: pointer;
+    flex-direction: column;
+    gap: $spacing-md;
+    text-align: center;
 
     &:hover {
-      background-color: rgba(255, 255, 255, 0.1);
+      background: linear-gradient(135deg, rgba(120, 94, 191, 0.15) 0%, rgba(120, 94, 191, 0.08) 100%);
+      border-color: rgba(120, 94, 191, 0.5);
+      color: rgba(255, 255, 255, 0.9);
+      transform: translateY(-2px);
+    }
+
+    &:active {
+      transform: translateY(0);
+    }
+
+    .material-symbols-outlined {
+      font-size: 32px;
+      color: #785ebf;
     }
   }
 
   // Mood & Tags Bar
   &__bottom-bar {
     position: relative;
-    margin-top: $spacing-lg;
+    margin-top: $spacing-2xl;
     display: flex;
     align-items: center;
-    gap: $spacing-xl;
+    gap: $spacing-lg;
+    padding-top: $spacing-xl;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
     font-size: $font-size-md;
     color: $color-text-muted;
   }
@@ -310,10 +344,20 @@
     border-radius: $radius-full;
     padding: $spacing-md $spacing-xl;
     font-size: $font-size-base;
-    transition: $transition-fast;
-    border: none;
+    transition: all 0.2s ease;
+    border: 1px solid rgba(255, 255, 255, 0.1);
     cursor: pointer;
-    font-weight: $font-weight-normal;
+    font-weight: $font-weight-medium;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+
+    &:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    &:active {
+      transform: translateY(0);
+    }
 
     .mood-icon {
       font-size: $font-size-lg;
@@ -326,7 +370,7 @@
     left: 0;
     top: 44px;
     z-index: $z-index-dropdown;
-    width: 220px;
+    width: 260px;
     overflow: hidden;
     border-radius: $radius-xl;
     border: 1px solid $color-border;
@@ -335,29 +379,51 @@
   }
 
   &__mood-dropdown-content {
-    max-height: 240px;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    max-height: 200px;
     overflow-y: auto;
-    padding: $spacing-sm 0;
+    padding: 12px;
   }
 
   &__mood-option {
-    width: 100%;
-    padding: $spacing-lg $spacing-2xl;
-    text-align: left;
-    font-size: $font-size-base;
-    transition: $transition-fast;
-    background-color: transparent;
-    border: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    aspect-ratio: 1;
+    padding: 8px;
+    text-align: center;
+    font-size: 11px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    background-color: rgba(255, 255, 255, 0.05);
+    border: 2px solid transparent;
+    border-radius: $radius-md;
     cursor: pointer;
-    color: $color-text-secondary;
+    color: $color-text-primary;
+    gap: 4px;
 
     &:hover {
-      background-color: $color-bg-hover-tertiary;
+      background-color: rgba(255, 255, 255, 0.1);
+      transform: scale(1.05);
     }
 
     &--active {
-      background-color: $color-bg-hover-tertiary;
-      color: $color-text-primary;
+      border: 2px solid $color-primary;
+      background-color: rgba(120, 94, 191, 0.15);
+      color: $color-primary;
+    }
+
+    .mood-emoji {
+      font-size: 24px;
+      line-height: 1;
+    }
+
+    .mood-label {
+      font-size: 10px;
+      opacity: 0.8;
     }
   }
 
@@ -367,40 +433,52 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: $spacing-xl;
   }
 
   &__cancel-btn {
-    font-size: $font-size-3xl;
+    flex: 1;
+    height: 40px;
+    font-size: $font-size-base;
+    font-weight: $font-weight-medium;
     color: $color-text-primary;
-    transition: $transition-fast;
-    background-color: transparent;
-    border: none;
+    transition: all 0.2s ease;
+    background-color: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: $radius-md;
     cursor: pointer;
 
-    &:hover {
-      color: $color-primary-light;
+    &:hover:not(:disabled) {
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
     }
   }
 
   &__post-btn {
-    height: $button-height-sm;
-    width: 76px;
+    flex: 1;
+    height: 40px;
     border-radius: $radius-md;
-    background-color: $color-primary;
-    font-size: $font-size-xl;
-    font-weight: $font-weight-medium;
-    color: $color-text-primary;
-    transition: $transition-fast;
+    background: linear-gradient(135deg, #785ebf 0%, #6b4fa8 100%);
+    font-size: $font-size-base;
+    font-weight: $font-weight-bold;
+    color: #ffffff;
+    transition: all 0.2s ease;
     border: none;
     cursor: pointer;
+    box-shadow: 0 4px 15px rgba(120, 94, 191, 0.3);
 
-    &:hover {
-      background-color: $color-primary-hover;
+    &:hover:not(:disabled) {
+      box-shadow: 0 6px 20px rgba(120, 94, 191, 0.4);
     }
 
     &:disabled {
-      background-color: $color-bg-disabled;
+      background: linear-gradient(135deg, #5a4a8a 0%, #483980 100%);
       cursor: not-allowed;
+      opacity: 0.7;
     }
   }
 }

@@ -1,4 +1,5 @@
 import React from 'react';
+import Loader from '../../common/Loader';
 import { Input, Label } from '../controls';
 
 export default function AccountTab({
@@ -15,6 +16,8 @@ export default function AccountTab({
     onCountrySelect,
     onOpenDeactivate,
     deactivateDone,
+    saving = false,
+    onSave,
 }) {
     return (
         <div className="settings-tab settings-tab--account">
@@ -70,9 +73,11 @@ export default function AccountTab({
                 </button>
                 <button
                     type="button"
+                    disabled={saving}
+                    onClick={onSave}
                     className="settings-tab__primary-button settings-tab__primary-button--small"
                 >
-                    Save
+                    {saving ? <Loader /> : 'Save'}
                 </button>
             </div>
         </div>

@@ -23,12 +23,28 @@ class CommunityMembershipController extends Controller
 
     public function myCommunities(Request $request): JsonResponse
     {
-        $communities = $request->user()->communities()
-            ->select('communities.community_id', 'communities.name', 'communities.description', 'communities.image', 'communities.created_at', 'community_members.joined_at')
-            ->orderByDesc('community_members.joined_at')
-            ->paginate(20);
+        $userId = $request->user()->user_id;
 
-        return response()->json($communities);
+        // Get communities created by user
+        $created = Community::query()
+            ->where('user_id', $userId)
+            ->with('category:category_id,name,slug,image')
+            ->withCount('communityMembers')
+            ->get()
+            ->map(fn($c) => $c->toArray() + ['type' => 'created']);
+
+        // Get communities user joined
+        $joined = $request->user()->communities()
+            ->with('category:category_id,name,slug,image')
+            ->withCount('communityMembers')
+            ->withPivot('joined_at')
+            ->get()
+            ->map(fn($c) => $c->toArray() + ['type' => 'joined']);
+
+        return response()->json([
+            'created' => $created,
+            'joined' => $joined,
+        ]);
     }
 
     public function join(Request $request, Community $community): JsonResponse

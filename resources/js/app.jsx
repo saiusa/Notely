@@ -7,6 +7,7 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/layout/ProtectedRoute';
 import CommunityPage from './pages/CommunityPage';
+import MyCommunityPage from './pages/MyCommunityPage';
 import ForgotPassword from './pages/ForgotPassword';
 import HomePage from './pages/HomePage';
 import Login from './pages/Login';
@@ -34,14 +35,17 @@ if (rootElement) {
                         <Route path="/home" element={<ProtectedRoute><HomePage /></ProtectedRoute>} />
                         <Route path="/community" element={<ProtectedRoute><Navigate to="/community/browse" replace /></ProtectedRoute>} />
                         <Route path="/community/browse" element={<ProtectedRoute><CommunityPage /></ProtectedRoute>} />
-                        <Route path="/community/browse/:category" element={<ProtectedRoute><CommunityPage /></ProtectedRoute>} />
-                        <Route path="/community/browse/:category/:communityId" element={<ProtectedRoute><CommunityPage /></ProtectedRoute>} />
-                        <Route path="/community/my-community" element={<ProtectedRoute><CommunityPage /></ProtectedRoute>} />
-                        <Route path="/community/my-community/:communityId" element={<ProtectedRoute><CommunityPage /></ProtectedRoute>} />
+                        <Route path="/community/browse/:categorySlug" element={<ProtectedRoute><CommunityPage /></ProtectedRoute>} />
+                        <Route path="/community/browse/:categorySlug/:communityId" element={<ProtectedRoute><CommunityPage /></ProtectedRoute>} />
+                        <Route path="/community/my-community" element={<ProtectedRoute><Navigate to="/community/my-community/created" replace /></ProtectedRoute>} />
+                        <Route path="/community/my-community/:tab" element={<ProtectedRoute><MyCommunityPage /></ProtectedRoute>} />
+                        <Route path="/community/my-community/created/:categorySlug/:communityId" element={<ProtectedRoute><CommunityPage /></ProtectedRoute>} />
+                        <Route path="/community/my-community/joined/:categorySlug/:communityId" element={<ProtectedRoute><CommunityPage /></ProtectedRoute>} />
                         <Route path="/journal" element={<ProtectedRoute><JournalPage /></ProtectedRoute>} />
                         <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
                         <Route path="/profile/posts" element={<ProtectedRoute><ProfilePostsPage /></ProtectedRoute>} />
-                        <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
+                        <Route path="/settings" element={<ProtectedRoute><Navigate to="/settings/account" replace /></ProtectedRoute>} />
+                        <Route path="/settings/:tab" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
                     </Routes>
                 </BrowserRouter>
             </AuthProvider>

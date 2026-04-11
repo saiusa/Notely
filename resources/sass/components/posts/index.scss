@@ -1,2 +1,8 @@
 @import './PostCard';
-@import './CommentSection';
+@import './PostContent';
+@import './comments/CommentSection';
+@import './comments/CommentThread';
+@import './comments/CommentFloatingModal';
+@import './comments/ReplyInput';
+@import './comments/ReportModal';
+@import './modals/PostDetailModal';

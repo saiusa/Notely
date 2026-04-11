@@ -1,7 +1,9 @@
 import '../../sass/components/settings/index.scss';
 import React, { useEffect, useState } from 'react';
-import SocialLayout from '../components/layout/SocialLayout';
+import { useNavigate, useParams } from 'react-router-dom';
+import SettingsPageLayout from '../components/layout/SettingsPageLayout';
 import SettingsLayout from '../components/settings/SettingsLayout';
+import Loader from '../components/common/Loader';
 import { COUNTRY_OPTIONS } from '../components/settings/constants';
 import AccountTab from '../components/settings/tabs/AccountTab';
 import SecurityTab from '../components/settings/tabs/SecurityTab';
@@ -12,8 +14,10 @@ import { useAuth } from '../context/AuthContext';
 import settingsService from '../services/settingsService';
 
 export default function SettingsPage() {
+    const navigate = useNavigate();
+    const { tab = 'account' } = useParams();
     const { user, logout, refreshUser } = useAuth();
-    const [activeMenu, setActiveMenu] = useState('account');
+    const [activeMenu, setActiveMenu] = useState(tab);
     const [saving, setSaving] = useState(false);
     const [saveMessage, setSaveMessage] = useState('');
 
@@ -41,7 +45,18 @@ export default function SettingsPage() {
     // Notifications
     const [notifLikes, setNotifLikes] = useState(true);
     const [notifComments, setNotifComments] = useState(true);
-    const [notifEmail, setNotifEmail] = useState(true);
+    const [notifReplies, setNotifReplies] = useState(true);
+
+    // Update activeMenu when tab param changes
+    useEffect(() => {
+        setActiveMenu(tab);
+    }, [tab]);
+
+    // Sync activeMenu with URL when menu changes
+    const handleMenuChange = (menu) => {
+        setActiveMenu(menu);
+        navigate(`/settings/${menu}`, { replace: false });
+    };
 
     // Load user settings on mount
     useEffect(() => {
@@ -57,7 +72,7 @@ export default function SettingsPage() {
                 setShowReactions(user.setting.show_reaction_counts !== false);
                 setNotifLikes(user.setting.notify_likes !== false);
                 setNotifComments(user.setting.notify_comments !== false);
-                setNotifEmail(user.setting.email_notifications !== false);
+                setNotifReplies(user.setting.notify_replies !== false);
             }
         }
     }, [user]);
@@ -130,7 +145,7 @@ export default function SettingsPage() {
             await settingsService.updateNotifications({
                 notify_likes: field === 'notifLikes' ? value : notifLikes,
                 notify_comments: field === 'notifComments' ? value : notifComments,
-                email_notifications: field === 'notifEmail' ? value : notifEmail,
+                notify_replies: field === 'notifReplies' ? value : notifReplies,
             });
         } catch (_) {
             // ignore
@@ -158,7 +173,7 @@ export default function SettingsPage() {
     };
 
     return (
-        <SocialLayout activeNav="settings" navbarMode="title" title="Settings">
+        <SettingsPageLayout activeNav="settings" navbarMode="title" title="Settings">
             {saveMessage && (
                 <div style={{
                     padding: '8px 16px',
@@ -171,7 +186,7 @@ export default function SettingsPage() {
                     {saveMessage}
                 </div>
             )}
-            <SettingsLayout activeMenu={activeMenu} onMenuChange={setActiveMenu}>
+            <SettingsLayout activeMenu={activeMenu} onMenuChange={handleMenuChange}>
                 {activeMenu === 'account' && (
                     <AccountTab
                         username={username}
@@ -224,8 +239,8 @@ export default function SettingsPage() {
                         setNotifLikes={(v) => { setNotifLikes(v); handleSaveNotifications('notifLikes', v); }}
                         notifComments={notifComments}
                         setNotifComments={(v) => { setNotifComments(v); handleSaveNotifications('notifComments', v); }}
-                        notifEmail={notifEmail}
-                        setNotifEmail={(v) => { setNotifEmail(v); handleSaveNotifications('notifEmail', v); }}
+                        notifReplies={notifReplies}
+                        setNotifReplies={(v) => { setNotifReplies(v); handleSaveNotifications('notifReplies', v); }}
                     />
                 )}
             </SettingsLayout>
@@ -235,6 +250,6 @@ export default function SettingsPage() {
                 onCancel={() => setShowTwoFactorModal(false)}
                 onActivate={handleActivateTwoFactor}
             />
-        </SocialLayout>
+        </SettingsPageLayout>
     );
 }

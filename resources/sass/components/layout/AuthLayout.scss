@@ -1,0 +1,99 @@
+@import '../../variables';
+
+.auth-layout {
+  &__container {
+    position: relative;
+    min-height: 100vh;
+    overflow: hidden;
+    background: $color-bg-primary;
+    color: $color-text-primary;
+
+    &::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background: radial-gradient(circle at 16% 10%, rgba(122, 82, 230, 0.12), transparent 42%),
+                  radial-gradient(circle at 84% 14%, rgba(56, 89, 189, 0.09), transparent 42%);
+    }
+  }
+
+  &__wrapper {
+    position: relative;
+    display: flex;
+    min-height: 100vh;
+    align-items: center;
+    justify-content: center;
+    padding: $spacing-xl $spacing-lg;
+
+    @media (min-width: $breakpoint-sm) {
+      padding: $spacing-xl * 1.5 $spacing-xl;
+    }
+  }
+
+  &__section {
+    width: 100%;
+    max-width: 332px;
+
+    @media (min-width: $breakpoint-sm) {
+      max-width: 420px;
+    }
+  }
+
+  &__header {
+    margin-bottom: 56px;
+    text-align: center;
+
+    @media (min-width: $breakpoint-sm) {
+      margin-bottom: 64px;
+    }
+  }
+
+  &__logo {
+    font-family: 'Notely', sans-serif;
+    font-size: 54px;
+    line-height: 1;
+    letter-spacing: -0.02em;
+    color: #7b5ccf;
+
+    @media (min-width: $breakpoint-sm) {
+      font-size: 62px;
+    }
+  }
+
+  &__content {
+    // Additional wrapper for form content
+  }
+
+  &__title {
+    text-align: center;
+    font-size: 27px;
+    font-weight: 600;
+    line-height: 1.2;
+    color: $color-text-primary;
+
+    @media (min-width: $breakpoint-sm) {
+      font-size: 42px;
+    }
+  }
+
+  &__subtitle {
+    margin-top: 12px;
+    text-align: center;
+    font-size: 16px;
+    line-height: 1.5;
+    color: #8a8fa8;
+
+    @media (min-width: $breakpoint-sm) {
+      font-size: 31px;
+    }
+  }
+
+  &__form-wrapper {
+    margin-top: 28px;
+
+    @media (min-width: $breakpoint-sm) {
+      margin-top: 32px;
+    }
+  }
+}

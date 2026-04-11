@@ -5,6 +5,7 @@
  */
 import React from 'react';
 import { Navigate } from 'react-router-dom';
+import Loader from '../common/Loader';
 import { useAuth } from '../../context/AuthContext';
 
 export default function ProtectedRoute({ children }) {
@@ -18,12 +19,8 @@ export default function ProtectedRoute({ children }) {
                 justifyContent: 'center',
                 height: '100vh',
                 background: '#1b1c24',
-                color: '#a5abb9',
-                fontFamily: 'Roboto, sans-serif',
-                fontSize: '16px',
             }}>
-                <span className="material-symbols-outlined" style={{ marginRight: 8 }}>hourglass_top</span>
-                Loading...
+                <Loader />
             </div>
         );
     }

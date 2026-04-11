@@ -3,8 +3,7 @@
 .community-page {
   &__section {
     width: 100%;
-    padding-left: 20px;
-    padding-right: 20px;
+    padding: 14px;
   }
 
   &__not-found {
@@ -76,8 +75,7 @@
     display: flex;
     flex-direction: column;
     gap: 16px;
-    padding-left: 20px;
-    padding-right: 20px;
+    padding: 14px;
   }
 
   &__detail-grid {
@@ -94,6 +92,7 @@
     display: flex;
     flex-direction: column;
     gap: 16px;
+    padding-bottom: 80px;
 
     @media (min-width: 1280px) {
       margin-left: auto;

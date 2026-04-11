@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { moodOptions } from './moodOptions';
 import postService from '../../services/postService';
 import '../../../sass/components/layout/ComposerModal.scss';
@@ -18,20 +18,50 @@ const modeConfig = {
     },
 };
 
-export default function ComposerModal({ mode, onClose, onPostCreated, communityId, embedded = false }) {
+export default function ComposerModal({ 
+    mode, 
+    onClose, 
+    onPostCreated, 
+    communityId, 
+    embedded = false,
+    existingPost = null,
+    isEditing = false
+}) {
     const config = modeConfig[mode] || modeConfig.text;
     const [isMoodOpen, setIsMoodOpen] = useState(false);
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
     const [isPrivacyOpen, setIsPrivacyOpen] = useState(false);
-    const [selectedMoodId, setSelectedMoodId] = useState(null);
-    const [privacy, setPrivacy] = useState('public');
-    const [allowComments, setAllowComments] = useState(true);
-    const [isAnonymous, setIsAnonymous] = useState(false);
-    const [title, setTitle] = useState('');
-    const [body, setBody] = useState('');
-    const [tags, setTags] = useState('');
+    const [selectedMoodId, setSelectedMoodId] = useState(
+        isEditing && existingPost?.mood_id ? existingPost.mood_id : null
+    );
+    const [privacy, setPrivacy] = useState(
+        isEditing && existingPost?.privacy ? existingPost.privacy : 'public'
+    );
+    const [allowComments, setAllowComments] = useState(
+        isEditing && existingPost?.allow_comments !== undefined ? existingPost.allow_comments : true
+    );
+    const [isAnonymous, setIsAnonymous] = useState(
+        isEditing && existingPost?.is_anonymous ? existingPost.is_anonymous : false
+    );
+    const [title, setTitle] = useState(
+        isEditing && existingPost?.title ? existingPost.title : ''
+    );
+    const [body, setBody] = useState(
+        isEditing && existingPost?.content ? existingPost.content : ''
+    );
+    const [tags, setTags] = useState(
+        isEditing && existingPost?.hashtags
+            ? existingPost.hashtags.map((t) => (typeof t === 'string' ? t : `#${t.name}`)).join(', ')
+            : ''
+    );
     const [posting, setPosting] = useState(false);
     const [error, setError] = useState('');
+    const [image, setImage] = useState(null);
+    const [imagePreview, setImagePreview] = useState(
+        isEditing && existingPost?.image ? existingPost.image : null
+    );
+    const [uploading, setUploading] = useState(false);
+    const fileInputRef = useRef(null);
 
     const selectedMood = useMemo(() => {
         return moodOptions.find((option) => option.id === selectedMoodId) || null;
@@ -63,6 +93,11 @@ export default function ComposerModal({ mode, onClose, onPostCreated, communityI
             return;
         }
 
+        if (mode === 'image' && !image && !imagePreview) {
+            setError('Please select an image.');
+            return;
+        }
+
         const content = mode === 'text'
             ? (title ? `${title}\n\n${body}` : body)
             : body;
@@ -82,28 +117,93 @@ export default function ComposerModal({ mode, onClose, onPostCreated, communityI
                 .map((t) => t.replace(/^#/, '').trim())
                 .filter(Boolean);
 
+            let imageUrl = undefined;
+
+            // Upload image if in image mode and new image selected
+            if (mode === 'image' && image && !imagePreview) {
+                setUploading(true);
+                try {
+                    const uploadResponse = await postService.uploadFile(image);
+                    imageUrl = uploadResponse.url;
+                    setUploading(false);
+                } catch (uploadErr) {
+                    const msg = uploadErr.response?.data?.message || 'Failed to upload image.';
+                    setError(msg);
+                    setPosting(false);
+                    setUploading(false);
+                    return;
+                }
+            }
+
             const postData = {
                 content,
-                mood_id: moodOptions.findIndex((m) => m.id === selectedMoodId) + 1, // mood DB IDs are 1-indexed
+                mood_id: selectedMood.mood_id,
                 privacy,
                 allow_comments: allowComments,
                 is_anonymous: isAnonymous,
                 hashtags: hashtags.length > 0 ? hashtags : undefined,
                 community_id: communityId || undefined,
+                image: imageUrl || (isEditing ? imagePreview : undefined),
             };
 
-            const newPost = await postService.createPost(postData);
+            let result;
+            if (isEditing && existingPost) {
+                // Update existing post
+                result = await postService.updatePost(existingPost.post_id || existingPost.id, postData);
+            } else {
+                // Create new post
+                result = await postService.createPost(postData);
+            }
 
             if (onPostCreated) {
-                onPostCreated(newPost);
+                onPostCreated(result);
             }
 
             onClose();
         } catch (err) {
-            const msg = err.response?.data?.message || 'Failed to create post.';
+            const msg = err.response?.data?.message || (isEditing ? 'Failed to update post.' : 'Failed to create post.');
             setError(msg);
         } finally {
             setPosting(false);
+        }
+    };
+
+    const handleFileSelect = (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        // Validate file type
+        if (!file.type.startsWith('image/')) {
+            setError('Please select a valid image file');
+            return;
+        }
+
+        // Validate file size (max 5MB)
+        if (file.size > 5 * 1024 * 1024) {
+            setError('Image must be smaller than 5MB');
+            return;
+        }
+
+        setImage(file);
+        setError('');
+
+        // Create preview
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            setImagePreview(event.target?.result);
+        };
+        reader.readAsDataURL(file);
+    };
+
+    const handleImageUploadClick = () => {
+        fileInputRef.current?.click();
+    };
+
+    const handleRemoveImage = () => {
+        setImage(null);
+        setImagePreview(null);
+        if (fileInputRef.current) {
+            fileInputRef.current.value = '';
         }
     };
 
@@ -247,9 +347,65 @@ export default function ComposerModal({ mode, onClose, onPostCreated, communityI
                 </div>
 
                 {mode === 'image' && (
-                    <button type="button" className="composer-modal__image-uploader">
-                        Upload image
-                    </button>
+                    <>
+                        <input
+                            ref={fileInputRef}
+                            type="file"
+                            accept="image/*"
+                            onChange={handleFileSelect}
+                            style={{ display: 'none' }}
+                            aria-label="Upload image file"
+                        />
+                        {imagePreview ? (
+                            <div style={{ position: 'relative', marginTop: '16px' }}>
+                                <img src={imagePreview} alt="Preview" style={{
+                                    width: '100%',
+                                    maxHeight: '300px',
+                                    borderRadius: '10px',
+                                    objectFit: 'cover',
+                                }} />
+                                <button
+                                    type="button"
+                                    onClick={handleRemoveImage}
+                                    disabled={uploading}
+                                    style={{
+                                        position: 'absolute',
+                                        top: '8px',
+                                        right: '8px',
+                                        width: '32px',
+                                        height: '32px',
+                                        borderRadius: '50%',
+                                        background: 'rgba(0, 0, 0, 0.6)',
+                                        border: 'none',
+                                        color: '#fff',
+                                        cursor: uploading ? 'not-allowed' : 'pointer',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        opacity: uploading ? 0.5 : 1,
+                                    }}
+                                >
+                                    <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>close</span>
+                                </button>
+                            </div>
+                        ) : (
+                            <button
+                                type="button"
+                                onClick={handleImageUploadClick}
+                                disabled={uploading}
+                                className="composer-modal__image-uploader"
+                                style={{
+                                    opacity: uploading ? 0.6 : 1,
+                                    cursor: uploading ? 'not-allowed' : 'pointer',
+                                }}
+                            >
+                                <span className="material-symbols-outlined">
+                                    {uploading ? 'hourglass_empty' : 'image'}
+                                </span>
+                                <span>{uploading ? 'Uploading...' : 'Upload image'}</span>
+                            </button>
+                        )}
+                    </>
                 )}
 
                 {error && (
@@ -301,7 +457,8 @@ export default function ComposerModal({ mode, onClose, onPostCreated, communityI
                                                 : ''
                                         }`}
                                     >
-                                        {option.label}
+                                        <span className="mood-emoji">{option.emoji}</span>
+                                        <span className="mood-label">{option.label}</span>
                                     </button>
                                 ))}
                             </div>
@@ -310,11 +467,11 @@ export default function ComposerModal({ mode, onClose, onPostCreated, communityI
                 </div>
 
                 <div className="composer-modal__actions">
-                    <button type="button" onClick={onClose} className="composer-modal__cancel-btn" disabled={posting}>
+                    <button type="button" onClick={onClose} className="composer-modal__cancel-btn" disabled={posting || uploading}>
                         Cancel
                     </button>
-                    <button type="button" onClick={handlePost} className="composer-modal__post-btn" disabled={posting}>
-                        {posting ? 'Posting...' : 'Post'}
+                    <button type="button" onClick={handlePost} className="composer-modal__post-btn" disabled={posting || uploading}>
+                        {uploading ? 'Uploading...' : posting ? (isEditing ? 'Updating...' : 'Posting...') : (isEditing ? 'Update Post' : 'Post')}
                     </button>
                 </div>
             </section>

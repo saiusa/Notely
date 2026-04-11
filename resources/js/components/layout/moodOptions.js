@@ -1,6 +1,7 @@
 export const moodOptions = [
     {
         id: 'happy',
+        mood_id: 1,
         emoji: '😊',
         label: 'Happy',
         backgroundColor: '#FFF4CC',
@@ -9,6 +10,7 @@ export const moodOptions = [
     },
     {
         id: 'calm',
+        mood_id: 2,
         emoji: '😌',
         label: 'Calm',
         backgroundColor: '#E6F4F1',
@@ -17,6 +19,7 @@ export const moodOptions = [
     },
     {
         id: 'sad',
+        mood_id: 3,
         emoji: '💙',
         label: 'Sad',
         backgroundColor: '#E8F0FE',
@@ -25,6 +28,7 @@ export const moodOptions = [
     },
     {
         id: 'angry',
+        mood_id: 4,
         emoji: '😡',
         label: 'Angry',
         backgroundColor: '#FFE5E5',
@@ -33,6 +37,7 @@ export const moodOptions = [
     },
     {
         id: 'anxious',
+        mood_id: 5,
         emoji: '😰',
         label: 'Anxious',
         backgroundColor: '#F3E8FF',
@@ -41,6 +46,7 @@ export const moodOptions = [
     },
     {
         id: 'reflective',
+        mood_id: 6,
         emoji: '🤔',
         label: 'Reflective',
         backgroundColor: '#ECECEC',
@@ -49,6 +55,7 @@ export const moodOptions = [
     },
     {
         id: 'grateful',
+        mood_id: 7,
         emoji: '🥰',
         label: 'Grateful',
         backgroundColor: '#E8F8F0',
@@ -57,6 +64,7 @@ export const moodOptions = [
     },
     {
         id: 'tired',
+        mood_id: 8,
         emoji: '🌙',
         label: 'Tired',
         backgroundColor: '#E9E6F8',

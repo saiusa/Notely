@@ -1,4 +1,5 @@
 import React from 'react';
+import Loader from '../../common/Loader';
 import { Input, Label, Switch } from '../controls';
 
 export default function SecurityTab({
@@ -12,6 +13,8 @@ export default function SecurityTab({
     setConfirmPassword,
     twoFactorEnabled,
     onToggleTwoFactor,
+    saving = false,
+    onSavePassword,
 }) {
     return (
         <div className="settings-tab settings-tab--security">
@@ -77,9 +80,11 @@ export default function SecurityTab({
                     </button>
                     <button
                         type="button"
+                        disabled={saving}
+                        onClick={onSavePassword}
                         className="settings-tab__primary-button settings-tab__primary-button--small"
                     >
-                        Save
+                        {saving ? <Loader /> : 'Save'}
                     </button>
                 </div>
             )}

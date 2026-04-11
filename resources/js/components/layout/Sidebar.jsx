@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import ComposerModal from './ComposerModal';
 import '../../../sass/components/layout/Sidebar.scss';
 
 export default function Sidebar({ active = 'home', onActiveChange = () => {} }) {
@@ -15,9 +14,6 @@ export default function Sidebar({ active = 'home', onActiveChange = () => {} }) 
 
   const [menuOpen, setMenuOpen] = useState(false);
   const [communityOpen, setCommunityOpen] = useState(pathname.startsWith('/community'));
-  const [writeMenuOpen, setWriteMenuOpen] = useState(false);
-  const [composerMode, setComposerMode] = useState(null);
-  const [showComposer, setShowComposer] = useState(false);
 
   useEffect(() => {
     if (pathname.startsWith('/community')) {
@@ -38,22 +34,11 @@ export default function Sidebar({ active = 'home', onActiveChange = () => {} }) 
     navigate('/login', { replace: true });
   };
 
-  const handleWriteMenuSelect = (mode) => {
-    setComposerMode(mode);
-    setShowComposer(true);
-    setWriteMenuOpen(false);
-  };
-
-  const handleCloseComposer = () => {
-    setShowComposer(false);
-    setComposerMode(null);
-  };
-
   return (
     <aside className="sidebar__container">
       {/* Logo */}
       <div className="sidebar__logo">
-        <img src="/dist/assets/Notely-Logo.svg" alt="Notely" className="sidebar__logo-image" />
+        <img src="/storage/logo/Notely-Logo.svg" alt="Notely" className="sidebar__logo-image" />
       </div>
 
       <nav className="sidebar__nav">
@@ -105,7 +90,7 @@ export default function Sidebar({ active = 'home', onActiveChange = () => {} }) 
             </Link>
 
             <Link
-              to="/community/my-community"
+              to="/community/my-community/created"
               className={`sidebar__community-link ${
                 isCommunityMy
                   ? 'sidebar__community-link--active'
@@ -162,45 +147,6 @@ export default function Sidebar({ active = 'home', onActiveChange = () => {} }) 
         </Link>
       </nav>
 
-      {/* Write Button with Menu */}
-      <div className="sidebar__write-section">
-        <button
-          type="button"
-          className="sidebar__write-btn"
-          onClick={() => setWriteMenuOpen(!writeMenuOpen)}
-        >
-          Write
-        </button>
-
-        {writeMenuOpen && (
-          <div className="sidebar__write-menu">
-            <button
-              type="button"
-              className="sidebar__write-menu-item"
-              onClick={() => handleWriteMenuSelect('text')}
-            >
-              <span className="sidebar__write-menu-label">Text</span>
-            </button>
-
-            <button
-              type="button"
-              className="sidebar__write-menu-item"
-              onClick={() => handleWriteMenuSelect('quote')}
-            >
-              <span className="sidebar__write-menu-label">Quote</span>
-            </button>
-
-            <button
-              type="button"
-              className="sidebar__write-menu-item"
-              onClick={() => handleWriteMenuSelect('image')}
-            >
-              <span className="sidebar__write-menu-label">Image</span>
-            </button>
-          </div>
-        )}
-      </div>
-
       {/* Profile Section */}
       <div className="sidebar__profile-section">
         <button
@@ -254,14 +200,6 @@ export default function Sidebar({ active = 'home', onActiveChange = () => {} }) 
           </div>
         )}
       </div>
-
-      {/* Composer Modal */}
-      {showComposer && composerMode && (
-        <ComposerModal
-          mode={composerMode}
-          onClose={handleCloseComposer}
-        />
-      )}
     </aside>
   );
 }
