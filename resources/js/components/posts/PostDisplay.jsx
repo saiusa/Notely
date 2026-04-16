@@ -1,8 +1,23 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { formatRelativeTime } from '../../utils/timeFormatter';
 import { getMoodColorPalette } from '../../utils/moodColorMapper';
 import PostContent from './PostContent';
 import '../../../sass/components/posts/PostCard.scss';
+
+/**
+ * Helper function to normalize image URLs for deep routing compatibility
+ * Ensures images resolve correctly regardless of current URL depth
+ * Handles storage paths by adding /storage/ prefix if needed
+ */
+const getImageUrl = (url) => {
+    if (!url) return null;
+    if (url.startsWith('http')) return url;
+    if (url.startsWith('/storage/')) return url;
+    if (url.startsWith('/')) return url;
+    // For relative paths like 'posts/filename.jpg', add /storage/ prefix
+    return `/storage/${url}`;
+};
 
 /**
  * PostDisplay - Pure presentation component for post content
@@ -26,7 +41,8 @@ export default function PostDisplay({
     onReport,
     onEdit,
     onTogglePrivacy,
-    shared = false
+    shared = false,
+    onContentClick
 }) {
     // Normalize data fields — supports both mock and API shapes
     const postUsername = post.user?.username || post.username || '';
@@ -37,17 +53,61 @@ export default function PostDisplay({
     const postMood = post.mood?.name || post.mood || '';
     const postHashtags = post.hashtags?.map((h) => (typeof h === 'string' ? h : `#${h.name}`)) || [];
     const postImage = post.image || null;
-    const isQuote = post.quote || false;
+    const postType = post.type || 'text';
+    const isQuote = post.quote || postType === 'quote' || false;
+    
+    // Community info extraction
+    const postCommunity = post.community || null;
+    const communityId = postCommunity?.community_id || postCommunity?.id;
+    const communityName = postCommunity?.name || '';
+    const categorySlug = postCommunity?.category?.slug || '';
+    const hasCommunity = Boolean(postCommunity && communityId && categorySlug);
 
     return (
         <>
             {/* Header with Author Info */}
             <div className="post-card__header">
                 <div className="post-card__author-wrap">
-                    <img src={postAvatar} alt={postUsername} className="post-card__author-avatar" />
+                    <Link to={`/profile/${postUsername}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+                        <img 
+                            src={getImageUrl(postAvatar) || ''} 
+                            alt={postUsername} 
+                            className="post-card__author-avatar" 
+                        />
+                    </Link>
                     <div className="post-card__author-meta">
-                        <p className="post-card__author-name">{postUsername}</p>
-                        <p className="post-card__author-time">• {formatRelativeTime(postTime)}</p>
+                        {hasCommunity ? (
+                            // Community Post Header: username ▸ Community Name • timestamp
+                            <>
+                                <div className="post-card__author-name-row">
+                                    <Link 
+                                        to={`/profile/${postUsername}`} 
+                                        style={{ textDecoration: 'none', color: 'inherit' }}
+                                    >
+                                        <span className="post-card__author-name">{postUsername}</span>
+                                    </Link>
+                                    <span className="post-card__author-separator">▸</span>
+                                    <Link 
+                                        to={`/community/browse/${categorySlug}/${communityId}`}
+                                        className="post-card__community-link"
+                                    >
+                                        {communityName}
+                                    </Link>
+                                </div>
+                                <p className="post-card__author-time">• {formatRelativeTime(postTime)}</p>
+                            </>
+                        ) : (
+                            // Individual Post Header: username • timestamp
+                            <>
+                                <Link 
+                                    to={`/profile/${postUsername}`} 
+                                    style={{ textDecoration: 'none', color: 'inherit' }}
+                                >
+                                    <p className="post-card__author-name">{postUsername}</p>
+                                </Link>
+                                <p className="post-card__author-time">• {formatRelativeTime(postTime)}</p>
+                            </>
+                        )}
                     </div>
                 </div>
 
@@ -95,17 +155,20 @@ export default function PostDisplay({
                 )}
             </div>
 
-            {/* Title */}
-            {!compact && postTitle && <h3 className="post-card__title">{postTitle}</h3>}
-
-            {/* Content - Text, Quote, and Image */}
-            <PostContent
-                title={postTitle}
-                content={postContent}
-                image={postImage}
-                isQuote={isQuote}
-                compact={compact}
-            />
+            {/* Content - Text, Quote, and Image - Clickable */}
+            <div 
+                onClick={onContentClick}
+                className="cursor-pointer"
+            >
+                <PostContent
+                    title={postTitle}
+                    content={postContent}
+                    image={postImage}
+                    type={postType}
+                    isQuote={isQuote}
+                    compact={compact}
+                />
+            </div>
 
             {/* Mood & Hashtags */}
             <div className="post-card__tags-row">

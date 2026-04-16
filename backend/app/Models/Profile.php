@@ -24,6 +24,7 @@ class Profile extends Model
         'gender',
         'description',
         'profile_picture',
+        'cover_photo',
     ];
 
     protected function casts(): array

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Sidebar from './Sidebar';
 import TopNavbar from './TopNavbar';
 import RecentJournals from './RecentJournals';
@@ -16,6 +16,8 @@ export default function SocialLayout(props) {
         onBack,
         activeTab,
         onTabChange,
+        onFilterChange = () => {},
+        currentFilter = 'recent',
         recentJournals,
         onClearRecentJournals,
         notificationCount = 0,
@@ -31,30 +33,30 @@ export default function SocialLayout(props) {
     }, []);
 
     /**
-     * Fetch unread notification count
+     * Fetch unread notification count (memoized)
      */
-    const fetchUnreadCount = async () => {
+    const fetchUnreadCount = useCallback(async () => {
         try {
             const response = await notificationService.getUnreadCount();
             setUnreadCount(response.unread_count || 0);
         } catch (error) {
             console.error('Failed to fetch unread count:', error);
         }
-    };
+    }, []);
 
     /**
-     * Handle notification modal toggle
+     * Handle notification modal toggle (memoized)
      */
-    const handleNotificationClick = () => {
+    const handleNotificationClick = useCallback(() => {
         setShowNotifications((prev) => !prev);
-    };
+    }, []);
 
     /**
-     * Close notification modal
+     * Close notification modal (memoized)
      */
-    const handleCloseNotifications = () => {
+    const handleCloseNotifications = useCallback(() => {
         setShowNotifications(false);
-    };
+    }, []);
 
     /**
      * Update unread count when notification is read
@@ -85,9 +87,12 @@ export default function SocialLayout(props) {
                     onBack={onBack}
                     activeTab={activeTab}
                     onTabChange={onTabChange}
+                    onFilterChange={onFilterChange}
+                    currentFilter={currentFilter}
                     notificationCount={unreadCount}
                     notificationActive={showNotifications}
                     onNotificationClick={handleNotificationClick}
+                    onCloseNotification={handleCloseNotifications}
                 />
 
                 <div className="social-layout__content-area">

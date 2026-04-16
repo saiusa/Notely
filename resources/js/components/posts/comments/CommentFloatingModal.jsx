@@ -14,7 +14,6 @@ export default function CommentFloatingModal({
     onAddReply,
     onDeleteComment,
     onReportComment,
-    onEditComment,
     onSubmitEditComment,
     onShare,
     liked = false,
@@ -154,7 +153,6 @@ export default function CommentFloatingModal({
                                         onReply={(commentId, text) => onAddReply?.(commentId, text)}
                                         onDelete={onDeleteComment}
                                         onReport={onReportComment}
-                                        onEdit={onEditComment}
                                         onSubmitEdit={onSubmitEditComment}
                                         currentUserId={user?.user_id || user?.id}
                                     />

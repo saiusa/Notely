@@ -2,37 +2,10 @@ import React, { useMemo, useState } from 'react';
 import { CommentFloatingModal, ReportModal } from './comments';
 import PostDisplay from './PostDisplay';
 import ComposerModal from '../layout/ComposerModal';
+import RecentJournalCard from '../journal/RecentJournalCard';
 import postService from '../../services/postService';
 import { useAuth } from '../../context/AuthContext';
 import '../../../sass/components/posts/PostCard.scss';
-
-function RecentJournalCard({ post }) {
-    return (
-        <article className="post-card__recent-item">
-            <div className="post-card__recent-header">
-                <img
-                    src={post.avatar || post.user?.profile?.profile_picture || ''}
-                    alt={post.user?.username || post.username || ''}
-                    className="post-card__recent-avatar"
-                />
-                <p className="post-card__recent-meta">
-                    {post.user?.username || post.username || ''} • {post.time || post.created_at || ''}
-                </p>
-            </div>
-
-            <div className="post-card__recent-body">
-                <p className="post-card__recent-text">{post.body || post.content || ''}</p>
-                {post.image && (
-                    <img
-                        src={post.image}
-                        alt="journal"
-                        className="post-card__recent-image"
-                    />
-                )}
-            </div>
-        </article>
-    );
-}
 
 export default function PostCard({ post, compact = false, variant = 'feed', onPostDeleted }) {
     const { user } = useAuth();
@@ -50,8 +23,6 @@ export default function PostCard({ post, compact = false, variant = 'feed', onPo
     const [loadingComments, setLoadingComments] = useState(false);
     const [reportingCommentId, setReportingCommentId] = useState(null);
     const [isSubmittingReport, setIsSubmittingReport] = useState(false);
-    const [editingCommentId, setEditingCommentId] = useState(null);
-    const [isSubmittingEdit, setIsSubmittingEdit] = useState(false);
 
     const longTextLimit = 270;
 
@@ -284,10 +255,15 @@ export default function PostCard({ post, compact = false, variant = 'feed', onPo
 
     const handlePostEdited = async () => {
         setIsEditing(false);
-        // Refresh post data or callback to parent
-        if (onPostDeleted) {
-            // In real app, you'd fetch the updated post
-            onPostDeleted(post.post_id || post.id);
+        // Fetch the updated post data from the server
+        try {
+            const postId = post.post_id || post.id;
+            const updatedPost = await postService.getPost(postId);
+            if (updatedPost) {
+                setPostData(updatedPost);
+            }
+        } catch (error) {
+            console.error('Failed to refresh post after edit:', error);
         }
     };
 
@@ -295,12 +271,42 @@ export default function PostCard({ post, compact = false, variant = 'feed', onPo
         const postId = post.post_id || post.id;
         try {
             await postService.deleteComment(postId, commentId);
-            setLocalComments((prev) => prev.filter((c) => (c.comment_id || c.id) !== commentId));
+            setLocalComments((prev) => {
+                const updated = [];
+                for (const c of prev) {
+                    // Skip top-level comment if it matches
+                    if ((c.comment_id || c.id) === commentId) {
+                        continue;
+                    }
+                    // Remove nested reply if it matches, keep comment
+                    if (c.replies && c.replies.length > 0) {
+                        const filteredReplies = c.replies.filter((r) => (r.comment_id || r.id) !== commentId);
+                        updated.push({ ...c, replies: filteredReplies });
+                    } else {
+                        updated.push(c);
+                    }
+                }
+                return updated;
+            });
             setCommentsCount((prev) => Math.max(0, (typeof prev === 'number' ? prev : 0) - 1));
         } catch (error) {
             console.error('Failed to delete comment:', error);
             // Fallback: remove locally anyway
-            setLocalComments((prev) => prev.filter((c) => (c.comment_id || c.id) !== commentId));
+            setLocalComments((prev) => {
+                const updated = [];
+                for (const c of prev) {
+                    if ((c.comment_id || c.id) === commentId) {
+                        continue;
+                    }
+                    if (c.replies && c.replies.length > 0) {
+                        const filteredReplies = c.replies.filter((r) => (r.comment_id || r.id) !== commentId);
+                        updated.push({ ...c, replies: filteredReplies });
+                    } else {
+                        updated.push(c);
+                    }
+                }
+                return updated;
+            });
         }
     };
 
@@ -324,28 +330,33 @@ export default function PostCard({ post, compact = false, variant = 'feed', onPo
         }
     };
 
-    const handleEditComment = (commentId) => {
-        setEditingCommentId(commentId);
-    };
-
     const handleSubmitEdit = async (commentId, newContent) => {
         const postId = post.post_id || post.id;
-        setIsSubmittingEdit(true);
         try {
             await postService.updateComment(postId, commentId, newContent);
             setLocalComments((prev) =>
                 prev.map((c) => {
+                    // Update top-level comment
                     if ((c.comment_id || c.id) === commentId) {
                         return { ...c, content: newContent };
+                    }
+                    // Update nested reply inside this comment
+                    if (c.replies && c.replies.length > 0) {
+                        return {
+                            ...c,
+                            replies: c.replies.map((r) => {
+                                if ((r.comment_id || r.id) === commentId) {
+                                    return { ...r, content: newContent };
+                                }
+                                return r;
+                            })
+                        };
                     }
                     return c;
                 })
             );
-            setEditingCommentId(null);
         } catch (error) {
             console.error('Failed to update comment:', error);
-        } finally {
-            setIsSubmittingEdit(false);
         }
     };
 
@@ -359,7 +370,7 @@ export default function PostCard({ post, compact = false, variant = 'feed', onPo
     return (
         <article className="post-card__container">
             <PostDisplay
-                post={post}
+                post={postData}
                 compact={compact}
                 hideMenu={false}
                 onLike={handleToggleLike}
@@ -376,6 +387,7 @@ export default function PostCard({ post, compact = false, variant = 'feed', onPo
                 onEdit={handleEditPost}
                 onTogglePrivacy={handleTogglePrivacy}
                 shared={shared}
+                onContentClick={() => setShowComments(true)}
             />
 
             {/* Floating Comments Modal */}
@@ -388,7 +400,6 @@ export default function PostCard({ post, compact = false, variant = 'feed', onPo
                 onAddReply={handleAddReply}
                 onDeleteComment={handleDeleteComment}
                 onReportComment={handleReportComment}
-                onEditComment={handleEditComment}
                 onSubmitEditComment={handleSubmitEdit}
                 onShare={handleShare}
                 liked={reacted}
@@ -396,14 +407,16 @@ export default function PostCard({ post, compact = false, variant = 'feed', onPo
                 loadingComments={loadingComments}
             />
 
-            {/* Edit Post Modal */}
+            {/* Edit Post Modal - Uses Same Composer as Create */}
             {isEditing && (
                 <ComposerModal
-                    mode={post.image ? 'image' : 'text'}
+                    mode={post.type || 'text'}
                     onClose={() => setIsEditing(false)}
                     onPostCreated={handlePostEdited}
-                    existingPost={post}
-                    isEditing={true}
+                    communityId={post.community_id}
+                    community={postData.community || null}
+                    embedded={false}
+                    initialPost={post}
                 />
             )}
 
@@ -446,16 +459,6 @@ export default function PostCard({ post, compact = false, variant = 'feed', onPo
                     onSubmit={handleSubmitReport}
                     onClose={() => setReportingCommentId(null)}
                     isSubmitting={isSubmittingReport}
-                />
-            )}
-
-            {/* Edit Comment Modal */}
-            {editingCommentId && (
-                <CommentEditModal
-                    comment={localComments.find((c) => (c.comment_id || c.id) === editingCommentId)}
-                    onSubmit={handleSubmitEdit}
-                    onClose={() => setEditingCommentId(null)}
-                    isSubmitting={isSubmittingEdit}
                 />
             )}
         </article>

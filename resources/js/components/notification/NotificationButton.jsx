@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useCallback } from 'react';
 
 function NotificationButton({ count, active, onClick }) {
   const normalizedCount = useMemo(() => {
@@ -6,10 +6,14 @@ function NotificationButton({ count, active, onClick }) {
     return String(Math.max(count, 0));
   }, [count]);
 
+  const handleClick = useCallback(() => {
+    onClick?.();
+  }, [onClick]);
+
   return (
     <button
       type="button"
-      onClick={onClick}
+      onClick={handleClick}
       aria-label="Notifications"
       className={`top-navbar__icon-button ${
         active ? 'top-navbar__icon-button--active' : 'top-navbar__icon-button--inactive'

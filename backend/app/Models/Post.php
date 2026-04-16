@@ -17,12 +17,17 @@ class Post extends Model
     protected $fillable = [
         'user_id',
         'community_id',
+        'type',
+        'title',
         'content',
         'image',
         'mood_id',
         'privacy',
         'allow_comments',
         'is_anonymous',
+        'views_count',
+        'likes_count',
+        'comments_count',
     ];
 
     protected function casts(): array

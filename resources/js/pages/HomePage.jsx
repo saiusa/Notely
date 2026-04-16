@@ -4,6 +4,7 @@ import PostCard from '../components/posts/PostCard';
 import ComposerModal from '../components/layout/ComposerModal';
 import Loader from '../components/common/Loader';
 import postService from '../services/postService';
+import communityService from '../services/communityService';
 import notificationService from '../services/notificationService';
 import '../../sass/pages/HomePage.scss';
 
@@ -14,91 +15,85 @@ export default function HomePage() {
     const [loading, setLoading] = useState(true);
     const [notifCount, setNotifCount] = useState(0);
     const [recentJournals, setRecentJournals] = useState([]);
+    const [filterType, setFilterType] = useState('recent');
+    const [myCommunities, setMyCommunities] = useState([]);
 
-    // Mock posts for demo
-    const MOCK_POSTS = [
-        {
-            id: 1,
-            post_id: 1,
-            user_id: 1,
-            content: 'Just launched my new portfolio website! Check it out and let me know what you think.',
-            mood_id: 2,
-            privacy: 'public',
-            allow_comments: true,
-            is_anonymous: false,
-            created_at: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-            updated_at: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-            user: {
-                id: 1,
-                username: 'seokim',
-                profile: { first_name: 'Seokin', last_name: 'Kim', profile_picture: 'https://images.unsplash.com/photo-1543852786-1cf6624b9987?auto=format&fit=crop&w=120&q=80' }
-            },
-            mood: { id: 2, name: 'Happy', color: '#FFD700' },
-            likes_count: 12,
-            comments_count: 3,
-            is_liked: false,
-            hashtags: ['portfolio', 'webdesign']
-        },
-        {
-            id: 2,
-            post_id: 2,
-            user_id: 2,
-            content: 'Loving this new minimalist design trend in UI/UX.',
-            mood_id: 3,
-            privacy: 'public',
-            allow_comments: true,
-            is_anonymous: false,
-            created_at: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(),
-            updated_at: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(),
-            user: {
-                id: 2,
-                username: 'designlover',
-                profile: { first_name: 'Alex', last_name: 'Chen', profile_picture: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=120&q=80' }
-            },
-            mood: { id: 3, name: 'Inspired', color: '#9370DB' },
-            likes_count: 28,
-            comments_count: 5,
-            is_liked: false,
-            hashtags: ['design', 'uiux', 'trends']
-        },
-        {
-            id: 3,
-            post_id: 3,
-            user_id: 3,
-            content: 'Finally finished my React learning journey! Built a full-stack app from scratch.',
-            mood_id: 1,
-            privacy: 'public',
-            allow_comments: true,
-            is_anonymous: false,
-            created_at: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString(),
-            updated_at: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString(),
-            user: {
-                id: 3,
-                username: 'techninja',
-                profile: { first_name: 'Jordan', last_name: 'Tech', profile_picture: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=120&q=80' }
-            },
-            mood: { id: 1, name: 'Excited', color: '#FF6B6B' },
-            likes_count: 45,
-            comments_count: 8,
-            is_liked: false,
-            hashtags: ['react', 'webdev', 'learning']
-        },
-    ];
-
-    // Fetch feed posts from API
+    // Fetch feed posts from API only
     const fetchPosts = useCallback(async () => {
         setLoading(true);
         try {
-            const res = await postService.getFeed();
+            let res;
+            
+            // Fetch different feed based on active tab
+            if (activeTab === 'explore') {
+                // Explore: Trending posts sorted by engagement (server-side)
+                res = await postService.getExploreFeed();
+            } else if (activeTab === 'community') {
+                // Community: Posts from joined communities
+                res = await postService.getCommunityFeed();
+            } else {
+                // Fallback: Default feed
+                res = await postService.getFeed();
+            }
+            
             const data = res.data || res || [];
-            setPosts(data.length > 0 ? data : MOCK_POSTS);
-        } catch (_) {
-            setPosts(MOCK_POSTS);
+            
+            // Client-side sorting only for non-Explore tabs
+            // Explore tab is already sorted by engagement server-side
+            let sortedPosts = data;
+            
+            if (activeTab !== 'explore') {
+                if (filterType === 'popular') {
+                    sortedPosts = sortedPosts.sort((a, b) => (b.likes_count || 0) - (a.likes_count || 0));
+                } else if (filterType === 'mood') {
+                    // Sort by posts that have mood set, then by creation date
+                    sortedPosts = sortedPosts.sort((a, b) => {
+                        const aMood = a.mood_id || 0;
+                        const bMood = b.mood_id || 0;
+                        if ((aMood > 0) !== (bMood > 0)) {
+                            return bMood > 0 ? 1 : -1;
+                        }
+                        return new Date(b.created_at) - new Date(a.created_at);
+                    });
+                }
+            }
+            
+            setPosts(sortedPosts);
+            
+            // Log filter results for debugging
+            if (activeTab === 'explore') {
+                console.log(`✓ Explore feed loaded - ${sortedPosts.length} trending posts`);
+            } else if (filterType === 'popular' && sortedPosts.length > 0) {
+                console.log(`✓ Filtered by POPULAR - Top post has ${sortedPosts[0].likes_count || 0} likes`);
+            } else if (filterType === 'mood' && sortedPosts.length > 0) {
+                const withMood = sortedPosts.filter(p => p.mood_id).length;
+                console.log(`✓ Filtered by MOOD - ${withMood}/${sortedPosts.length} posts have mood`);
+            } else if (filterType === 'recent') {
+                console.log(`✓ Filtered by RECENT`);
+            }
+            
+            console.log(`Fetched ${sortedPosts.length} posts for tab: ${activeTab}, filter: ${filterType}`);
+        } catch (error) {
+            console.error('Failed to fetch posts:', error);
+            setPosts([]); // Empty state, no mock data
         } finally {
             setLoading(false);
         }
-    }, []);
+    }, [activeTab, filterType]);
 
+
+    // Fetch user's communities for destination dropdown
+    const fetchMyCommunities = useCallback(async () => {
+        try {
+            const res = await communityService.getMyCommunities();
+            const data = res.data || res || [];
+            setMyCommunities(data);
+            console.log(`Fetched ${data.length} communities`);
+        } catch (error) {
+            console.error('Failed to fetch communities:', error);
+            setMyCommunities([]);
+        }
+    }, []);
 
     // Fetch notification count
     const fetchNotifCount = useCallback(async () => {
@@ -110,36 +105,87 @@ export default function HomePage() {
         }
     }, []);
 
-    // Fetch recent journals for sidebar
+    // Fetch recent journals for sidebar from API only
     const fetchRecentJournals = useCallback(async () => {
         try {
             const res = await postService.getFeed();
             const data = res.data || res || [];
-            const journals = data.length > 0 ? data.slice(0, 4) : MOCK_POSTS.slice(0, 4);
+            const journals = data.slice(0, 4); // Get first 4 posts
             setRecentJournals(journals);
-        } catch (_) {
-            setRecentJournals(MOCK_POSTS.slice(0, 4));
+            console.log(`Fetched ${journals.length} recent journals`);
+        } catch (error) {
+            console.error('Failed to fetch recent journals:', error);
+            setRecentJournals([]); // Empty state, no mock data
         }
     }, []);
 
     useEffect(() => {
         fetchPosts();
+        fetchMyCommunities();
         fetchNotifCount();
         fetchRecentJournals();
-    }, [fetchPosts, fetchNotifCount, fetchRecentJournals]);
+    }, [fetchPosts, fetchMyCommunities, fetchNotifCount, fetchRecentJournals]);
 
-    const handlePostCreated = () => {
-        fetchPosts(); // Refresh feed after posting
-        fetchRecentJournals(); // Refresh recent journals
+    // ── Notification Polling: Check for new notifications every 30 seconds ──
+    useEffect(() => {
+        const pollInterval = setInterval(async () => {
+            try {
+                const unreadData = await notificationService.getUnreadCount();
+                if (unreadData.unread_count > notifCount) {
+                    setNotifCount(unreadData.unread_count);
+                    console.log('New notifications available:', unreadData.unread_count);
+                }
+            } catch (error) {
+                console.error('Failed to poll notifications:', error);
+            }
+        }, 30000); // 30 seconds
+
+        return () => clearInterval(pollInterval);
+    }, [notifCount]);
+
+    const handlePostCreated = (newPost, destination) => {
+        // Determine which tab the post belongs to based on destination
+        let targetTab = 'explore';
+        if (destination === 'journal_private') {
+            targetTab = 'private'; // Or whatever your tab name for private posts
+        } else if (destination?.startsWith('community_')) {
+            targetTab = 'community';
+        }
+
+        // Switch to the appropriate tab
+        setActiveTab(targetTab);
+
+        // Add the new post to the top of the feed instantly (optimistic UI)
+        setPosts((prevPosts) => {
+            // Extract post from response (could be response.post or response.data)
+            const postData = newPost.post || newPost.data || newPost;
+            return [postData, ...prevPosts];
+        });
+
+        // Refresh recent journals sidebar
+        fetchRecentJournals();
+
+        // Close the modal
+        setComposerMode(null);
+
+        console.log(`✓ New post created and added to ${targetTab} feed instantly`);
     };
 
     const handlePostDeleted = (postId) => {
-        setPosts((prev) => prev.filter((p) => (p.post_id || p.id) !== postId));
+        setPosts((prev) => {
+            const updated = prev.filter((p) => (p.post_id || p.id) !== postId);
+            console.log(`Post deleted: ${postId}, remaining: ${updated.length}`);
+            return updated;
+        });
         setRecentJournals((prev) => prev.filter((p) => (p.post_id || p.id) !== postId));
     };
 
     const handleClearRecentJournals = () => {
         setRecentJournals([]);
+    };
+
+    const handleFilterChange = (filter) => {
+        setFilterType(filter);
     };
 
     return (
@@ -149,6 +195,8 @@ export default function HomePage() {
                 navbarMode="tabs"
                 activeTab={activeTab}
                 onTabChange={setActiveTab}
+                onFilterChange={handleFilterChange}
+                currentFilter={filterType}
                 notificationCount={notifCount}
                 recentJournals={recentJournals}
                 onClearRecentJournals={handleClearRecentJournals}
@@ -157,25 +205,37 @@ export default function HomePage() {
                 <div className="home-page__compose-bar">
                     <button
                         type="button"
-                        onClick={() => setComposerMode('text')}
+                        onClick={() => {
+                            console.log('Opening text composer');
+                            setComposerMode('text');
+                        }}
                         className="home-page__compose-btn"
                         aria-label="Write text post"
+                        title="Write a text post"
                     >
                         <span className="material-symbols-outlined home-page__compose-icon">title</span>
                     </button>
                     <button
                         type="button"
-                        onClick={() => setComposerMode('quote')}
+                        onClick={() => {
+                            console.log('Opening quote composer');
+                            setComposerMode('quote');
+                        }}
                         className="home-page__compose-btn"
                         aria-label="Write quote"
+                        title="Write a quote"
                     >
                         <span className="material-symbols-outlined home-page__compose-icon">format_quote</span>
                     </button>
                     <button
                         type="button"
-                        onClick={() => setComposerMode('image')}
+                        onClick={() => {
+                            console.log('Opening image composer');
+                            setComposerMode('image');
+                        }}
                         className="home-page__compose-btn"
                         aria-label="Upload image"
+                        title="Upload an image"
                     >
                         <span className="material-symbols-outlined home-page__compose-icon">image</span>
                     </button>
@@ -207,6 +267,7 @@ export default function HomePage() {
                     mode={composerMode}
                     onClose={() => setComposerMode(null)}
                     onPostCreated={handlePostCreated}
+                    myCommunities={myCommunities}
                 />
             )}
         </>

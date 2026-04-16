@@ -41,7 +41,8 @@ export default function SmallPostCard({
     };
 
     // Extract data from post
-    const mood = post.mood || null;
+    const moodObj = post.mood || null;
+    const moodName = typeof moodObj === 'string' ? moodObj : moodObj?.name || null;
     const hashtags = post.hashtags || [];
     const createdAt = post.created_at || post.createdAt || '';
     const timeDisplay = formatRelativeTime(createdAt);
@@ -74,6 +75,14 @@ export default function SmallPostCard({
 
             {/* Content section */}
             <div className="small-post-card__content">
+                {/* Privacy badge for private posts */}
+                {!isPublic && (
+                    <div className="small-post-card__privacy-badge">
+                        <span className="material-symbols-outlined small-post-card__privacy-icon">lock</span>
+                        <span>Private</span>
+                    </div>
+                )}
+
                 {/* Date and menu */}
                 <div className="small-post-card__header">
                     <time className="small-post-card__date">{timeDisplay}</time>
@@ -124,8 +133,8 @@ export default function SmallPostCard({
 
                 {/* Mood and Tags */}
                 <div className="small-post-card__meta">
-                    {mood && (
-                        <span className="small-post-card__mood">{mood}</span>
+                    {moodName && (
+                        <span className="small-post-card__mood">{moodName}</span>
                     )}
                     {hashtags && hashtags.length > 0 && (
                         <div className="small-post-card__tags">

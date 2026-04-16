@@ -8,11 +8,6 @@ import CommunityMembersPanel from '../components/community/CommunityMembersPanel
 import CommunityRightSidebar from '../components/community/CommunitySidebar';
 import CreateCommunityModal from '../components/community/modals/CreateCommunityModal';
 import EditRulesModal from '../components/community/modals/EditRulesModal';
-import {
-    categoryCards,
-    communities as mockCommunities,
-    memberDirectory,
-} from '../components/community/communityData';
 import ComposerModal from '../components/layout/ComposerModal';
 import CommunityLayout from '../components/layout/CommunityLayout';
 import PostCard from '../components/posts/PostCard';
@@ -100,12 +95,36 @@ export default function CommunityPage() {
     const fetchMyCommunities = useCallback(async () => {
         try {
             const res = await communityService.getMyCommunities();
-            const data = res.data || res || [];
+            console.log('getMyCommunities response:', res);
+            
+            // Handle response structure: { created: [...], joined: [...] }
+            let data = [];
+            if (res.created || res.joined) {
+                // Response is { created: [...], joined: [...] }
+                data = [...(res.created || []), ...(res.joined || [])];
+                console.log('Combined communities:', data);
+            } else if (res.data) {
+                // Response has data wrapper
+                const responseData = res.data;
+                if (responseData.created || responseData.joined) {
+                    data = [...(responseData.created || []), ...(responseData.joined || [])];
+                } else {
+                    data = Array.isArray(responseData) ? responseData : [];
+                }
+            } else if (Array.isArray(res)) {
+                // Direct array response
+                data = res;
+            }
+            
+            console.log('Final communities data:', data);
             setMyCommunities(data);
             const ids = new Set(data.map((c) => String(c.community_id || c.id)));
+            console.log('Joined community IDs:', Array.from(ids));
             setJoinedIds(ids);
-        } catch (_) {
-            // Fall back to empty
+        } catch (err) {
+            console.error('Failed to fetch my communities:', err);
+            setMyCommunities([]);
+            setJoinedIds(new Set());
         }
     }, []);
 
@@ -113,7 +132,7 @@ export default function CommunityPage() {
         fetchMyCommunities();
     }, [fetchMyCommunities]);
 
-    // Build lookup map from API categories and their communities
+    // Build lookup map from API categories and their communities ONLY
     const communityLookup = useMemo(() => {
         const lookup = new Map();
         categories.forEach(cat => {
@@ -134,10 +153,6 @@ export default function CommunityPage() {
                 });
             }
         });
-        // Keep mock data as fallback
-        if (lookup.size === 0) {
-            return new Map(mockCommunities.map((item) => [item.id, item]));
-        }
         return lookup;
     }, [categories]);
 
@@ -145,17 +160,19 @@ export default function CommunityPage() {
         // Prefer full community data if available (from API detail fetch)
         if (fullCommunityData && communityId === String(fullCommunityData.community_id || fullCommunityData.id)) {
             const updatedMemberCount = memberCountUpdates.get(communityId);
-            // Map API 'image' property to 'coverImage' and 'cardImage' for component compatibility
+            // Safely return the API community data
             return {
                 ...fullCommunityData,
                 id: String(fullCommunityData.community_id || fullCommunityData.id),
-                coverImage: fullCommunityData.image, // API returns 'image', map to 'coverImage'
-                cardImage: fullCommunityData.image,  // API returns 'image', map to 'cardImage'
-                memberCount: updatedMemberCount !== undefined ? updatedMemberCount : (fullCommunityData.community_members_count || 0),
-                members: String(updatedMemberCount !== undefined ? updatedMemberCount : (fullCommunityData.community_members_count || 0)),
+                coverImage: fullCommunityData.image || fullCommunityData.coverImage,
+                cardImage: fullCommunityData.image || fullCommunityData.cardImage,
+                memberCount: updatedMemberCount !== undefined ? updatedMemberCount : (fullCommunityData.community_members_count || fullCommunityData.memberCount || 0),
+                members: String(updatedMemberCount !== undefined ? updatedMemberCount : (fullCommunityData.community_members_count || fullCommunityData.memberCount || 0)),
+                username: fullCommunityData.username || `@${(fullCommunityData.name || '').toLowerCase().replace(/\s+/g, '-')}`,
             };
         }
         
+        // Fall back to lookup table for browse view
         const community = communityId ? communityLookup.get(communityId) : null;
         if (!community) return null;
         
@@ -192,7 +209,7 @@ export default function CommunityPage() {
                     });
                 }
             });
-            return allCommunities.length > 0 ? allCommunities : mockCommunities;
+            return allCommunities;
         }
         
         // Find communities matching the categorySlug param
@@ -211,7 +228,7 @@ export default function CommunityPage() {
             }));
         }
         
-        return mockCommunities.filter((community) => community.category === categorySlug);
+        return [];
     }, [categorySlug, categories]);
 
     const myCommunitiesList = useMemo(() => {
@@ -228,21 +245,40 @@ export default function CommunityPage() {
                 coverImage: c.image || '',
             }));
         }
-        return mockCommunities.filter((community) => joinedIds.has(community.id));
+        return [];
     }, [myCommunities, joinedIds]);
 
     const isJoined = useMemo(() => {
-        if (!selectedCommunity) return false;
+        if (!selectedCommunity) {
+            console.log('isJoined: selectedCommunity is null');
+            return false;
+        }
+        
+        console.log(`Checking if joined for community ${selectedCommunity.id}:`, {
+            selectedCommunityId: selectedCommunity.id,
+            joinedIdsArray: Array.from(joinedIds),
+            hasInSet: joinedIds.has(selectedCommunity.id),
+            fullCommunityDataExists: !!fullCommunityData,
+        });
         
         // If we have full community data from API, check the members array for accuracy
         if (fullCommunityData && communityId === String(fullCommunityData.community_id || fullCommunityData.id)) {
+            console.log('Using fullCommunityData for join check:', {
+                hasMembersArray: Array.isArray(fullCommunityData.members),
+                membersCount: fullCommunityData.members?.length,
+                userId: user?.user_id,
+            });
             if (fullCommunityData.members && Array.isArray(fullCommunityData.members)) {
-                return fullCommunityData.members.some(member => member.user_id === user?.user_id);
+                const isMember = fullCommunityData.members.some(member => member.user_id === user?.user_id);
+                console.log('Is member check from members array:', isMember);
+                return isMember;
             }
         }
         
         // Fall back to joinedIds state
-        return joinedIds.has(selectedCommunity.id);
+        const joinedFromSet = joinedIds.has(selectedCommunity.id);
+        console.log('Checking joinedIds set:', joinedFromSet);
+        return joinedFromSet;
     }, [selectedCommunity, communityId, fullCommunityData, user, joinedIds]);
 
     // Fetch full community details when viewing a detail page
@@ -321,7 +357,7 @@ export default function CommunityPage() {
     }, [isDetailRoute, communityId]);
 
     const visibleMembers = useMemo(() => {
-        const source = apiMembers.length > 0 ? apiMembers : memberDirectory;
+        const source = apiMembers.length > 0 ? apiMembers : [];
         const query = memberSearch.trim().toLowerCase();
         if (!query) {
             return source;
@@ -330,13 +366,20 @@ export default function CommunityPage() {
     }, [memberSearch, apiMembers]);
 
     const handleJoinCommunity = async () => {
-        if (!selectedCommunity) return;
+        if (!selectedCommunity) {
+            console.log('No community selected');
+            return;
+        }
 
         const communityId = selectedCommunity.id;
         const numericId = parseInt(communityId, 10);
-        if (isNaN(numericId)) return;
+        if (isNaN(numericId)) {
+            console.log('Invalid community ID:', communityId);
+            return;
+        }
 
         const isCurrentlyJoined = joinedIds.has(communityId);
+        console.log(`Toggle join for community ${numericId}, currently joined: ${isCurrentlyJoined}`);
 
         // Optimistic UI update - update joined IDs
         setJoinedIds((prev) => {
@@ -363,8 +406,10 @@ export default function CommunityPage() {
 
         try {
             const result = await communityService.toggleJoinCommunity(numericId, isCurrentlyJoined);
+            console.log('Toggle result:', result);
             
             if (!result.success) {
+                console.error('Failed to toggle membership:', result.message);
                 // Revert on failure
                 setJoinedIds((prev) => {
                     const next = new Set(prev);
@@ -382,16 +427,35 @@ export default function CommunityPage() {
                     next.delete(communityId);
                     return next;
                 });
+            } else {
+                console.log('Successfully toggled membership');
                 
-                console.error(result.message);
-            }
-            
-            // When leaving, close the composer and menu
-            if (isCurrentlyJoined) {
-                setComposerMode(null);
-                setShowHeaderMenu(false);
+                // Update fullCommunityData to sync the UI state
+                if (fullCommunityData) {
+                    const updatedMembers = isCurrentlyJoined
+                        ? fullCommunityData.members.filter(m => m.user_id !== user?.user_id)
+                        : [...(fullCommunityData.members || []), { user_id: user?.user_id, username: user?.username }];
+                    
+                    setFullCommunityData({
+                        ...fullCommunityData,
+                        members: updatedMembers,
+                        community_members_count: isCurrentlyJoined 
+                            ? (fullCommunityData.community_members_count || 1) - 1
+                            : (fullCommunityData.community_members_count || 0) + 1,
+                    });
+                }
+                
+                // When leaving, close the composer and menu
+                if (isCurrentlyJoined) {
+                    setComposerMode(null);
+                    setShowHeaderMenu(false);
+                }
+                
+                // Refresh my communities list to keep it up to date
+                await fetchMyCommunities();
             }
         } catch (error) {
+            console.error('Error toggling community membership:', error);
             // Revert on failure
             setJoinedIds((prev) => {
                 const next = new Set(prev);
@@ -409,8 +473,6 @@ export default function CommunityPage() {
                 next.delete(communityId);
                 return next;
             });
-            
-            console.error('Failed to toggle community membership:', error);
         }
     };
 
@@ -525,12 +587,6 @@ export default function CommunityPage() {
         const apiCat = categories.find((item) => item.slug === categorySlug);
         if (apiCat) {
             return apiCat.name;
-        }
-
-        // Fall back to categoryCards
-        const matchedCategory = categoryCards.find((item) => item.id === categorySlug);
-        if (matchedCategory) {
-            return matchedCategory.name;
         }
 
         return categorySlug.charAt(0).toUpperCase() + categorySlug.slice(1);
@@ -750,6 +806,7 @@ export default function CommunityPage() {
                             onClose={() => setComposerMode(null)}
                             onPostCreated={handlePostCreated}
                             communityId={parseInt(communityId, 10) || undefined}
+                            community={selectedCommunity || fullCommunityData}
                         />
                     ) : null}
                 </section>

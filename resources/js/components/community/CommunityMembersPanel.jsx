@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import '../../../sass/components/community/CommunityMembersPanel.scss';
 
 /**
@@ -48,18 +49,20 @@ export default function CommunityMembersPanel({ memberSearch, onSearchChange, vi
 
             <div className="community-members-panel__list">
                 {visibleMembers.map((member) => (
-                    <article key={member.id} className="community-members-panel__item">
-                        <img
-                            src={getImageUrl(member.avatar) || AVATAR_PLACEHOLDER_SVG}
-                            alt={member.name}
-                            className="community-members-panel__avatar"
-                            onError={handleImageError}
-                        />
-                        <div className="community-members-panel__info">
-                            <p className="community-members-panel__name">{member.name}</p>
-                            <p className="community-members-panel__handle">@{member.name?.toLowerCase().replace(/\s+/g, '-') || 'user'}</p>
-                        </div>
-                    </article>
+                    <Link key={member.id} to={`/profile/${member.name}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+                        <article className="community-members-panel__item">
+                            <img
+                                src={getImageUrl(member.avatar) || AVATAR_PLACEHOLDER_SVG}
+                                alt={member.name}
+                                className="community-members-panel__avatar"
+                                onError={handleImageError}
+                            />
+                            <div className="community-members-panel__info">
+                                <p className="community-members-panel__name">{member.name}</p>
+                                <p className="community-members-panel__handle">@{member.name?.toLowerCase().replace(/\s+/g, '-') || 'user'}</p>
+                            </div>
+                        </article>
+                    </Link>
                 ))}
             </div>
         </div>

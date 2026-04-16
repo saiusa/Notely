@@ -191,18 +191,64 @@
     margin-bottom: 12px;
   }
 
-  &__mood-wrap {
-    margin-bottom: 12px;
+  &__title {
+    margin: 0 0 16px;
+    font-size: 28px;
+    font-weight: 700;
+    line-height: 1.3;
+    color: #ffffff;
+    word-break: break-word;
+  }
+
+  &__meta {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
   }
 
   &__mood {
-    display: inline-block;
-    background: #785ebf;
-    color: #fff;
-    font-size: 12px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #f0e8d8;
+    color: #2d2d2d;
+    font-size: 14px;
     font-weight: 600;
-    padding: 6px 12px;
-    border-radius: 6px;
+    padding: 8px 14px;
+    border-radius: 20px;
+    white-space: nowrap;
+  }
+
+  &__mood-emoji {
+    font-size: 16px;
+    display: inline-block;
+  }
+
+  &__tags-inline {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  &__tag-inline {
+    display: inline-block;
+    background: transparent;
+    color: #b6bac6;
+    font-size: 13px;
+    padding: 0;
+    border-radius: 0;
+    transition: color 0.2s ease;
+
+    &:hover {
+      background: transparent;
+      color: #e4e6eb;
+    }
+  }
+
+  &__mood-wrap {
+    margin-bottom: 12px;
   }
 
   &__text {
@@ -263,7 +309,8 @@
     align-items: center;
     gap: 16px;
     font-size: 13px;
-    padding: 8px 0;
+    padding: 12px 0;
+    border-bottom: 1px solid #2a3043;
   }
 
   &__stat {
@@ -274,7 +321,8 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    padding: 8px 0;
+    padding: 12px 0;
+    border-bottom: 1px solid #2a3043;
   }
 
   &__action {
@@ -283,12 +331,12 @@
     align-items: center;
     justify-content: center;
     gap: 6px;
-    height: 36px;
+    height: 40px;
     border: 0;
     border-radius: 6px;
     background: transparent;
     color: #b6bac6;
-    font-size: 13px;
+    font-size: 14px;
     font-weight: 500;
     cursor: pointer;
     transition: background-color 0.2s ease, color 0.2s ease;
@@ -298,15 +346,15 @@
     }
 
     &:hover {
-      background: #2a3043;
+      background: rgba(255, 255, 255, 0.05);
       color: #e4e6eb;
     }
 
     &--active {
-      color: #c070d4;
+      color: #ff6b6b;
 
       &:hover {
-        background: rgba(192, 112, 212, 0.1);
+        background: rgba(255, 107, 107, 0.1);
       }
     }
   }

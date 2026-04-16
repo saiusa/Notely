@@ -1,10 +1,13 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { formatRelativeTime } from '../../../utils/timeFormatter';
 import ReplyInput from './ReplyInput';
 import '../../../../sass/components/posts/comments/CommentThread.scss';
 
 function ReplyItem({ reply, currentUserId, onDelete, onReport, onEdit, onSubmitEdit }) {
     const [replyMenuOpen, setReplyMenuOpen] = useState(false);
+    const [isEditing, setIsEditing] = useState(false);
+    const [editText, setEditText] = useState(reply.content || reply.text);
     const replyMenuRef = useRef(null);
     const isReplyOwner = currentUserId === reply.user_id;
 
@@ -21,20 +24,36 @@ function ReplyItem({ reply, currentUserId, onDelete, onReport, onEdit, onSubmitE
         }
     }, [replyMenuOpen]);
 
+    const handleEditCancel = () => {
+        setEditText(reply.content || reply.text);
+        setIsEditing(false);
+    };
+
+    const handleEditSave = () => {
+        if (editText.trim()) {
+            onSubmitEdit?.(reply.id, editText);
+            setIsEditing(false);
+        }
+    };
+
     return (
         <div key={reply.id} className="comment-thread__reply">
-            <img 
-                src={reply.user?.profile?.profile_picture || '/default-avatar.png'} 
-                alt={reply.user?.username}
-                className="comment-thread__reply-avatar"
-            />
+            <Link to={`/profile/${reply.user?.username}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+                <img 
+                    src={reply.user?.profile?.profile_picture || '/default-avatar.png'} 
+                    alt={reply.user?.username}
+                    className="comment-thread__reply-avatar"
+                />
+            </Link>
             
             <div className="comment-thread__reply-content">
                 <div className="comment-thread__reply-header">
                     <div className="comment-thread__reply-meta">
-                        <p className="comment-thread__reply-username">
-                            {reply.user?.username}
-                        </p>
+                        <Link to={`/profile/${reply.user?.username}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+                            <p className="comment-thread__reply-username">
+                                {reply.user?.username}
+                            </p>
+                        </Link>
                         <span className="comment-thread__reply-time">
                             {formatRelativeTime(reply.created_at)}
                         </span>
@@ -59,7 +78,7 @@ function ReplyItem({ reply, currentUserId, onDelete, onReport, onEdit, onSubmitE
                                         className="comment-thread__reply-menu-item"
                                         onClick={() => {
                                             setReplyMenuOpen(false);
-                                            onEdit?.(reply.id, reply.content || reply.text);
+                                            setIsEditing(true);
                                         }}
                                     >
                                         Edit
@@ -101,9 +120,39 @@ function ReplyItem({ reply, currentUserId, onDelete, onReport, onEdit, onSubmitE
                     </div>
                 </div>
                 
-                <p className="comment-thread__reply-text">
-                    {reply.content || reply.text}
-                </p>
+                {/* Content - Editable or Display (Same as main comment) */}
+                {isEditing ? (
+                    <textarea
+                        value={editText}
+                        onChange={(e) => setEditText(e.target.value)}
+                        className="comment-thread__edit-input"
+                        autoFocus
+                    />
+                ) : (
+                    <p className="comment-thread__reply-text">
+                        {reply.content || reply.text}
+                    </p>
+                )}
+
+                {/* Edit Actions */}
+                {isEditing && (
+                    <div className="comment-thread__reply-actions">
+                        <button
+                            type="button"
+                            className="comment-thread__action-btn"
+                            onClick={handleEditCancel}
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            type="button"
+                            className="comment-thread__action-btn"
+                            onClick={handleEditSave}
+                        >
+                            Save
+                        </button>
+                    </div>
+                )}
             </div>
         </div>
     );
@@ -172,11 +221,13 @@ export default function CommentThread({
         <div className="comment-thread">
             {/* Main Comment */}
             <div className="comment-thread__main">
-                <img 
-                    src={comment.user?.profile?.profile_picture || '/default-avatar.png'} 
-                    alt={comment.user?.username}
-                    className="comment-thread__avatar"
-                />
+                <Link to={`/profile/${comment.user?.username}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+                    <img 
+                        src={comment.user?.profile?.profile_picture || '/default-avatar.png'} 
+                        alt={comment.user?.username}
+                        className="comment-thread__avatar"
+                    />
+                </Link>
                 
                 <div className="comment-thread__content">
                     {/* Text Box */}
@@ -184,9 +235,11 @@ export default function CommentThread({
                         {/* Header */}
                         <div className="comment-thread__header">
                             <div className="comment-thread__meta">
-                                <p className="comment-thread__username">
-                                    {comment.user?.username}
-                                </p>
+                                <Link to={`/profile/${comment.user?.username}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+                                    <p className="comment-thread__username">
+                                        {comment.user?.username}
+                                    </p>
+                                </Link>
                                 <span className="comment-thread__time">
                                     {formatRelativeTime(comment.created_at)}
                                 </span>

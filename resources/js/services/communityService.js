@@ -104,6 +104,7 @@ const communityService = {
     async toggleJoinCommunity(communityId, isCurrentlyMember) {
         try {
             if (isCurrentlyMember) {
+                console.log(`Leaving community ${communityId}`);
                 await this.leaveCommunity(communityId);
                 return {
                     success: true,
@@ -111,7 +112,9 @@ const communityService = {
                     message: 'Left community successfully.',
                 };
             } else {
-                await this.joinCommunity(communityId);
+                console.log(`Joining community ${communityId}`);
+                const response = await this.joinCommunity(communityId);
+                console.log('Join response:', response);
                 return {
                     success: true,
                     isMember: true,
@@ -120,10 +123,11 @@ const communityService = {
             }
         } catch (error) {
             console.error('Failed to toggle community membership:', error);
+            console.error('Error details:', error.response?.data || error.message);
             return {
                 success: false,
                 isMember: isCurrentlyMember,
-                message: 'Failed to update membership status.',
+                message: error.response?.data?.message || 'Failed to update membership status.',
             };
         }
     },

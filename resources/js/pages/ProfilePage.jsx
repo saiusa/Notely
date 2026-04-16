@@ -11,29 +11,58 @@ import {
 import ProfileCommunityPanel from '../components/profile/ProfileCommunityPanel';
 import ProfileEditModal from '../components/profile/ProfileEditModal';
 import { useAuth } from '../context/AuthContext';
+import api from '../services/api';
 import profileService from '../services/profileService';
 import postService from '../services/postService';
 import communityService from '../services/communityService';
 
 export default function ProfilePage() {
     const { user, refreshUser } = useAuth();
+    const { username: paramUsername } = useParams();
     const [showEdit, setShowEdit] = useState(false);
     const [posts, setPosts] = useState([]);
     const [communities, setCommunities] = useState([]);
     const [loadingPosts, setLoadingPosts] = useState(true);
+    const [loadingCommunities, setLoadingCommunities] = useState(true);
+    const [viewedUser, setViewedUser] = useState(null);
+    const [loadingProfile, setLoadingProfile] = useState(false);
 
-    // Build profile data from auth user
+    // Determine if viewing own profile or another user's
+    const isOwnProfile = !paramUsername || paramUsername === user?.username;
+    const displayUser = viewedUser || user;
+
+    // Build profile data from auth user or viewed user
     const profileData = useMemo(() => ({
-        firstName: user?.profile?.first_name || '',
-        lastName: user?.profile?.last_name || '',
-        username: user ? `@${user.username}` : '@user',
-        birthday: user?.profile?.birthday || '',
-        country: user?.profile?.location || 'south-korea',
-        gender: user?.profile?.gender || '',
-        description: user?.profile?.description || '',
-        coverPhoto: 'https://images.unsplash.com/photo-1473643068424-cd2485f9a97f?auto=format&fit=crop&w=1400&q=80',
-        profilePhoto: user?.profile?.profile_picture || 'https://images.unsplash.com/photo-1543852786-1cf6624b9987?auto=format&fit=crop&w=130&q=80',
-    }), [user]);
+        firstName: displayUser?.profile?.first_name || '',
+        lastName: displayUser?.profile?.last_name || '',
+        username: displayUser ? `@${displayUser.username}` : '@user',
+        birthday: displayUser?.profile?.birthday || '',
+        country: displayUser?.profile?.location || 'south-korea',
+        gender: displayUser?.profile?.gender || '',
+        description: displayUser?.profile?.description || '',
+        coverPhoto: displayUser?.profile?.cover_photo || 'https://images.unsplash.com/photo-1473643068424-cd2485f9a97f?auto=format&fit=crop&w=1400&q=80',
+        profilePhoto: displayUser?.profile?.profile_picture || 'https://images.unsplash.com/photo-1543852786-1cf6624b9987?auto=format&fit=crop&w=130&q=80',
+    }), [displayUser]);
+
+    // Load profile of other user if username is provided in URL
+    useEffect(() => {
+        if (!paramUsername || paramUsername === user?.username) {
+            setViewedUser(null);
+            setLoadingProfile(false);
+            return;
+        }
+
+        setLoadingProfile(true);
+        profileService.getUserProfile(paramUsername)
+            .then((data) => {
+                setViewedUser(data);
+                setLoadingProfile(false);
+            })
+            .catch((err) => {
+                console.error('Failed to load user profile:', err);
+                setLoadingProfile(false);
+            });
+    }, [paramUsername, user?.username]);
 
     // Fetch user's posts
     const fetchPosts = useCallback(async () => {
@@ -41,9 +70,10 @@ export default function ProfilePage() {
         try {
             const res = await postService.getFeed();
             const allPosts = res.data || res || [];
-            // Filter to only user's own public posts
+            // Filter to only the viewed user's public posts
+            const targetUserId = displayUser?.user_id;
             const userPosts = allPosts
-                .filter((p) => p.user_id === user?.user_id && p.privacy === 'public')
+                .filter((p) => p.user_id === targetUserId && p.privacy === 'public')
                 .map((post) => ({
                     id: post.post_id || post.id,
                     date: post.created_at ? new Date(post.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : '',
@@ -62,27 +92,69 @@ export default function ProfilePage() {
         } finally {
             setLoadingPosts(false);
         }
-    }, [user?.user_id]);
+    }, [displayUser?.user_id]);
 
     // Fetch user's communities
     const fetchCommunities = useCallback(async () => {
+        setLoadingCommunities(true);
         try {
             const res = await communityService.getMyCommunities();
-            const data = res.data || res || [];
-            setCommunities(data.map((c) => ({
-                id: c.community_id || c.id,
-                name: c.name,
-                handle: `@${c.name.toLowerCase().replace(/\s+/g, '-')}`,
-            })));
-        } catch (_) {
+            console.log('Communities API response:', res);
+            
+            // The API returns { created: [...], joined: [...] }
+            // Only display joined communities to avoid duplicates
+            let data = [];
+            if (res.joined) {
+                data = res.joined;
+            } else if (res.data) {
+                const responseData = res.data;
+                data = responseData.joined || [];
+            } else if (Array.isArray(res)) {
+                data = res;
+            }
+            
+            console.log('Processed communities data:', data);
+            
+            if (Array.isArray(data) && data.length > 0) {
+                // Deduplicate by ID just in case
+                const uniqueIds = new Set();
+                const mappedCommunities = data
+                    .filter((c) => {
+                        const id = c.community_id || c.id;
+                        if (uniqueIds.has(id)) return false;
+                        uniqueIds.add(id);
+                        return true;
+                    })
+                    .map((c) => ({
+                        id: c.community_id || c.id,
+                        name: c.name,
+                        handle: `@${c.name.toLowerCase().replace(/\s+/g, '-')}`,
+                        image: c.image || c.card_image || '',
+                        categorySlug: c.category?.slug || '',
+                    }));
+                console.log('Mapped communities:', mappedCommunities);
+                setCommunities(mappedCommunities);
+            } else {
+                console.log('No communities found in response');
+                setCommunities([]);
+            }
+        } catch (err) {
+            console.error('Failed to fetch communities:', err);
             setCommunities([]);
+        } finally {
+            setLoadingCommunities(false);
         }
     }, []);
 
     useEffect(() => {
         fetchPosts();
-        fetchCommunities();
-    }, [fetchPosts, fetchCommunities]);
+        // Only fetch communities when viewing own profile
+        if (isOwnProfile) {
+            fetchCommunities();
+        } else {
+            setCommunities([]);
+        }
+    }, [fetchPosts, fetchCommunities, isOwnProfile]);
 
     const recentPublicPosts = useMemo(() => {
         return posts
@@ -91,20 +163,35 @@ export default function ProfilePage() {
             .slice(0, 4);
     }, [posts]);
 
-    const handleSaveProfile = async (nextProfile) => {
+    const handleSaveProfile = async (nextProfile, profilePhotoFile, coverPhotoFile) => {
         try {
-            await profileService.updateProfile({
-                first_name: nextProfile.firstName,
-                last_name: nextProfile.lastName,
-                location: nextProfile.country,
-                birthday: nextProfile.birthday,
-                gender: nextProfile.gender,
-                description: nextProfile.description,
-                profile_picture: nextProfile.profilePhoto,
+            // Create FormData for file uploads
+            const formData = new FormData();
+            formData.append('first_name', nextProfile.firstName);
+            formData.append('last_name', nextProfile.lastName);
+            formData.append('location', nextProfile.country);
+            formData.append('birthday', nextProfile.birthday);
+            formData.append('gender', nextProfile.gender);
+            formData.append('description', nextProfile.description);
+            
+            // Append files only if they were selected
+            if (profilePhotoFile) {
+                formData.append('profile_picture', profilePhotoFile);
+            }
+            if (coverPhotoFile) {
+                formData.append('cover_photo', coverPhotoFile);
+            }
+            
+            // Send the request with FormData
+            await api.post('/me/profile-with-files', formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
             });
+            
             await refreshUser();
-        } catch (_) {
-            // ignore
+        } catch (err) {
+            console.error('Failed to save profile:', err);
         }
         setShowEdit(false);
     };
@@ -127,13 +214,15 @@ export default function ProfilePage() {
                                 className="profile-card__avatar"
                             />
 
-                            <button
-                                type="button"
-                                onClick={() => setShowEdit(true)}
-                                className="profile-card__edit-button"
-                            >
-                                Edit Profile
-                            </button>
+                            {isOwnProfile && (
+                                <button
+                                    type="button"
+                                    onClick={() => setShowEdit(true)}
+                                    className="profile-card__edit-button"
+                                >
+                                    Edit Profile
+                                </button>
+                            )}
 
                             <h2 className="profile-card__name">{`${profileData.firstName} ${profileData.lastName}`}</h2>
                             <p className="profile-card__username">{profileData.username}</p>

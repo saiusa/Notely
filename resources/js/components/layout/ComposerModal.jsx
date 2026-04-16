@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { moodOptions } from './moodOptions';
 import postService from '../../services/postService';
-import '../../../sass/components/layout/ComposerModal.scss';
+import { useAuth } from '../../context/AuthContext';
 
 const modeConfig = {
     text: {
@@ -23,45 +23,60 @@ export default function ComposerModal({
     onClose, 
     onPostCreated, 
     communityId, 
+    community,
     embedded = false,
-    existingPost = null,
-    isEditing = false
+    initialPost = null,  // Unified prop: null for create, full post object for edit
+    myCommunities = []
 }) {
+    const { user } = useAuth();
+    
+    // Determine if we're in edit mode
+    const isEditing = !!initialPost;
+    
     const config = modeConfig[mode] || modeConfig.text;
     const [isMoodOpen, setIsMoodOpen] = useState(false);
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-    const [isPrivacyOpen, setIsPrivacyOpen] = useState(false);
+    const [isDestMenuOpen, setIsDestMenuOpen] = useState(false);
+    
+    // Pre-populate state from initialPost if editing
     const [selectedMoodId, setSelectedMoodId] = useState(
-        isEditing && existingPost?.mood_id ? existingPost.mood_id : null
-    );
-    const [privacy, setPrivacy] = useState(
-        isEditing && existingPost?.privacy ? existingPost.privacy : 'public'
+        isEditing && initialPost?.mood_id ? initialPost.mood_id : null
     );
     const [allowComments, setAllowComments] = useState(
-        isEditing && existingPost?.allow_comments !== undefined ? existingPost.allow_comments : true
+        isEditing && initialPost?.allow_comments !== undefined ? initialPost.allow_comments : true
     );
     const [isAnonymous, setIsAnonymous] = useState(
-        isEditing && existingPost?.is_anonymous ? existingPost.is_anonymous : false
+        isEditing && initialPost?.is_anonymous ? initialPost.is_anonymous : false
     );
+    const [destination, setDestination] = useState(() => {
+        if (isEditing && initialPost) {
+            if (initialPost.community_id) {
+                return `community_${initialPost.community_id}`;
+            }
+            return initialPost.privacy === 'private' ? 'journal_private' : 'journal_public';
+        }
+        return communityId ? `community_${communityId}` : 'journal_public';
+    });
     const [title, setTitle] = useState(
-        isEditing && existingPost?.title ? existingPost.title : ''
+        isEditing && initialPost?.title ? initialPost.title : ''
     );
     const [body, setBody] = useState(
-        isEditing && existingPost?.content ? existingPost.content : ''
+        isEditing && initialPost?.content ? initialPost.content : ''
     );
     const [tags, setTags] = useState(
-        isEditing && existingPost?.hashtags
-            ? existingPost.hashtags.map((t) => (typeof t === 'string' ? t : `#${t.name}`)).join(', ')
+        isEditing && initialPost?.hashtags
+            ? initialPost.hashtags.map((t) => (typeof t === 'string' ? t : `#${t.name}`)).join(', ')
             : ''
     );
     const [posting, setPosting] = useState(false);
     const [error, setError] = useState('');
     const [image, setImage] = useState(null);
     const [imagePreview, setImagePreview] = useState(
-        isEditing && existingPost?.image ? existingPost.image : null
+        isEditing && initialPost?.image ? initialPost.image : null
     );
-    const [uploading, setUploading] = useState(false);
     const fileInputRef = useRef(null);
+    const settingsRef = useRef(null);
+    const destMenuRef = useRef(null);
 
     const selectedMood = useMemo(() => {
         return moodOptions.find((option) => option.id === selectedMoodId) || null;
@@ -87,24 +102,62 @@ export default function ComposerModal({
         };
     }, [embedded]);
 
+    // Handle click outside to close settings menu
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (settingsRef.current && !settingsRef.current.contains(event.target)) {
+                setIsSettingsOpen(false);
+            }
+        };
+
+        if (isSettingsOpen) {
+            document.addEventListener('mousedown', handleClickOutside);
+            return () => document.removeEventListener('mousedown', handleClickOutside);
+        }
+    }, [isSettingsOpen]);
+
+    // Handle click outside to close destination menu
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (destMenuRef.current && !destMenuRef.current.contains(event.target)) {
+                setIsDestMenuOpen(false);
+            }
+        };
+
+        if (isDestMenuOpen) {
+            document.addEventListener('mousedown', handleClickOutside);
+            return () => document.removeEventListener('mousedown', handleClickOutside);
+        }
+    }, [isDestMenuOpen]);
+
     const handlePost = async () => {
+        // Validate mood selection
         if (!selectedMoodId) {
             setError('Please select a mood.');
             return;
         }
 
-        if (mode === 'image' && !image && !imagePreview) {
-            setError('Please select an image.');
-            return;
-        }
-
-        const content = mode === 'text'
-            ? (title ? `${title}\n\n${body}` : body)
-            : body;
-
-        if (!content.trim()) {
-            setError('Please write something.');
-            return;
+        // Validate based on post type
+        if (mode === 'quote') {
+            if (!body.trim()) {
+                setError('Please write a quote.');
+                return;
+            }
+        } else if (mode === 'image') {
+            if (!image && !imagePreview) {
+                setError('Please select an image.');
+                return;
+            }
+            if (!body.trim()) {
+                setError('Please add a caption for your image.');
+                return;
+            }
+        } else if (mode === 'text') {
+            // For text posts, either title or body is required
+            if (!title.trim() && !body.trim()) {
+                setError('Please add a title or content to your post.');
+                return;
+            }
         }
 
         setPosting(true);
@@ -117,46 +170,65 @@ export default function ComposerModal({
                 .map((t) => t.replace(/^#/, '').trim())
                 .filter(Boolean);
 
-            let imageUrl = undefined;
+            // Build FormData for potential file uploads
+            const formData = new FormData();
+            formData.append('type', mode);
+            
+            // Only append title for text posts if it has actual content
+            if (mode === 'text' && title && title.trim() !== '' && title !== 'null') {
+                formData.append('title', title);
+            }
+            
+            formData.append('content', body);
+            formData.append('mood_id', selectedMood.mood_id);
+            formData.append('allow_comments', allowComments ? 1 : 0);
+            formData.append('is_anonymous', isAnonymous ? 1 : 0);
 
-            // Upload image if in image mode and new image selected
-            if (mode === 'image' && image && !imagePreview) {
-                setUploading(true);
-                try {
-                    const uploadResponse = await postService.uploadFile(image);
-                    imageUrl = uploadResponse.url;
-                    setUploading(false);
-                } catch (uploadErr) {
-                    const msg = uploadErr.response?.data?.message || 'Failed to upload image.';
-                    setError(msg);
-                    setPosting(false);
-                    setUploading(false);
-                    return;
-                }
+            // Extract community_id from destination if applicable
+            let postCommunityId = communityId;
+            let postPrivacy = 'public';
+            
+            if (destination.startsWith('community_')) {
+                postCommunityId = parseInt(destination.split('_')[1], 10);
+            } else if (destination === 'journal_private') {
+                postPrivacy = 'private';
+            } else if (destination === 'journal_public') {
+                postPrivacy = 'public';
+            }
+            
+            // Set privacy based on destination
+            formData.append('privacy', postPrivacy);
+            
+            // Only append community_id if it's a valid number
+            if (postCommunityId) {
+                formData.append('community_id', postCommunityId);
             }
 
-            const postData = {
-                content,
-                mood_id: selectedMood.mood_id,
-                privacy,
-                allow_comments: allowComments,
-                is_anonymous: isAnonymous,
-                hashtags: hashtags.length > 0 ? hashtags : undefined,
-                community_id: communityId || undefined,
-                image: imageUrl || (isEditing ? imagePreview : undefined),
-            };
+            // Add hashtags as array
+            if (hashtags.length > 0) {
+                hashtags.forEach((tag, idx) => {
+                    formData.append(`hashtags[${idx}]`, tag);
+                });
+            }
 
+            // Add image file if present and a new image was selected
+            if (mode === 'image' && image) {
+                formData.append('image', image);
+            }
+
+            // Send request (create or update)
             let result;
-            if (isEditing && existingPost) {
-                // Update existing post
-                result = await postService.updatePost(existingPost.post_id || existingPost.id, postData);
+            if (isEditing && initialPost) {
+                // Update existing post - postService.updatePost handles _method spoofing
+                const postId = initialPost.post_id || initialPost.id;
+                result = await postService.updatePost(postId, formData);
             } else {
                 // Create new post
-                result = await postService.createPost(postData);
+                result = await postService.createPost(formData);
             }
 
             if (onPostCreated) {
-                onPostCreated(result);
+                onPostCreated(result, destination);
             }
 
             onClose();
@@ -207,9 +279,162 @@ export default function ComposerModal({
         }
     };
 
+    // Helper to get destination display text and icon
+    const getDestinationDisplay = () => {
+        if (destination === 'journal_public') {
+            return { icon: 'public', label: 'Public (Explore)' };
+        } else if (destination === 'journal_private') {
+            return { icon: 'lock', label: 'Private (Only Me)' };
+        } else if (destination.startsWith('community_')) {
+            const communityId = parseInt(destination.split('_')[1], 10);
+            const community = myCommunities.find(c => (c.id || c.community_id) === communityId);
+            return { icon: 'group', label: community?.name || 'Community' };
+        }
+        return { icon: 'public', label: 'Public (Explore)' };
+    };
+
     return (
         <div className={wrapperClassName}>
             <section className={sectionClassName}>
+                {/* Top Header Section with Avatar, Name, Pill, and Floating Settings */}
+                {!community && (
+                    <div className="composer-modal__top-header">
+                        {/* Avatar and User Info */}
+                        {user?.profile?.profile_picture && (
+                            <img 
+                                src={user.profile.profile_picture} 
+                                className="composer-modal__avatar" 
+                                alt={user?.username || 'User'} 
+                            />
+                        )}
+
+                        {/* Name and Destination Pill */}
+                        <div className="composer-modal__user-info">
+                            <span className="composer-modal__username">
+                                {user?.username || 'User'}
+                            </span>
+
+                            {/* Destination Pill Button */}
+                            <div className="composer-modal__destination-wrapper" ref={destMenuRef}>
+                                <button
+                                    type="button"
+                                    onClick={() => setIsDestMenuOpen(!isDestMenuOpen)}
+                                    className="composer-modal__destination-pill"
+                                >
+                                    <span className="material-symbols-outlined">
+                                        {getDestinationDisplay().icon}
+                                    </span>
+                                    {getDestinationDisplay().label}
+                                    <span className="material-symbols-outlined composer-modal__pill-arrow">arrow_drop_down</span>
+                                </button>
+
+                                {/* Destination Dropdown Menu */}
+                                {isDestMenuOpen && (
+                                    <div className="composer-modal__destination-menu">
+                                        {/* Journal Options - No Header */}
+                                        <div className="composer-modal__menu-group composer-modal__menu-group--standalone">
+                                            <button 
+                                                type="button"
+                                                onClick={() => {
+                                                    setDestination('journal_public');
+                                                    setIsDestMenuOpen(false);
+                                                }}
+                                                className={`composer-modal__menu-item ${destination === 'journal_public' ? 'composer-modal__menu-item--active' : ''}`}
+                                            >
+                                                <span className="material-symbols-outlined">public</span>
+                                                <span>Public (Explore)</span>
+                                            </button>
+                                            <button 
+                                                type="button"
+                                                onClick={() => {
+                                                    setDestination('journal_private');
+                                                    setIsDestMenuOpen(false);
+                                                }}
+                                                className={`composer-modal__menu-item ${destination === 'journal_private' ? 'composer-modal__menu-item--active' : ''}`}
+                                            >
+                                                <span className="material-symbols-outlined">lock</span>
+                                                <span>Private (Only Me)</span>
+                                            </button>
+                                        </div>
+
+                                        {/* Communities Group */}
+                                        {myCommunities && myCommunities.length > 0 && (
+                                            <div className="composer-modal__menu-group">
+                                                <div className="composer-modal__menu-header">Communities</div>
+                                                <div className="composer-modal__menu-scroll">
+                                                    {myCommunities.map((c) => (
+                                                        <button 
+                                                            key={c.id || c.community_id}
+                                                            type="button"
+                                                            onClick={() => {
+                                                                setDestination(`community_${c.id || c.community_id}`);
+                                                                setIsDestMenuOpen(false);
+                                                            }}
+                                                            className={`composer-modal__menu-item ${destination === `community_${c.id || c.community_id}` ? 'composer-modal__menu-item--active' : ''}`}
+                                                        >
+                                                            <span className="material-symbols-outlined">group</span>
+                                                            <span>{c.name}</span>
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Floating Settings Button */}
+                        <button
+                            type="button"
+                            onClick={() => setIsSettingsOpen(!isSettingsOpen)}
+                            className="composer-modal__settings-btn"
+                            aria-label="Post settings"
+                        >
+                            <span className="material-symbols-outlined">more_vert</span>
+                        </button>
+
+                        {/* Settings Dropdown */}
+                        {isSettingsOpen && (
+                            <div ref={settingsRef} className="composer-modal__settings-menu">
+                                <button
+                                    type="button"
+                                    onClick={() => setAllowComments((prev) => !prev)}
+                                    className="composer-modal__settings-item"
+                                >
+                                    <span>Allow comments</span>
+                                    <div className="composer-modal__toggle">
+                                        <div className={`composer-modal__toggle-track ${allowComments ? 'composer-modal__toggle-track--on' : ''}`}>
+                                            <div className={`composer-modal__toggle-thumb ${allowComments ? 'composer-modal__toggle-thumb--on' : ''}`} />
+                                        </div>
+                                    </div>
+                                </button>
+
+                                <button
+                                    type="button"
+                                    onClick={() => setIsAnonymous((prev) => !prev)}
+                                    className="composer-modal__settings-item"
+                                >
+                                    <span>Make it anonymous</span>
+                                    <div className="composer-modal__toggle">
+                                        <div className={`composer-modal__toggle-track ${isAnonymous ? 'composer-modal__toggle-track--on' : ''}`}>
+                                            <div className={`composer-modal__toggle-thumb ${isAnonymous ? 'composer-modal__toggle-thumb--on' : ''}`} />
+                                        </div>
+                                    </div>
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                )}
+
+                {/* Community Context Badge */}
+                {community && (
+                    <div className="composer-modal__community-badge">
+                        <span className="material-symbols-outlined">group</span>
+                        <span>Posting in: <strong>{community.name}</strong></span>
+                    </div>
+                )}
+
                 <div className="composer-modal__header">
                     <div className="composer-modal__content">
                         {mode === 'text' ? (
@@ -238,6 +463,7 @@ export default function ComposerModal({
                                 placeholder={config.placeholder}
                                 className="composer-modal__textarea composer-modal__textarea--caption"
                                 aria-label="Image caption"
+                                rows={3}
                                 value={body}
                                 onChange={(e) => setBody(e.target.value)}
                             />
@@ -253,97 +479,6 @@ export default function ComposerModal({
                             />
                         ) : null}
                     </div>
-                    <button
-                        type="button"
-                        onClick={() => {
-                            setIsSettingsOpen((prev) => !prev);
-                            setIsMoodOpen(false);
-                        }}
-                        className="composer-modal__settings-btn material-symbols-outlined"
-                        aria-label="Post settings"
-                    >
-                        more_vert
-                    </button>
-
-                    {isSettingsOpen ? (
-                        <div className="composer-modal__settings-menu">
-                            <button
-                                type="button"
-                                onClick={() => setIsPrivacyOpen((prev) => !prev)}
-                                className="composer-modal__menu-item"
-                            >
-                                <span>Select privacy</span>
-                                <span className="composer-modal__menu-item-label">
-                                    <span>{privacy.charAt(0).toUpperCase() + privacy.slice(1)}</span>
-                                    <span className="material-symbols-outlined">expand_more</span>
-                                </span>
-                            </button>
-
-                            {isPrivacyOpen ? (
-                                <div className="composer-modal__privacy-options">
-                                    {['public', 'private'].map((option) => (
-                                        <button
-                                            key={option}
-                                            type="button"
-                                            onClick={() => {
-                                                setPrivacy(option);
-                                                setIsPrivacyOpen(false);
-                                            }}
-                                            className={`composer-modal__privacy-btn ${
-                                                privacy === option
-                                                    ? 'composer-modal__privacy-btn--active'
-                                                    : 'composer-modal__privacy-btn--inactive'
-                                            }`}
-                                        >
-                                            {option}
-                                        </button>
-                                    ))}
-                                </div>
-                            ) : null}
-
-                            <button
-                                type="button"
-                                onClick={() => setAllowComments((prev) => !prev)}
-                                className="composer-modal__menu-item"
-                            >
-                                <span>Allow comments</span>
-                                <span
-                                    className={`composer-modal__toggle ${
-                                        allowComments ? 'composer-modal__toggle--on' : 'composer-modal__toggle--off'
-                                    }`}
-                                >
-                                    <span
-                                        className={`composer-modal__toggle-knob ${
-                                            allowComments
-                                                ? 'composer-modal__toggle-knob--on'
-                                                : 'composer-modal__toggle-knob--off'
-                                        }`}
-                                    />
-                                </span>
-                            </button>
-
-                            <button
-                                type="button"
-                                onClick={() => setIsAnonymous((prev) => !prev)}
-                                className="composer-modal__menu-item"
-                            >
-                                <span>Make it anonymous</span>
-                                <span
-                                    className={`composer-modal__toggle ${
-                                        isAnonymous ? 'composer-modal__toggle--on' : 'composer-modal__toggle--off'
-                                    }`}
-                                >
-                                    <span
-                                        className={`composer-modal__toggle-knob ${
-                                            isAnonymous
-                                                ? 'composer-modal__toggle-knob--on'
-                                                : 'composer-modal__toggle-knob--off'
-                                        }`}
-                                    />
-                                </span>
-                            </button>
-                        </div>
-                    ) : null}
                 </div>
 
                 {mode === 'image' && (
@@ -353,64 +488,48 @@ export default function ComposerModal({
                             type="file"
                             accept="image/*"
                             onChange={handleFileSelect}
-                            style={{ display: 'none' }}
+                            className="composer-modal__file-input"
                             aria-label="Upload image file"
                         />
                         {imagePreview ? (
-                            <div style={{ position: 'relative', marginTop: '16px' }}>
-                                <img src={imagePreview} alt="Preview" style={{
-                                    width: '100%',
-                                    maxHeight: '300px',
-                                    borderRadius: '10px',
-                                    objectFit: 'cover',
-                                }} />
+                            <div className="composer-modal__image-preview-container">
+                                <img src={imagePreview} alt="Preview" className="composer-modal__image-preview" />
                                 <button
                                     type="button"
                                     onClick={handleRemoveImage}
-                                    disabled={uploading}
-                                    style={{
-                                        position: 'absolute',
-                                        top: '8px',
-                                        right: '8px',
-                                        width: '32px',
-                                        height: '32px',
-                                        borderRadius: '50%',
-                                        background: 'rgba(0, 0, 0, 0.6)',
-                                        border: 'none',
-                                        color: '#fff',
-                                        cursor: uploading ? 'not-allowed' : 'pointer',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        opacity: uploading ? 0.5 : 1,
-                                    }}
+                                    disabled={posting}
+                                    className="composer-modal__image-remove-btn"
                                 >
-                                    <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>close</span>
+                                    <span className="material-symbols-outlined">close</span>
                                 </button>
                             </div>
                         ) : (
                             <button
                                 type="button"
                                 onClick={handleImageUploadClick}
-                                disabled={uploading}
+                                disabled={posting}
                                 className="composer-modal__image-uploader"
-                                style={{
-                                    opacity: uploading ? 0.6 : 1,
-                                    cursor: uploading ? 'not-allowed' : 'pointer',
-                                }}
                             >
                                 <span className="material-symbols-outlined">
-                                    {uploading ? 'hourglass_empty' : 'image'}
+                                    {posting ? 'hourglass_empty' : 'image'}
                                 </span>
-                                <span>{uploading ? 'Uploading...' : 'Upload image'}</span>
+                                <span>{posting ? 'Uploading...' : 'Upload image'}</span>
                             </button>
                         )}
                     </>
                 )}
 
                 {error && (
-                    <div style={{ color: '#ff6b6b', fontSize: '12px', padding: '0 16px', marginBottom: '4px' }}>
+                    <div className="composer-modal__error-message">
                         {error}
+                    </div>
+                )}
+
+                {/* Community Rules Reminder */}
+                {community && community.rules && community.rules.length > 0 && (
+                    <div className="composer-modal__rules-reminder">
+                        <span className="material-symbols-outlined">info</span>
+                        <span>Please follow the <strong>community rules</strong> when posting</span>
                     </div>
                 )}
 
@@ -423,12 +542,12 @@ export default function ComposerModal({
                         }}
                         className="composer-modal__mood-btn"
                         style={{
-                            backgroundColor: selectedMood ? selectedMood.backgroundColor : '#666a75',
-                            color: selectedMood ? selectedMood.textColor : '#ffffff',
+                            '--mood-bg': selectedMood ? selectedMood.backgroundColor : '#666a75',
+                            '--mood-text': selectedMood ? selectedMood.textColor : '#ffffff',
                         }}
                     >
                         {selectedMood ? selectedMood.label : 'Mood'}
-                        <span className="material-symbols-outlined mood-icon">keyboard_arrow_down</span>
+                        <span className="material-symbols-outlined">keyboard_arrow_down</span>
                     </button>
 
                     <input
@@ -467,11 +586,11 @@ export default function ComposerModal({
                 </div>
 
                 <div className="composer-modal__actions">
-                    <button type="button" onClick={onClose} className="composer-modal__cancel-btn" disabled={posting || uploading}>
+                    <button type="button" onClick={onClose} className="composer-modal__cancel-btn" disabled={posting}>
                         Cancel
                     </button>
-                    <button type="button" onClick={handlePost} className="composer-modal__post-btn" disabled={posting || uploading}>
-                        {uploading ? 'Uploading...' : posting ? (isEditing ? 'Updating...' : 'Posting...') : (isEditing ? 'Update Post' : 'Post')}
+                    <button type="button" onClick={handlePost} className="composer-modal__post-btn" disabled={posting}>
+                        {posting ? (isEditing ? 'Updating...' : 'Posting...') : (isEditing ? 'Update Post' : 'Post')}
                     </button>
                 </div>
             </section>

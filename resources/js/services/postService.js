@@ -12,6 +12,24 @@ const postService = {
         return res.data; // paginated { data, current_page, last_page, ... }
     },
 
+    /** GET /api/posts/journal/private?page=N - Get authenticated user's private posts */
+    async getPrivatePosts(page = 1) {
+        const res = await api.get('/posts/journal/private', { params: { page } });
+        return res.data;
+    },
+
+    /** GET /api/posts?tab=community - Community feed (posts from joined communities) */
+    async getCommunityFeed(page = 1) {
+        const res = await api.get('/posts', { params: { tab: 'community', page } });
+        return res.data; // paginated { data, current_page, last_page, ... }
+    },
+
+    /** GET /api/posts/explore - Trending posts from all public communities */
+    async getExploreFeed(page = 1) {
+        const res = await api.get('/posts/explore', { params: { page } });
+        return res.data; // paginated { data, current_page, last_page, ... }
+    },
+
     /** GET /api/posts/:id */
     async getPost(postId) {
         const res = await api.get(`/posts/${postId}`);
@@ -42,33 +60,27 @@ const postService = {
         });
         
         try {
-            // Create a new axios instance without default headers for this specific request
-            const uploadRequest = await fetch('/api/uploads', {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
-                    'Accept': 'application/json',
-                },
-            });
-
-            if (!uploadRequest.ok) {
-                const errorData = await uploadRequest.json();
-                console.error('Upload error response:', errorData);
-                throw new Error(errorData.message || `Upload failed with status ${uploadRequest.status}`);
-            }
-
-            const data = await uploadRequest.json();
-            console.log('Upload successful:', data);
-            return data;
+            // Use axios with FormData - it handles Content-Type and auth headers automatically
+            const res = await api.post('/uploads', formData);
+            console.log('Upload successful:', res.data);
+            return res.data;
         } catch (error) {
             console.error('Upload error:', error.message);
             throw error;
         }
     },
 
-    /** PUT /api/posts/:id */
+    /** PUT /api/posts/:id (via POST with method spoofing for FormData) */
     async updatePost(postId, data) {
+        // Add method spoofing for Laravel's form method override (required for FormData with PUT)
+        if (data instanceof FormData) {
+            data.append('_method', 'PUT');
+            const res = await api.post(`/posts/${postId}`, data, {
+                headers: { 'Content-Type': 'multipart/form-data' }
+            });
+            return res.data;
+        }
+        // Fallback for regular JSON data
         const res = await api.put(`/posts/${postId}`, data);
         return res.data;
     },

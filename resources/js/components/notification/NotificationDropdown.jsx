@@ -18,8 +18,6 @@ function NotificationDropdown({
   const dropdownRef = useRef(null);
   const menuRef = useRef(null);
 
-  if (!open) return null;
-
   // Close notification when clicking outside
   useEffect(() => {
     if (!open) return;
@@ -30,23 +28,39 @@ function NotificationDropdown({
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [open]);
+    // Use a small delay to prevent immediate closing
+    const timer = setTimeout(() => {
+      document.addEventListener('mousedown', handleClickOutside);
+    }, 50);
+
+    return () => {
+      clearTimeout(timer);
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [open, onClose]);
 
   // Close menu when clicking outside
   useEffect(() => {
+    if (!menuOpen) return;
+
     const handleMenuClickOutside = (event) => {
       if (menuRef.current && !menuRef.current.contains(event.target)) {
         setMenuOpen(false);
       }
     };
 
-    if (menuOpen) {
+    // Use a small delay to prevent immediate closing
+    const timer = setTimeout(() => {
       document.addEventListener('mousedown', handleMenuClickOutside);
-      return () => document.removeEventListener('mousedown', handleMenuClickOutside);
-    }
+    }, 50);
+
+    return () => {
+      clearTimeout(timer);
+      document.removeEventListener('mousedown', handleMenuClickOutside);
+    };
   }, [menuOpen]);
+
+  if (!open) return null;
 
   const handleNotificationClick = async (notification) => {
     if (!notification.is_read && onMarkAsRead) {
@@ -77,9 +91,9 @@ function NotificationDropdown({
 
   // Group notifications by type
   const groupedNotifications = {
-    like: filteredNotifications.filter((n) => n.type === 'like_post'),
-    comment: filteredNotifications.filter((n) => n.type === 'comment_post'),
-    reply: filteredNotifications.filter((n) => n.type === 'reply_comment'),
+    like: filteredNotifications.filter((n) => n.type === 'like'),
+    comment: filteredNotifications.filter((n) => n.type === 'comment'),
+    community: filteredNotifications.filter((n) => n.type === 'community'),
   };
 
   return (
@@ -208,16 +222,16 @@ function NotificationDropdown({
             </div>
           )}
 
-          {/* Replies Section */}
-          {groupedNotifications.reply.length > 0 && (
+          {/* Community Section */}
+          {groupedNotifications.community.length > 0 && (
             <div className="top-navbar__notification-section">
               <div className="top-navbar__notification-section-header">
-                <span className="material-symbols-outlined top-navbar__notification-section-icon">reply</span>
-                <h4 className="top-navbar__notification-section-title">Replies</h4>
-                <span className="top-navbar__notification-section-badge">{groupedNotifications.reply.length}</span>
+                <span className="material-symbols-outlined top-navbar__notification-section-icon">group</span>
+                <h4 className="top-navbar__notification-section-title">Community</h4>
+                <span className="top-navbar__notification-section-badge">{groupedNotifications.community.length}</span>
               </div>
               <div className="top-navbar__notification-section-items">
-                {groupedNotifications.reply.map((notification) => (
+                {groupedNotifications.community.map((notification) => (
                   <NotificationCard
                     key={notification.notification_id}
                     notification={notification}

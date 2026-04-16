@@ -1,8 +1,9 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import notificationService from '../../services/notificationService';
 import NotificationButton from '../notification/NotificationButton';
 import NotificationDropdown from '../notification/NotificationDropdown';
+import SearchBar from '../common/SearchBar';
 import '../../../sass/components/layout/TopNavbar.scss';
 
 function IconButton({ icon, label, active = false, onClick }) {
@@ -17,19 +18,6 @@ function IconButton({ icon, label, active = false, onClick }) {
     >
       <span className="material-symbols-outlined top-navbar__icon">{icon}</span>
     </button>
-  );
-}
-
-function SearchBar() {
-  return (
-    <label className="top-navbar__search">
-      <span className="material-symbols-outlined top-navbar__search-icon">search</span>
-      <input
-        type="text"
-        placeholder="Search Notely"
-        className="top-navbar__search-input"
-      />
-    </label>
   );
 }
 
@@ -59,18 +47,31 @@ function HomeTabs({ activeTab, onChange }) {
   );
 }
 
-function FilterDropdown({ open }) {
+function FilterDropdown({ open, currentFilter, onFilterChange }) {
   if (!open) return null;
+
+  const handleFilterClick = (filter) => {
+    onFilterChange(filter);
+  };
 
   return (
     <div className="top-navbar__filter-dropdown">
-      <button className="top-navbar__filter-item">
+      <button 
+        className={`top-navbar__filter-item ${currentFilter === 'recent' ? 'top-navbar__filter-item--active' : ''}`}
+        onClick={() => handleFilterClick('recent')}
+      >
         Recent
       </button>
-      <button className="top-navbar__filter-item">
+      <button 
+        className={`top-navbar__filter-item ${currentFilter === 'popular' ? 'top-navbar__filter-item--active' : ''}`}
+        onClick={() => handleFilterClick('popular')}
+      >
         Popular
       </button>
-      <button className="top-navbar__filter-item">
+      <button 
+        className={`top-navbar__filter-item ${currentFilter === 'mood' ? 'top-navbar__filter-item--active' : ''}`}
+        onClick={() => handleFilterClick('mood')}
+      >
         Most mood used
       </button>
     </div>
@@ -82,6 +83,8 @@ function HomeNavbar({
   onTabChange,
   filterOpen,
   setFilterOpen,
+  currentFilter,
+  onFilterChange,
   notificationCount,
   notificationActive,
   onNotificationClick,
@@ -107,7 +110,7 @@ function HomeNavbar({
             active={filterOpen}
             onClick={() => setFilterOpen((prev) => !prev)}
           />
-          <FilterDropdown open={filterOpen} />
+          <FilterDropdown open={filterOpen} currentFilter={currentFilter} onFilterChange={onFilterChange} />
         </div>
         <div className="top-navbar__search-notification-wrap">
           <SearchBar />
@@ -187,11 +190,14 @@ export default function TopNavbar({
   title = 'Home',
   activeTab = 'explore',
   onTabChange = () => {},
+  onFilterChange = () => {},
+  currentFilter = 'recent',
   showBack,
   onBack,
   notificationCount = 0,
   notificationActive = false,
   onNotificationClick = () => {},
+  onCloseNotification = () => {},
   onSettingsClick = () => {},
 }) {
   const navigate = useNavigate();
@@ -208,17 +214,10 @@ export default function TopNavbar({
     if (mode !== 'tabs') setFilterOpen(false);
   }, [mode]);
 
-  // Fetch notifications when dropdown opens
-  useEffect(() => {
-    if (notificationActive) {
-      fetchNotifications();
-    }
-  }, [notificationActive]);
-
   /**
-   * Fetch notifications from API
+   * Fetch notifications from API (memoized)
    */
-  const fetchNotifications = async () => {
+  const fetchNotifications = useCallback(async () => {
     try {
       setIsLoadingNotifications(true);
       const response = await notificationService.getNotifications(1);
@@ -228,12 +227,19 @@ export default function TopNavbar({
     } finally {
       setIsLoadingNotifications(false);
     }
-  };
+  }, []);
+
+  // Fetch notifications when dropdown opens
+  useEffect(() => {
+    if (notificationActive) {
+      fetchNotifications();
+    }
+  }, [notificationActive, fetchNotifications]);
 
   /**
-   * Mark notification as read
+   * Mark notification as read (memoized)
    */
-  const handleMarkAsRead = async (notificationId) => {
+  const handleMarkAsRead = useCallback(async (notificationId) => {
     try {
       await notificationService.markAsRead(notificationId);
       setNotifications((prevNotifications) =>
@@ -246,12 +252,12 @@ export default function TopNavbar({
     } catch (error) {
       console.error('Failed to mark notification as read:', error);
     }
-  };
+  }, []);
 
   /**
-   * Mark all notifications as read
+   * Mark all notifications as read (memoized)
    */
-  const handleMarkAllAsRead = async () => {
+  const handleMarkAllAsRead = useCallback(async () => {
     try {
       await notificationService.markAllAsRead();
       setNotifications((prevNotifications) =>
@@ -260,12 +266,12 @@ export default function TopNavbar({
     } catch (error) {
       console.error('Failed to mark all notifications as read:', error);
     }
-  };
+  }, []);
 
   /**
-   * Delete notification
+   * Delete notification (memoized)
    */
-  const handleDeleteNotification = async (notificationId) => {
+  const handleDeleteNotification = useCallback(async (notificationId) => {
     try {
       await notificationService.deleteNotification(notificationId);
       setNotifications((prevNotifications) =>
@@ -274,33 +280,31 @@ export default function TopNavbar({
     } catch (error) {
       console.error('Failed to delete notification:', error);
     }
-  };
+  }, []);
 
   /**
    * Close notification dropdown
    */
-  const handleCloseNotification = () => {
-    if (notificationActive) {
-      onNotificationClick();
-    }
-  };
+  const handleCloseNotification = useCallback(() => {
+    onNotificationClick();
+  }, [onNotificationClick]);
 
   /**
    * Navigate to notification settings
    */
-  const handleNavigateToSettings = () => {
+  const handleNavigateToSettings = useCallback(() => {
     navigate('/settings/notification');
-  };
+  }, [navigate]);
 
-  const handleTabChange = (tab) => {
+  const handleTabChange = useCallback((tab) => {
     setCurrentTab(tab);
     onTabChange(tab);
-  };
+  }, [onTabChange]);
 
-  const handleBack = () => {
+  const handleBack = useCallback(() => {
     if (onBack) onBack();
     else if (typeof window !== 'undefined') window.history.back();
-  };
+  }, [onBack]);
 
   return (
     <>
@@ -312,6 +316,8 @@ export default function TopNavbar({
             onTabChange={handleTabChange}
             filterOpen={filterOpen}
             setFilterOpen={setFilterOpen}
+            currentFilter={currentFilter}
+            onFilterChange={onFilterChange}
             notificationCount={notificationCount}
             notificationActive={notificationActive}
             onNotificationClick={onNotificationClick}
@@ -321,7 +327,7 @@ export default function TopNavbar({
             onMarkAllAsRead={handleMarkAllAsRead}
             onSettingsClick={handleNavigateToSettings}
             onDeleteNotification={handleDeleteNotification}
-            onCloseNotification={handleCloseNotification}
+            onCloseNotification={onCloseNotification || handleCloseNotification}
           />
         ) : (
           <DefaultNavbar

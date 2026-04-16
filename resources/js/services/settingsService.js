@@ -33,6 +33,37 @@ const settingsService = {
     },
 
     /**
+     * POST /api/me/settings/security/two-factor/setup
+     * Generates a secret and QR code for 2FA setup
+     * @returns {{ secret: string, qr_code: string }}
+     */
+    async setupTwoFactor() {
+        const res = await api.post('/me/settings/security/two-factor/setup');
+        return res.data;
+    },
+
+    /**
+     * POST /api/me/settings/security/two-factor/confirm
+     * Verifies the 2FA code and enables 2FA
+     * @param {{ code: string }} data — 6-digit code from authenticator app
+     * @returns {{ backup_codes: string[], message: string }}
+     */
+    async confirmTwoFactor(data) {
+        const res = await api.post('/me/settings/security/two-factor/confirm', data);
+        return res.data;
+    },
+
+    /**
+     * DELETE /api/me/settings/security/two-factor
+     * Disables 2FA for the user
+     * @returns {{ message: string }}
+     */
+    async disableTwoFactor() {
+        const res = await api.delete('/me/settings/security/two-factor');
+        return res.data;
+    },
+
+    /**
      * PUT /api/me/settings/privacy
      * @param {{ default_post_privacy: 'public'|'private', hide_comments: boolean, show_reaction_counts: boolean }} data
      */

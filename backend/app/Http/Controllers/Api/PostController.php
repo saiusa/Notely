@@ -9,19 +9,71 @@ use App\Models\Post;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class PostController extends Controller
 {
     public function index(Request $request): JsonResponse
     {
         $user = $request->user();
+        $tab = $request->query('tab'); // Check for ?tab=community parameter
 
+        if ($tab === 'community') {
+            // Community tab: posts from joined communities only
+            $posts = $this->baseQuery()
+                ->where('privacy', 'public')
+                ->whereIn('community_id', function ($subquery) use ($user): void {
+                    $subquery->select('community_id')
+                        ->from('community_members')
+                        ->where('user_id', $user->user_id);
+                })
+                ->orderByDesc('created_at')
+                ->paginate(15);
+        } else {
+            // Explore/Main tab: public posts + community posts user is member of
+            $posts = $this->baseQuery()
+                ->where('privacy', 'public')
+                ->where(function (Builder $query) use ($user): void {
+                    $query->where('community_id', null)
+                        ->orWhere(function (Builder $q) use ($user): void {
+                            // Only show community posts to members or creator
+                            $q->whereIn('community_id', function ($subquery) use ($user): void {
+                                $subquery->select('community_id')
+                                    ->from('community_members')
+                                    ->where('user_id', $user->user_id);
+                            })
+                            ->orWhere('user_id', $user->user_id);
+                        });
+                })
+                ->orderByDesc('created_at')
+                ->paginate(15);
+        }
+
+        return response()->json($posts);
+    }
+
+    /**
+     * V1 Trending Algorithm for Explore Feed
+     * 
+     * Algorithm:
+     * 1. Fetch posts from public communities only
+     * 2. Order by engagement (likes + comments) DESC - this determines "trending"
+     * 3. Then order by recency (created_at) DESC - tie-breaker for same engagement
+     * 4. Paginate with 15 posts per page
+     * 
+     * Future improvements:
+     * - Add views_count to weighting
+     * - Implement time decay (older posts rank lower)
+     * - Add user follower boost
+     */
+    public function explore(Request $request): JsonResponse
+    {
         $posts = $this->baseQuery()
-            ->where(function (Builder $query) use ($user): void {
-                $query->where('privacy', 'public')
-                    ->orWhere('user_id', $user->user_id);
-            })
-            ->orderByDesc('created_at')
+            ->whereNotNull('community_id')  // Only community posts for Explore
+            ->where('privacy', 'public')     // Only public posts
+            // V1: Sort by engagement (likes + comments) DESC, then by recency DESC
+            // We use SQL to sum counts directly in the query for performance
+            ->orderByRaw('(likes_count + comments_count) DESC, posts.created_at DESC')
             ->paginate(15);
 
         return response()->json($posts);
@@ -29,11 +81,14 @@ class PostController extends Controller
 
     public function store(Request $request): JsonResponse
     {
+        // Validate post creation inputs
         $validated = $request->validate([
-            'content' => ['required', 'string'],
-            'community_id' => ['nullable', 'exists:communities,community_id'],
-            'image' => ['nullable', 'string', 'max:255'],
-            'mood_id' => ['required', 'exists:moods,mood_id'],
+            'type' => ['required', 'string', 'in:text,quote,image'],
+            'title' => ['nullable', 'string', 'max:255'],
+            'content' => ['required', 'string', 'max:5000'],
+            'community_id' => ['nullable', 'integer', 'exists:communities,community_id'],
+            'image' => ['required_if:type,image', 'nullable', 'file', 'image', 'max:5120'],
+            'mood_id' => ['required', 'integer', 'exists:moods,mood_id'],
             'privacy' => ['required', 'in:public,private'],
             'allow_comments' => ['boolean'],
             'is_anonymous' => ['boolean'],
@@ -44,6 +99,7 @@ class PostController extends Controller
         $hashtags = $validated['hashtags'] ?? [];
         unset($validated['hashtags']);
 
+        // Ensure user is a member of the community before posting there
         if (
             isset($validated['community_id'])
             && ! $this->isCommunityMember($request->user()->user_id, (int) $validated['community_id'])
@@ -53,15 +109,28 @@ class PostController extends Controller
             ], 403);
         }
 
+        // Handle image file upload - store relative path for public disk
+        if ($request->hasFile('image')) {
+            $filename = time() . '_' . uniqid() . '.' . $request->file('image')->getClientOriginalExtension();
+            $path = $request->file('image')->storeAs('posts', $filename, 'public');
+            $validated['image'] = $path;
+        }
+
+        // Create post with authenticated user as owner
         $post = Post::create([
             ...$validated,
             'user_id' => $request->user()->user_id,
         ]);
 
+        // Sync hashtags if any provided
         $this->syncHashtags($post, $hashtags);
 
+        // Load relationships and return
         $post->load([
             'user:user_id,username',
+            'user.profile:profile_id,user_id,profile_picture',
+            'community:community_id,name,category_id',
+            'community.category:category_id,slug,name',
             'mood:mood_id,name,color',
             'hashtags:hashtag_id,name',
         ])->loadCount(['comments', 'likes']);
@@ -77,8 +146,17 @@ class PostController extends Controller
             ], 403);
         }
 
+        // V1 Trending: Increment views counter
+        $post->increment('views_count');
+
+        // V1 Trending: Increment views counter
+        $post->increment('views_count');
+
         $post->load([
             'user:user_id,username',
+            'user.profile:profile_id,user_id,profile_picture',
+            'community:community_id,name,category_id',
+            'community.category:category_id,slug,name',
             'mood:mood_id,name,color',
             'hashtags:hashtag_id,name',
         ])->loadCount(['comments', 'likes']);
@@ -88,17 +166,21 @@ class PostController extends Controller
 
     public function update(Request $request, Post $post): JsonResponse
     {
+        // Ensure only the post owner can edit
         if ((int) $post->user_id !== (int) $request->user()->user_id) {
             return response()->json([
                 'message' => 'You can only update your own posts.',
             ], 403);
         }
 
+        // Validate post update inputs
         $validated = $request->validate([
-            'content' => ['sometimes', 'string'],
-            'community_id' => ['nullable', 'exists:communities,community_id'],
-            'image' => ['nullable', 'string', 'max:255'],
-            'mood_id' => ['sometimes', 'exists:moods,mood_id'],
+            'type' => ['sometimes', 'string', 'in:text,quote,image'],
+            'title' => ['nullable', 'string', 'max:255'],
+            'content' => ['sometimes', 'string', 'max:5000'],
+            'community_id' => ['nullable', 'integer', 'exists:communities,community_id'],
+            'image' => ['nullable', 'file', 'image', 'max:5120'],
+            'mood_id' => ['sometimes', 'integer', 'exists:moods,mood_id'],
             'privacy' => ['sometimes', 'in:public,private'],
             'allow_comments' => ['sometimes', 'boolean'],
             'is_anonymous' => ['sometimes', 'boolean'],
@@ -106,11 +188,15 @@ class PostController extends Controller
             'hashtags.*' => ['string', 'max:255'],
         ]);
 
-        if (array_key_exists('hashtags', $validated)) {
-            $this->syncHashtags($post, $validated['hashtags'] ?? []);
-            unset($validated['hashtags']);
+        // Prevent changing post type during edit (preserve original post type)
+        if (isset($validated['type']) && $validated['type'] !== $post->type) {
+            return response()->json([
+                'message' => 'You cannot change the post type during an edit.',
+            ], 422);
         }
+        unset($validated['type']); // Don't update type in database
 
+        // Validate community membership if moving post
         if (
             isset($validated['community_id'])
             && ! $this->isCommunityMember($request->user()->user_id, (int) $validated['community_id'])
@@ -120,15 +206,40 @@ class PostController extends Controller
             ], 403);
         }
 
+        // Handle hashtag syncing if provided
+        if (array_key_exists('hashtags', $validated)) {
+            $this->syncHashtags($post, $validated['hashtags'] ?? []);
+            unset($validated['hashtags']);
+        }
+
+        // Handle image file upload - CRITICAL: only update if new file was uploaded
+        if ($request->hasFile('image')) {
+            // Delete old image file if it exists
+            if ($post->image && Storage::disk('public')->exists(str_replace('/storage/', '', $post->image))) {
+                Storage::disk('public')->delete(str_replace('/storage/', '', $post->image));
+            }
+
+            // Store new image file
+            $filename = time() . '_' . uniqid() . '.' . $request->file('image')->getClientOriginalExtension();
+            $path = $request->file('image')->storeAs('posts', $filename, 'public');
+            $validated['image'] = $path;
+        }
+        // If no new image uploaded, don't modify the image field - keep existing
+
+        // Update only the provided fields
         $post->update($validated);
 
+        // Reload with all relationships to return updated post
         $post->load([
             'user:user_id,username',
+            'user.profile:profile_id,user_id,profile_picture',
+            'community:community_id,name,category_id',
+            'community.category:category_id,slug,name',
             'mood:mood_id,name,color',
             'hashtags:hashtag_id,name',
         ])->loadCount(['comments', 'likes']);
 
-        return response()->json($post);
+        return response()->json($post, 200);
     }
 
     public function destroy(Request $request, Post $post): JsonResponse
@@ -146,12 +257,27 @@ class PostController extends Controller
         ]);
     }
 
+    public function privateJournal(Request $request): JsonResponse
+    {
+        $user = $request->user();
+
+        $posts = $this->baseQuery()
+            ->where('user_id', $user->user_id)
+            ->where('privacy', 'private')
+            ->orderByDesc('created_at')
+            ->paginate(15);
+
+        return response()->json($posts);
+    }
+
     private function baseQuery(): Builder
     {
         return Post::query()
             ->with([
                 'user:user_id,username',
-                'community:community_id,name',
+                'user.profile:profile_id,user_id,profile_picture',
+                'community:community_id,name,category_id',
+                'community.category:category_id,slug,name',
                 'mood:mood_id,name,color',
                 'hashtags:hashtag_id,name',
             ])

@@ -5,10 +5,12 @@
   display: grid;
   grid-template-columns: 1fr;
   gap: 24px;
+  align-items: flex-start;
 
   @media (min-width: 1280px) {
     grid-template-columns: 760px 315px;
     justify-content: center;
+    align-items: flex-start;
   }
 
   &__main {
@@ -63,7 +65,7 @@
 .profile-card {
   overflow: hidden;
   border-radius: 10px;
-  background: #212633;
+  background: #21232c;
 
   &__cover {
     height: 200px;

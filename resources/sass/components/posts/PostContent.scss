@@ -1,102 +1,107 @@
 @import '../../variables';
 
+// PostContent.scss - Post content styling using SCSS
+
+// Base content wrapper
 .post-content {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: $spacing-md;
 
-  &__title {
-    margin: 0;
-    font-size: 16px;
-    font-weight: 600;
-    line-height: 1.35;
-    color: #ffffff;
-  }
-
-  &__body-section {
+  &__text-wrapper {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: $spacing-md;
   }
 
-  &__text {
-    margin: 0;
-    font-size: 14px;
-    line-height: 1.6;
-    color: #d8dce8;
-    word-break: break-word;
-    white-space: pre-wrap;
+  &__title {
+    font-weight: $font-weight-bold;
+    font-size: $font-size-lg;
+    color: $color-text-primary;
+  }
 
-    &--quote {
-      border-left: 3px solid #8e74d5;
-      padding-left: 12px;
-      font-style: italic;
-      font-weight: 500;
-      color: #d4d8e6;
-      background: rgba(142, 116, 213, 0.05);
-      padding: 12px 12px 12px 12px;
-      border-radius: 4px;
-    }
+  &__body {
+    font-size: $font-size-base;
+    color: $color-text-secondary;
+    white-space: pre-wrap;
+    word-break: break-word;
+    overflow-wrap: break-word;
+    line-height: $line-height-normal;
   }
 
   &__expand-btn {
-    align-self: flex-start;
-    border: 0;
-    background: transparent;
-    color: #8e74d5;
-    font-size: 13px;
-    font-weight: 500;
+    color: $color-primary;
+    font-size: $font-size-sm;
+    font-weight: $font-weight-medium;
+    background: none;
+    border: none;
     cursor: pointer;
-    padding: 4px 8px;
-    border-radius: 4px;
-    transition: all 0.15s ease;
-    margin-top: 2px;
+    transition: $transition-fast;
+    text-align: left;
 
     &:hover {
-      color: #a58be5;
-      background: rgba(142, 116, 213, 0.1);
+      color: $color-primary-hover;
     }
   }
 
-  &__image-section {
+  // Quote post styling
+  &__quote-wrapper {
+    padding: $spacing-2xl $spacing-2xl + 2px;
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: $radius-xl;
+    border-left: 4px solid $color-primary;
+  }
+
+  &__quote {
+    font-weight: $font-weight-bold;
+    font-style: italic;
+    font-size: $font-size-lg;
+    text-align: center;
+    color: $color-text-primary;
+    line-height: $line-height-relaxed;
+  }
+
+  // Image post styling
+  &__image-wrapper {
     display: flex;
-    margin-top: 4px;
-    border-radius: 8px;
-    overflow: hidden;
+    flex-direction: column;
+    gap: $spacing-lg;
   }
 
   &__image {
     width: 100%;
-    max-height: 500px;
+    border-radius: $radius-lg;
     object-fit: cover;
-    display: block;
-    border-radius: 8px;
-    transition: all 0.2s ease;
+    max-height: 384px;
+    border: 1px solid $color-border;
+  }
 
-    &:hover {
-      filter: brightness(1.05);
-    }
+  // Ensure text wraps properly
+  p {
+    word-break: break-word;
+    overflow-wrap: break-word;
+  }
+
+  // Remove default image borders
+  img {
+    border: none;
+    outline: none;
   }
 }
 
 // Modal context adjustments
 .comment-floating-modal {
   .post-content {
-    &__text {
-      font-size: 13px;
-      line-height: 1.5;
-
-      &--quote {
-        padding: 10px 12px 10px 12px;
-        font-size: 12px;
-      }
+    p {
+      font-size: $font-size-xs;
+      line-height: $line-height-normal;
     }
 
-    &__title {
-      font-size: 15px;
+    h3 {
+      font-size: $font-size-sm;
     }
 
-    &__image {
+    img {
       max-height: 280px;
     }
   }

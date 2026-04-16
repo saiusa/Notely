@@ -1,7 +1,7 @@
 import '../../sass/pages/JournalPage.scss';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import SmallPostCard from '../components/journal/SmallPostCard';
 import JournalHeader from '../components/journal/JournalHeader';
 import { PostDetailModal } from '../components/posts/modals';
@@ -11,20 +11,45 @@ import Loader from '../components/common/Loader';
 import postService from '../services/postService';
 
 export default function JournalPage() {
-    const [visibilityTab, setVisibilityTab] = useState('private');
+    const { tab } = useParams();
+    const navigate = useNavigate();
+    // Set default to 'private' if no tab provided (shouldn't happen due to redirect, but safety check)
+    const [visibilityTab, setVisibilityTab] = useState(tab === 'public' ? 'public' : 'private');
     const [sortBy, setSortBy] = useState('recent');
     const [editingCard, setEditingCard] = useState(null);
     const [selectedPost, setSelectedPost] = useState(null);
     const [cards, setCards] = useState([]);
     const [loading, setLoading] = useState(true);
 
+    // Update visibilityTab when URL tab param changes
+    useEffect(() => {
+        setVisibilityTab(tab === 'public' ? 'public' : 'private');
+    }, [tab]);
+
+    // Whenever tab state changes, update URL
+    const handleTabChange = (newTab) => {
+        setVisibilityTab(newTab);
+        navigate(`/journal/${newTab}`);
+    };
+
     // Fetch user's own posts from API
     const fetchPosts = useCallback(async () => {
         setLoading(true);
         try {
-            const res = await postService.getFeed();
+            // Fetch based on visibility tab
+            let res;
+            if (visibilityTab === 'private') {
+                res = await postService.getPrivatePosts();
+            } else {
+                res = await postService.getFeed();
+                // Filter for public posts only
+                res = {
+                    ...res,
+                    data: (res.data || res || []).filter(post => post.privacy === 'public'),
+                };
+            }
             const allPosts = res.data || res || [];
-            console.log('Fetched posts:', allPosts); // Debug logging
+            console.log(`Fetched ${visibilityTab} posts:`, allPosts);
             
             // Map API posts to journal card shape
             const mapped = allPosts.map((post) => {
@@ -47,25 +72,13 @@ export default function JournalPage() {
                 }
 
                 return {
+                    ...post, // Include all original post data for PostDetailModal
                     id: post.post_id || post.id,
                     date: createdTime.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
                     createdAt: post.created_at || new Date().toISOString(),
                     isPublic: post.privacy === 'public',
-                    privacy: post.privacy || 'private',
-                    text: post.content || '',
                     body: post.content || '',
-                    content: post.content || '',
-                    mood: post.mood?.name || '',
-                    image: post.image || null,
-                    image_url: post.image || null,
-                    likes_count: post.likes_count ?? 0,
-                    likes: post.likes_count ?? 0,
-                    comments_count: post.comments_count ?? 0,
-                    comments: post.comments_count ?? 0,
-                    hashtags: post.hashtags || [],
-                    user_id: post.user_id,
-                    username: post.user?.username,
-                    avatar: post.user?.profile?.profile_picture,
+                    text: post.content || '',
                     link: `${window.location.origin}/#/post/${post.post_id || post.id}`,
                     time: relativeTime, // Relative time for SmallPostCard display
                 };
@@ -78,7 +91,7 @@ export default function JournalPage() {
         } finally {
             setLoading(false);
         }
-    }, []);
+    }, [visibilityTab]);
 
     useEffect(() => {
         fetchPosts();
@@ -127,7 +140,7 @@ export default function JournalPage() {
         <JournalLayout activeNav="journal" navbarMode="title" title="My Journal">
             <JournalHeader 
                 visibilityTab={visibilityTab}
-                setVisibilityTab={setVisibilityTab}
+                setVisibilityTab={handleTabChange}
                 sortBy={sortBy}
                 setSortBy={setSortBy}
             />

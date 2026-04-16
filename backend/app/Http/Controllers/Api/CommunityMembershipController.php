@@ -49,37 +49,59 @@ class CommunityMembershipController extends Controller
 
     public function join(Request $request, Community $community): JsonResponse
     {
-        $membership = CommunityMember::firstOrCreate([
-            'user_id' => $request->user()->user_id,
-            'community_id' => $community->community_id,
-        ], [
-            'joined_at' => now(),
-        ]);
-
-        if ($membership->wasRecentlyCreated) {
-            Notification::create([
+        try {
+            $membership = CommunityMember::firstOrCreate([
                 'user_id' => $request->user()->user_id,
-                'type' => 'community',
-                'reference_id' => $community->community_id,
-                'is_read' => false,
+                'community_id' => $community->community_id,
+            ], [
+                'joined_at' => now(),
             ]);
-        }
 
-        return response()->json([
-            'message' => 'Joined community successfully.',
-            'membership' => $membership,
-        ], 201);
+            if ($membership->wasRecentlyCreated) {
+                Notification::create([
+                    'user_id' => $request->user()->user_id,
+                    'type' => 'community',
+                    'reference_id' => $community->community_id,
+                    'is_read' => false,
+                ]);
+            }
+
+            return response()->json([
+                'message' => 'Joined community successfully.',
+                'membership' => $membership,
+            ], 201);
+        } catch (\Exception $e) {
+            \Log::error('Failed to join community', [
+                'user_id' => $request->user()->user_id,
+                'community_id' => $community->community_id,
+                'error' => $e->getMessage(),
+            ]);
+            return response()->json([
+                'message' => 'Failed to join community: ' . $e->getMessage(),
+            ], 500);
+        }
     }
 
     public function leave(Request $request, Community $community): JsonResponse
     {
-        CommunityMember::query()
-            ->where('user_id', $request->user()->user_id)
-            ->where('community_id', $community->community_id)
-            ->delete();
+        try {
+            CommunityMember::query()
+                ->where('user_id', $request->user()->user_id)
+                ->where('community_id', $community->community_id)
+                ->delete();
 
-        return response()->json([
-            'message' => 'Left community successfully.',
-        ]);
+            return response()->json([
+                'message' => 'Left community successfully.',
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Failed to leave community', [
+                'user_id' => $request->user()->user_id,
+                'community_id' => $community->community_id,
+                'error' => $e->getMessage(),
+            ]);
+            return response()->json([
+                'message' => 'Failed to leave community: ' . $e->getMessage(),
+            ], 500);
+        }
     }
 }

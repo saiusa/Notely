@@ -100,10 +100,17 @@ export default function PostDetailModal({ post, isOpen, onClose }) {
     const timeDisplay = post.time || post.created_at || 'just now';
     const contentBody = post.body || post.content || '';
     const imageUrl = post.image || post.image_url || null;
-    const mood = post.mood || null;
+    const moodObj = post.mood || null;
+    const moodName = typeof moodObj === 'string' ? moodObj : moodObj?.name || null;
+    const moodEmoji = typeof moodObj === 'object' ? moodObj?.emoji || '😊' : '😊';
     const hashtags = post.hashtags || [];
     const commentsCount = post.comments_count ?? post.comments ?? 0;
     const isOwner = post.isOwner || (user && post.user_id === user.id);
+    
+    // Extract title (first line of content)
+    const contentLines = contentBody.split('\n');
+    const titleText = contentLines[0] || '';
+    const bodyText = contentLines.slice(1).join('\n').trim() || contentBody;
 
     return (
         <div 
@@ -175,15 +182,40 @@ export default function PostDetailModal({ post, isOpen, onClose }) {
 
                     {/* Post body */}
                     <div className="post-detail-modal__body">
-                        {/* Mood */}
-                        {mood && (
-                            <div className="post-detail-modal__mood-wrap">
-                                <span className="post-detail-modal__mood">{mood}</span>
-                            </div>
+                        {/* Title */}
+                        {titleText && (
+                            <h2 className="post-detail-modal__title">{titleText}</h2>
                         )}
 
+                        {/* Mood and Tags inline */}
+                        <div className="post-detail-modal__meta">
+                            {moodName && (
+                                <span className="post-detail-modal__mood">
+                                    <span className="post-detail-modal__mood-emoji">{moodEmoji}</span>
+                                    {moodName}
+                                </span>
+                            )}
+                            {hashtags && hashtags.length > 0 && (
+                                <div className="post-detail-modal__tags-inline">
+                                    {hashtags.slice(0, 3).map((tag, idx) => {
+                                        const tagName = typeof tag === 'string' 
+                                            ? tag 
+                                            : tag?.name || tag?.title || '';
+                                        const displayTag = tagName.startsWith('#') ? tagName : `#${tagName}`;
+                                        return (
+                                            <span key={`tag-${idx}`} className="post-detail-modal__tag-inline">
+                                                {displayTag}
+                                            </span>
+                                        );
+                                    })}
+                                </div>
+                            )}
+                        </div>
+
                         {/* Content text */}
-                        <p className="post-detail-modal__text">{contentBody}</p>
+                        {bodyText && (
+                            <p className="post-detail-modal__text">{bodyText}</p>
+                        )}
 
                         {/* Image if available */}
                         {imageUrl && (
@@ -195,31 +227,7 @@ export default function PostDetailModal({ post, isOpen, onClose }) {
                                 />
                             </div>
                         )}
-
-                        {/* Hashtags */}
-                        {hashtags && hashtags.length > 0 && (
-                            <div className="post-detail-modal__tags">
-                                {hashtags.map((tag, idx) => {
-                                    // Handle both string and object hashtag formats
-                                    const tagName = typeof tag === 'string' 
-                                        ? tag 
-                                        : tag?.name || tag?.title || '';
-                                    const displayTag = tagName.startsWith('#') ? tagName : `#${tagName}`;
-                                    return (
-                                        <span
-                                            key={`tag-${idx}`}
-                                            className="post-detail-modal__tag"
-                                        >
-                                            {displayTag}
-                                        </span>
-                                    );
-                                })}
-                            </div>
-                        )}
                     </div>
-
-                    {/* Divider */}
-                    <div className="post-detail-modal__divider"></div>
 
                     {/* Stats */}
                     <div className="post-detail-modal__stats">
@@ -230,9 +238,6 @@ export default function PostDetailModal({ post, isOpen, onClose }) {
                             {commentsCount} {commentsCount === 1 ? 'comment' : 'comments'}
                         </span>
                     </div>
-
-                    {/* Divider */}
-                    <div className="post-detail-modal__divider"></div>
 
                     {/* Action buttons */}
                     <div className="post-detail-modal__actions">
@@ -265,9 +270,6 @@ export default function PostDetailModal({ post, isOpen, onClose }) {
                             </button>
                         )}
                     </div>
-
-                    {/* Divider */}
-                    <div className="post-detail-modal__divider"></div>
 
                     {/* Comments section */}
                     <div className="post-detail-modal__comments">

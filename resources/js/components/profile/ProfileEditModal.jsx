@@ -1,10 +1,11 @@
 import React, { useRef, useState } from 'react';
-import { defaultProfile } from './ProfileUser';
 import { countryOptions } from './countries';
 import '../../../sass/components/profile/ProfileEditModal.scss';
 
 export default function ProfileEditModal({ profile, onSave, onClose }) {
     const [draft, setDraft] = useState(profile);
+    const [profilePhotoFile, setProfilePhotoFile] = useState(null);
+    const [coverPhotoFile, setCoverPhotoFile] = useState(null);
     const fileInputRef = useRef(null);
     const coverInputRef = useRef(null);
 
@@ -33,6 +34,10 @@ export default function ProfileEditModal({ profile, onSave, onClose }) {
             return;
         }
 
+        // Store the file object for upload
+        setProfilePhotoFile(selectedFile);
+
+        // Show preview
         const reader = new FileReader();
         reader.onload = (e) => {
             const dataUrl = e.target.result;
@@ -50,6 +55,10 @@ export default function ProfileEditModal({ profile, onSave, onClose }) {
             return;
         }
 
+        // Store the file object for upload
+        setCoverPhotoFile(selectedFile);
+
+        // Show preview
         const reader = new FileReader();
         reader.onload = (e) => {
             const dataUrl = e.target.result;
@@ -69,7 +78,7 @@ export default function ProfileEditModal({ profile, onSave, onClose }) {
                 <div className="profile-edit-modal__header-section">
                     <div className="profile-edit-modal__photo-container">
                         <img
-                            src={draft.profilePhoto || defaultProfile.profilePhoto}
+                            src={draft.profilePhoto || ''}
                             alt="avatar"
                             className="profile-edit-modal__photo"
                         />
@@ -88,7 +97,7 @@ export default function ProfileEditModal({ profile, onSave, onClose }) {
 
                     <div className="profile-edit-modal__cover-section">
                         <img
-                            src={draft.coverPhoto || defaultProfile.coverPhoto || 'https://via.placeholder.com/860x180/2a2d3a/2a2d3a?text=Cover'}
+                            src={draft.coverPhoto || 'https://via.placeholder.com/860x180/2a2d3a/2a2d3a?text=Cover'}
                             alt="cover"
                             className="profile-edit-modal__cover"
                         />
@@ -199,7 +208,7 @@ export default function ProfileEditModal({ profile, onSave, onClose }) {
                     </button>
                     <button
                         type="button"
-                        onClick={() => onSave(draft)}
+                        onClick={() => onSave(draft, profilePhotoFile, coverPhotoFile)}
                         className="profile-edit-modal__save-button"
                     >
                         Save
