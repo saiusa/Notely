@@ -9,7 +9,9 @@ export default function PrivacyTab({ defaultPrivacy, setDefaultPrivacy, hideComm
                     <p className="settings-tab__toggle-title settings-tab__toggle-title--small-gap">Default Post Privacy</p>
                     <label className="settings-tab__checkbox-row settings-tab__checkbox-row--spaced">
                         <input
-                            type="checkbox"
+                            type="radio"
+                            name="defaultPrivacy"
+                            value="public"
                             checked={defaultPrivacy === 'public'}
                             onChange={() => setDefaultPrivacy('public')}
                             className="settings-tab__checkbox"
@@ -18,7 +20,9 @@ export default function PrivacyTab({ defaultPrivacy, setDefaultPrivacy, hideComm
                     </label>
                     <label className="settings-tab__checkbox-row">
                         <input
-                            type="checkbox"
+                            type="radio"
+                            name="defaultPrivacy"
+                            value="private"
                             checked={defaultPrivacy === 'private'}
                             onChange={() => setDefaultPrivacy('private')}
                             className="settings-tab__checkbox"

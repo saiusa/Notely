@@ -1,0 +1,664 @@
+/**
+ * sass/components/admin/AdminModeration.scss
+ * Styling for Admin Moderation page
+ */
+
+.admin-moderation {
+    &__container {
+        padding: 0;
+    }
+
+    &__header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 24px;
+        gap: 16px;
+    }
+
+    &__header-left {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+
+    &__title {
+        margin: 0;
+        font-size: 22px;
+        font-weight: 700;
+        color: #fff;
+        letter-spacing: -0.3px;
+    }
+
+    &__subtitle {
+        color: #8a8e99;
+        font-size: 13px;
+        margin: 0;
+
+        strong {
+            color: #e8e8f0;
+            font-weight: 600;
+        }
+    }
+
+    // ── Search bar ────────────────────────────────────────────────────────
+    &__search-wrap {
+        position: relative;
+        display: flex;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+
+    &__search-icon {
+        position: absolute;
+        left: 12px;
+        font-size: 18px;
+        color: #8a8e99;
+        pointer-events: none;
+        user-select: none;
+    }
+
+    &__search {
+        width: 100%;
+        padding: 9px 40px 9px 40px;
+        background: rgba(26, 27, 38, 0.7);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 8px;
+        color: #e8e8f0;
+        font-size: 14px;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        outline: none;
+
+        &::placeholder { color: #8a8e99; }
+
+        &:focus {
+            border-color: rgba(139, 92, 246, 0.5);
+            box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.12);
+        }
+    }
+
+    &__search-clear {
+        position: absolute;
+        right: 10px;
+        background: none;
+        border: none;
+        color: #8a8e99;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        padding: 2px;
+        border-radius: 4px;
+        transition: color 0.15s ease;
+
+        &:hover { color: #e8e8f0; }
+    }
+
+    // Live flagged-count badge in the header
+    &__count-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 5px 12px;
+        border-radius: 9999px;
+        font-size: 12px;
+        font-weight: 600;
+        background: rgba(239, 68, 68, 0.1);
+        color: #f87171;
+        border: 1px solid rgba(239, 68, 68, 0.25);
+        white-space: nowrap;
+        flex-shrink: 0;
+    }
+
+    // Animated dot inside the count badge
+    &__pulse-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 9999px;
+        background: #6b7280; // gray when no reports
+        flex-shrink: 0;
+
+        &--active {
+            background: #ef4444;
+            animation: pulse-dot 1.5s ease-in-out infinite;
+        }
+    }
+
+    &__error {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 12px 16px;
+        background: rgba(239, 68, 68, 0.1);
+        border: 1px solid rgba(239, 68, 68, 0.3);
+        border-radius: 8px;
+        margin-bottom: 20px;
+
+        p {
+            color: #fca5a5;
+            margin: 0;
+            font-size: 14px;
+            flex: 1;
+        }
+    }
+
+    &__error-dismiss {
+        background: none;
+        border: none;
+        color: #f87171;
+        cursor: pointer;
+        font-size: 16px;
+        line-height: 1;
+        padding: 2px 4px;
+        border-radius: 4px;
+        flex-shrink: 0;
+        transition: color 0.15s ease;
+
+        &:hover { color: #fca5a5; }
+    }
+
+    &__loading {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 80px 20px;
+        gap: 16px;
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(139, 92, 246, 0.2);
+            border-top-color: #8b5cf6;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        p {
+            color: #8a8e99;
+            font-size: 16px;
+            margin: 0;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+    }
+
+    &__feed {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        margin-bottom: 32px;
+    }
+
+    &__empty {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 60px 20px;
+        text-align: center;
+        gap: 8px;
+    }
+
+    &__empty-icon {
+        font-size: 2.5rem;
+        line-height: 1;
+        margin-bottom: 4px;
+    }
+
+    &__empty p {
+        color: #8a8e99;
+        font-size: 16px;
+        margin: 0;
+    }
+
+    &__empty span {
+        color: #666b7a;
+        font-size: 13px;
+    }
+
+    &__pagination {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 16px;
+        padding: 20px;
+        background: rgba(26, 27, 38, 0.5);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 8px;
+    }
+}
+
+.pagination-info {
+    font-size: 13px;
+    color: #8a8e99;
+
+    strong {
+        color: #e8e8f0;
+        font-weight: 600;
+    }
+}
+
+.pagination-btn {
+    padding: 8px 16px;
+    border-radius: 4px;
+    border: 1px solid rgba(139, 92, 246, 0.3);
+    background: rgba(139, 92, 246, 0.1);
+    color: #b8bcc4;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:hover:not(:disabled) {
+        background: rgba(139, 92, 246, 0.2);
+        border-color: rgba(139, 92, 246, 0.5);
+        color: #d8b4fe;
+    }
+
+    &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+}
+
+// ============================================================================
+// User Triage Card (Accordion)
+// ============================================================================
+
+.triage-card {
+    background: rgba(26, 27, 38, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    border-radius: 12px;
+    overflow: hidden;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+
+    &:hover {
+        border-color: rgba(139, 92, 246, 0.2);
+    }
+
+    &--open {
+        border-color: rgba(139, 92, 246, 0.35);
+        box-shadow: 0 0 0 1px rgba(139, 92, 246, 0.1);
+    }
+
+    // ── Header (always visible) ──────────────────────────────────────────
+    &__header {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 16px 20px;
+        cursor: pointer;
+        user-select: none;
+        transition: background 0.15s ease;
+
+        &:hover { background: rgba(255, 255, 255, 0.02); }
+    }
+
+    // ── Avatar ───────────────────────────────────────────────────────────
+    &__avatar {
+        width: 42px;
+        height: 42px;
+        border-radius: 50%;
+        object-fit: cover;
+        outline: 2px solid rgba(255, 255, 255, 0.08);
+        flex-shrink: 0;
+    }
+
+    &__avatar-fallback {
+        width: 42px;
+        height: 42px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #7c3aed, #4f46e5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 15px;
+        font-weight: 700;
+        color: #fff;
+        flex-shrink: 0;
+        outline: 2px solid rgba(255, 255, 255, 0.08);
+    }
+
+    // ── User info ─────────────────────────────────────────────────────────
+    &__user-info {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+
+    &__username {
+        font-size: 14px;
+        font-weight: 600;
+        color: #e8e8f0;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    &__email {
+        font-size: 12px;
+        color: #8a8e99;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    // ── Right-side controls row ──────────────────────────────────────────
+    &__controls {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-shrink: 0;
+    }
+
+    // ── Flag count badge ─────────────────────────────────────────────────
+    &__flag-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 3px 10px;
+        border-radius: 9999px;
+        font-size: 12px;
+        font-weight: 700;
+        background: rgba(239, 68, 68, 0.15);
+        color: #f87171;
+        border: 1px solid rgba(239, 68, 68, 0.3);
+        white-space: nowrap;
+    }
+
+    // ── Suspend button ───────────────────────────────────────────────────
+    &__suspend-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 5px 12px;
+        border-radius: 6px;
+        font-size: 12px;
+        font-weight: 600;
+        border: 1px solid rgba(251, 146, 60, 0.35);
+        background: rgba(251, 146, 60, 0.08);
+        color: #fb923c;
+        cursor: pointer;
+        transition: all 0.15s ease;
+        white-space: nowrap;
+
+        &:hover:not(:disabled) {
+            background: rgba(251, 146, 60, 0.18);
+            border-color: rgba(251, 146, 60, 0.55);
+            color: #fdba74;
+        }
+
+        &:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+    }
+
+    // ── Chevron ───────────────────────────────────────────────────────────
+    &__chevron {
+        font-size: 22px;
+        color: #8a8e99;
+        transition: transform 0.2s ease;
+        flex-shrink: 0;
+
+        &--open { transform: rotate(180deg); }
+    }
+
+    // ── Expandable body ───────────────────────────────────────────────────
+    &__body {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        padding: 0 16px 16px;
+        border-top: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    // ── Tab bar ──────────────────────────────────────────────────────────
+    &__tabs {
+        display: flex;
+        gap: 4px;
+        padding: 12px 0 4px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        margin-bottom: 4px;
+    }
+
+    &__tab {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 6px 14px;
+        border-radius: 6px;
+        border: 1px solid transparent;
+        background: none;
+        font-size: 12px;
+        font-weight: 600;
+        color: #8a8e99;
+        cursor: pointer;
+        transition: all 0.15s ease;
+
+        &:hover:not(&--active) {
+            background: rgba(255, 255, 255, 0.04);
+            color: #b8bcc4;
+        }
+
+        &--active {
+            background: rgba(139, 92, 246, 0.12);
+            border-color: rgba(139, 92, 246, 0.3);
+            color: #c4b5fd;
+        }
+    }
+
+    &__tab-count {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 18px;
+        height: 18px;
+        padding: 0 5px;
+        border-radius: 9999px;
+        background: rgba(239, 68, 68, 0.2);
+        color: #f87171;
+        font-size: 10px;
+        font-weight: 700;
+    }
+
+    // Offset body top padding so first card has breathing room
+    &__body > .moderation-card:first-child {
+        margin-top: 4px;
+    }
+
+    &__no-posts {
+        text-align: center;
+        color: #8a8e99;
+        font-size: 13px;
+        padding: 20px 0;
+        margin: 0;
+    }
+}
+
+// ── Inline spinner (small variant for suspend btn) ────────────────────────────
+.btn-spinner--sm {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border: 2px solid currentColor;
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: spin-sm 0.6s linear infinite;
+}
+
+@keyframes spin-sm {
+    to { transform: rotate(360deg); }
+}
+
+// ============================================================================
+// Triage Skeleton
+// ============================================================================
+
+.triage-skeleton {
+    background: rgba(26, 27, 38, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 12px;
+    overflow: hidden;
+    animation: skeleton-pulse 1.5s ease-in-out infinite;
+
+    &__header {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 16px 20px;
+    }
+
+    &__avatar {
+        width: 42px;
+        height: 42px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.07);
+        flex-shrink: 0;
+    }
+
+    &__meta {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    &__line {
+        height: 12px;
+        border-radius: 4px;
+        background: rgba(255, 255, 255, 0.07);
+
+        &--name  { width: 28%; }
+        &--email { width: 42%; }
+    }
+
+    &__badge {
+        width: 100px;
+        height: 24px;
+        border-radius: 9999px;
+        background: rgba(255, 255, 255, 0.07);
+        flex-shrink: 0;
+    }
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+    .triage-card {
+        &__header { flex-wrap: wrap; gap: 10px; }
+        &__controls { width: 100%; justify-content: flex-end; }
+        &__flag-badge { font-size: 11px; }
+        &__suspend-btn { font-size: 11px; padding: 4px 10px; }
+    }
+}
+
+
+@media (max-width: 768px) {
+    .admin-moderation {
+        &__feed {
+            gap: 12px;
+        }
+
+        &__pagination {
+            flex-direction: column;
+            gap: 12px;
+        }
+    }
+
+    .pagination-btn {
+        width: 100%;
+        padding: 10px 16px;
+    }
+}
+
+// ============================================================================
+// Skeleton loader card
+// ============================================================================
+
+.moderation-skeleton {
+    background: rgba(26, 27, 38, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 12px;
+    overflow: hidden;
+    animation: skeleton-pulse 1.5s ease-in-out infinite;
+
+    &__header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 20px 20px 16px;
+    }
+
+    &__avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.07);
+        flex-shrink: 0;
+    }
+
+    &__meta {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    &__body {
+        padding: 0 20px 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    &__line {
+        height: 12px;
+        border-radius: 4px;
+        background: rgba(255, 255, 255, 0.07);
+
+        &--name  { width: 30%; }
+        &--date  { width: 45%; }
+        &--full  { width: 100%; }
+        &--lg    { width: 80%; }
+        &--md    { width: 60%; }
+    }
+
+    &__footer {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        padding: 14px 20px;
+        border-top: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    &__btn {
+        height: 32px;
+        border-radius: 6px;
+        background: rgba(255, 255, 255, 0.07);
+
+        &--wide { width: 120px; }
+        &--sm   { width: 90px; }
+    }
+}
+
+// ============================================================================
+// Keyframes
+// ============================================================================
+
+@keyframes skeleton-pulse {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: 0.55; }
+}
+
+@keyframes pulse-dot {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50%       { opacity: 0.6; transform: scale(1.3); }
+}

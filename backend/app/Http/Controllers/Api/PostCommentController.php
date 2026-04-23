@@ -68,6 +68,10 @@ class PostCommentController extends Controller
             'parent_id' => $validated['parent_id'] ?? null,
         ]);
 
+        // Commenting on a post counts as viewing it
+        $post->increment('views_count');
+
+
         // Notify post owner about top-level comments
         if ((int) $post->user_id !== (int) $request->user()->user_id && ! $comment->parent_id) {
             Notification::create([

@@ -26,6 +26,21 @@ class Like extends Model
         ];
     }
 
+    /**
+     * Auto-sync the parent post's likes_count counter.
+     * Runs on every Like create / delete — no manual increments needed elsewhere.
+     */
+    protected static function booted(): void
+    {
+        static::created(function (Like $like): void {
+            Post::where('post_id', $like->post_id)->increment('likes_count');
+        });
+
+        static::deleted(function (Like $like): void {
+            Post::where('post_id', $like->post_id)->decrement('likes_count');
+        });
+    }
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class, 'user_id', 'user_id');

@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { moodOptions } from './moodOptions';
 import postService from '../../services/postService';
 import { useAuth } from '../../context/AuthContext';
+import { generateAnonymousName } from '../../utils/anonymousNameGenerator';
 
 const modeConfig = {
     text: {
@@ -42,11 +43,11 @@ export default function ComposerModal({
     const [selectedMoodId, setSelectedMoodId] = useState(
         isEditing && initialPost?.mood_id ? initialPost.mood_id : null
     );
-    const [allowComments, setAllowComments] = useState(
-        isEditing && initialPost?.allow_comments !== undefined ? initialPost.allow_comments : true
-    );
     const [isAnonymous, setIsAnonymous] = useState(
         isEditing && initialPost?.is_anonymous ? initialPost.is_anonymous : false
+    );
+    const [anonymousName, setAnonymousName] = useState(
+        isEditing && initialPost?.anonymous_name ? initialPost.anonymous_name : generateAnonymousName()
     );
     const [destination, setDestination] = useState(() => {
         if (isEditing && initialPost) {
@@ -55,7 +56,12 @@ export default function ComposerModal({
             }
             return initialPost.privacy === 'private' ? 'journal_private' : 'journal_public';
         }
-        return communityId ? `community_${communityId}` : 'journal_public';
+        // Use user's default privacy setting or communityId if specified
+        if (communityId) {
+            return `community_${communityId}`;
+        }
+        const defaultPrivacy = user?.setting?.default_post_privacy || 'public';
+        return defaultPrivacy === 'private' ? 'journal_private' : 'journal_public';
     });
     const [title, setTitle] = useState(
         isEditing && initialPost?.title ? initialPost.title : ''
@@ -181,8 +187,12 @@ export default function ComposerModal({
             
             formData.append('content', body);
             formData.append('mood_id', selectedMood.mood_id);
-            formData.append('allow_comments', allowComments ? 1 : 0);
             formData.append('is_anonymous', isAnonymous ? 1 : 0);
+            
+            // Append anonymous_name only if posting anonymously
+            if (isAnonymous && anonymousName) {
+                formData.append('anonymous_name', anonymousName);
+            }
 
             // Extract community_id from destination if applicable
             let postCommunityId = communityId;
@@ -397,19 +407,6 @@ export default function ComposerModal({
                         {/* Settings Dropdown */}
                         {isSettingsOpen && (
                             <div ref={settingsRef} className="composer-modal__settings-menu">
-                                <button
-                                    type="button"
-                                    onClick={() => setAllowComments((prev) => !prev)}
-                                    className="composer-modal__settings-item"
-                                >
-                                    <span>Allow comments</span>
-                                    <div className="composer-modal__toggle">
-                                        <div className={`composer-modal__toggle-track ${allowComments ? 'composer-modal__toggle-track--on' : ''}`}>
-                                            <div className={`composer-modal__toggle-thumb ${allowComments ? 'composer-modal__toggle-thumb--on' : ''}`} />
-                                        </div>
-                                    </div>
-                                </button>
-
                                 <button
                                     type="button"
                                     onClick={() => setIsAnonymous((prev) => !prev)}

@@ -18,7 +18,8 @@ export default function CommentFloatingModal({
     onShare,
     liked = false,
     likesCount = 0,
-    loadingComments = false
+    loadingComments = false,
+    onLike
 }) {
     const { user } = useAuth();
     const [mainCommentInput, setMainCommentInput] = useState('');
@@ -100,6 +101,7 @@ export default function CommentFloatingModal({
                             post={post}
                             compact={false}
                             hideMenu={true}
+                            onLike={onLike}
                             onShare={onShare}
                             liked={liked}
                             likesCount={likesCount}

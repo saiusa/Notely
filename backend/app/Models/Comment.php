@@ -29,6 +29,26 @@ class Comment extends Model
         ];
     }
 
+    /**
+     * Auto-sync the parent post's comments_count counter.
+     * Only top-level comments (no parent_id) count toward the total.
+     * SoftDeletes: deleted() fires on soft-delete, restored() would fire on restore.
+     */
+    protected static function booted(): void
+    {
+        static::created(function (Comment $comment): void {
+            if (! $comment->parent_id) {
+                Post::where('post_id', $comment->post_id)->increment('comments_count');
+            }
+        });
+
+        static::deleted(function (Comment $comment): void {
+            if (! $comment->parent_id) {
+                Post::where('post_id', $comment->post_id)->decrement('comments_count');
+            }
+        });
+    }
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class, 'user_id', 'user_id');
@@ -47,5 +67,10 @@ class Comment extends Model
     public function replies(): HasMany
     {
         return $this->hasMany(Comment::class, 'parent_id', 'comment_id');
+    }
+
+    public function reports(): HasMany
+    {
+        return $this->hasMany(Report::class, 'comment_id', 'comment_id');
     }
 }

@@ -1,0 +1,223 @@
+@import '../../variables';
+
+.admin-dashboard {
+  &__container {
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+    max-width: 1400px;
+    margin: 0 auto;
+    width: 100%;
+  }
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+  }
+
+  &__header-text {
+    flex: 1;
+  }
+
+  &__heading {
+    font-size: 28px;
+    font-weight: 700;
+    color: $color-text-primary;
+    margin: 0 0 8px 0;
+    letter-spacing: -0.5px;
+  }
+
+  &__subheading {
+    font-size: 14px;
+    color: $color-text-secondary;
+    margin: 0;
+  }
+
+  &__refresh-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border: 1px solid rgba(139, 92, 246, 0.3);
+    border-radius: 8px;
+    background: rgba(139, 92, 246, 0.08);
+    color: #8b5cf6;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 20px;
+
+    &:hover:not(:disabled) {
+      background: rgba(139, 92, 246, 0.15);
+      border-color: rgba(139, 92, 246, 0.5);
+    }
+
+    &:active:not(:disabled) {
+      transform: scale(0.95);
+    }
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      animation: spin 1s linear infinite;
+    }
+  }
+
+  &__error {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 20px;
+    background: rgba(239, 68, 68, 0.08);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    border-radius: 8px;
+  }
+
+  &__error-icon {
+    font-size: 20px;
+    color: #ef4444;
+    flex-shrink: 0;
+  }
+
+  &__error-text {
+    font-size: 14px;
+    color: #ef4444;
+    margin: 0;
+  }
+
+  &__loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 24px;
+    padding: 60px 24px;
+    text-align: center;
+  }
+
+  &__spinner {
+    width: 48px;
+    height: 48px;
+    border: 3px solid rgba(139, 92, 246, 0.2);
+    border-top-color: #8b5cf6;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+
+  &__loading-text {
+    font-size: 14px;
+    color: $color-text-secondary;
+    margin: 0;
+  }
+
+  &__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 24px;
+
+    @media (max-width: $breakpoint-lg) {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 20px;
+    }
+
+    @media (max-width: $breakpoint-md) {
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+  }
+
+  &__footer {
+    display: flex;
+    justify-content: center;
+    padding: 24px;
+    border-top: 1px solid rgba(139, 92, 246, 0.1);
+  }
+
+  &__last-updated {
+    font-size: 12px;
+    color: $color-text-secondary;
+    margin: 0;
+    letter-spacing: 0.3px;
+  }
+
+  &__quick-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 28px;
+    background: linear-gradient(
+      135deg,
+      rgba(50, 56, 72, 0.3) 0%,
+      rgba(50, 56, 72, 0.15) 100%
+    );
+    border: 1px solid rgba(139, 92, 246, 0.15);
+    border-radius: 12px;
+  }
+
+  &__actions-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: $color-text-primary;
+    margin: 0 0 12px 0;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  &__actions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+
+    @media (max-width: $breakpoint-md) {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  &__action-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 20px;
+    background: rgba(50, 56, 72, 0.4);
+    border: 1px solid rgba(139, 92, 246, 0.2);
+    border-radius: 8px;
+    text-decoration: none;
+    color: $color-text-primary;
+    transition: all 0.2s ease;
+
+    &:hover {
+      background: rgba(139, 92, 246, 0.1);
+      border-color: rgba(139, 92, 246, 0.4);
+      box-shadow: 0 4px 16px rgba(139, 92, 246, 0.1);
+      transform: translateY(-2px);
+    }
+
+    &:active {
+      transform: translateY(0);
+    }
+  }
+
+  &__action-icon {
+    font-size: 32px;
+    color: #8b5cf6;
+  }
+
+  &__action-label {
+    font-size: 14px;
+    font-weight: 500;
+    text-align: center;
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}

@@ -1,0 +1,115 @@
+@import '../variables';
+
+// ============================================================================
+// Auth Base - Shared styles across all authentication pages
+// ============================================================================
+
+// Base styles for auth pages using Tailwind layout
+body.auth-page {
+  background-color: $color-bg-primary;
+  color: $color-text-secondary;
+}
+
+// Input field base styles to complement Tailwind classes
+input[type='email'],
+input[type='password'],
+input[type='text'],
+input[type='tel'] {
+  font-family: 'Nunito', sans-serif;
+  
+  &::placeholder {
+    color: $color-text-muted;
+  }
+
+  &:focus {
+    outline: none;
+  }
+}
+
+// Logo styling - reused across all auth pages
+.auth-logo {
+  display: block;
+  height: 48px;
+  width: auto;
+  max-width: 200px;
+  object-fit: contain;
+  object-position: center;
+}
+
+// Heading styles
+.auth-heading {
+  margin: 0;
+  font-family: 'Nunito', sans-serif;
+  font-size: $font-size-2xl;
+  font-weight: $font-weight-bold;
+  line-height: $line-height-tight;
+  color: $color-text-primary;
+  letter-spacing: $letter-spacing-tight;
+}
+
+// Description/subheading styles
+.auth-description {
+  margin: 0;
+  font-family: 'Nunito', sans-serif;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-normal;
+  line-height: $line-height-normal;
+  color: $color-text-tertiary;
+  letter-spacing: $letter-spacing-normal;
+}
+
+// Error message styling
+.auth-error {
+  padding: $spacing-2xl;
+  background-color: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: $radius-lg;
+  color: #fca5a5;
+  font-size: $font-size-sm;
+  text-align: center;
+  font-weight: $font-weight-normal;
+}
+
+// Success message styling
+.auth-success {
+  padding: $spacing-2xl;
+  background-color: rgba(74, 222, 128, 0.1);
+  border: 1px solid rgba(74, 222, 128, 0.3);
+  border-radius: $radius-lg;
+  color: #86efac;
+  font-size: $font-size-sm;
+  text-align: center;
+  font-weight: $font-weight-normal;
+}
+
+// Field error text
+.auth-field-error {
+  color: #fca5a5;
+  font-size: $font-size-xs;
+  margin-top: $spacing-md;
+  display: block;
+}
+
+// Help text
+.auth-help-text {
+  color: $color-text-muted;
+  font-size: $font-size-xs;
+  margin-top: $spacing-md;
+}
+
+// Link styling for auth pages
+.auth-link {
+  color: $color-primary;
+  text-decoration: none;
+  font-weight: $font-weight-medium;
+  transition: color $transition-fast;
+
+  &:hover {
+    color: $color-primary-hover;
+  }
+
+  &:focus {
+    outline: none;
+    text-decoration: underline;
+  }
+}

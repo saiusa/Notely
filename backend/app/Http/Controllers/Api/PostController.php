@@ -92,6 +92,7 @@ class PostController extends Controller
             'privacy' => ['required', 'in:public,private'],
             'allow_comments' => ['boolean'],
             'is_anonymous' => ['boolean'],
+            'anonymous_name' => ['nullable', 'string', 'max:255'],
             'hashtags' => ['sometimes', 'array'],
             'hashtags.*' => ['string', 'max:255'],
         ]);
@@ -129,6 +130,7 @@ class PostController extends Controller
         $post->load([
             'user:user_id,username',
             'user.profile:profile_id,user_id,profile_picture',
+            'user.setting:user_id,show_reaction_counts,hide_comments',
             'community:community_id,name,category_id',
             'community.category:category_id,slug,name',
             'mood:mood_id,name,color',
@@ -149,12 +151,10 @@ class PostController extends Controller
         // V1 Trending: Increment views counter
         $post->increment('views_count');
 
-        // V1 Trending: Increment views counter
-        $post->increment('views_count');
-
         $post->load([
             'user:user_id,username',
             'user.profile:profile_id,user_id,profile_picture',
+            'user.setting:user_id,show_reaction_counts,hide_comments',
             'community:community_id,name,category_id',
             'community.category:category_id,slug,name',
             'mood:mood_id,name,color',
@@ -184,6 +184,7 @@ class PostController extends Controller
             'privacy' => ['sometimes', 'in:public,private'],
             'allow_comments' => ['sometimes', 'boolean'],
             'is_anonymous' => ['sometimes', 'boolean'],
+            'anonymous_name' => ['nullable', 'string', 'max:255'],
             'hashtags' => ['sometimes', 'array'],
             'hashtags.*' => ['string', 'max:255'],
         ]);
@@ -233,6 +234,7 @@ class PostController extends Controller
         $post->load([
             'user:user_id,username',
             'user.profile:profile_id,user_id,profile_picture',
+            'user.setting:user_id,show_reaction_counts,hide_comments',
             'community:community_id,name,category_id',
             'community.category:category_id,slug,name',
             'mood:mood_id,name,color',
@@ -270,12 +272,26 @@ class PostController extends Controller
         return response()->json($posts);
     }
 
+    public function publicJournal(Request $request): JsonResponse
+    {
+        $user = $request->user();
+
+        $posts = $this->baseQuery()
+            ->where('user_id', $user->user_id)
+            ->where('privacy', 'public')
+            ->orderByDesc('created_at')
+            ->paginate(15);
+
+        return response()->json($posts);
+    }
+
     private function baseQuery(): Builder
     {
         return Post::query()
             ->with([
                 'user:user_id,username',
                 'user.profile:profile_id,user_id,profile_picture',
+                'user.setting:user_id,show_reaction_counts,hide_comments',
                 'community:community_id,name,category_id',
                 'community.category:category_id,slug,name',
                 'mood:mood_id,name,color',

@@ -3,10 +3,12 @@
  * Central Axios instance for all API calls.
  * - Reads Sanctum Bearer token from localStorage
  * - Auto-redirects to /login on 401 (expired session)
+ * - Uses Vite's import.meta.env for environment variables
  */
 import axios from 'axios';
 
-// Get API URL - use import.meta.env in Vite
+// Get API base URL from Vite environment
+// VITE_API_URL can be set in .env (e.g., VITE_API_URL=http://localhost:8000/api)
 const baseURL = import.meta.env.VITE_API_URL || '/api';
 
 const api = axios.create({

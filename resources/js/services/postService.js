@@ -18,6 +18,12 @@ const postService = {
         return res.data;
     },
 
+    /** GET /api/posts/journal/public?page=N - Get authenticated user's public posts */
+    async getUserPublicPosts(page = 1) {
+        const res = await api.get('/posts/journal/public', { params: { page } });
+        return res.data;
+    },
+
     /** GET /api/posts?tab=community - Community feed (posts from joined communities) */
     async getCommunityFeed(page = 1) {
         const res = await api.get('/posts', { params: { tab: 'community', page } });

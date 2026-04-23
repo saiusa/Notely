@@ -38,17 +38,4 @@ class CategoryController extends Controller
 
         return response()->json($category);
     }
-
-    /**
-     * Get categories with count of communities
-     */
-    public function withCounts(): JsonResponse
-    {
-        $categories = Category::query()
-            ->withCount('communities')
-            ->orderBy('created_at')
-            ->get();
-
-        return response()->json($categories);
-    }
 }

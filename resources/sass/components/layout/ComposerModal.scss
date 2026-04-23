@@ -32,7 +32,7 @@
     border-radius: $radius-2xl;
     background-color: #21232c;
     padding: $spacing-2xl;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
     border: 1px solid rgba(255, 255, 255, 0.05);
 
     &--modal {
@@ -177,6 +177,26 @@
     background-color: $color-bg-secondary;
     padding: $spacing-sm;
     box-shadow: $shadow-2xl;
+  }
+
+  &__settings-item {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 12px 8px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+
+    &:last-of-type {
+      border-bottom: none;
+    }
+  }
+
+  &__settings-label {
+    font-size: 13px;
+    color: #8f94a2;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
   }
 
   &__menu-item {

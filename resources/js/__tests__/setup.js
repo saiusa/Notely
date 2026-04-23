@@ -3,7 +3,13 @@
  */
 import '@testing-library/jest-dom';
 
-// Mock import.meta for Vite
+// Set up environment variables for Vite in test environment
+process.env.VITE_API_URL = 'http://localhost:8000';
+process.env.MODE = 'test';
+process.env.DEV = 'false';
+process.env.PROD = 'false';
+
+// Mock import.meta for Vite (fallback)
 if (typeof global.import === 'undefined') {
     global.import = {};
 }

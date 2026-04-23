@@ -16,14 +16,14 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $this->call([
+            AdminUserSeeder::class,
             MoodSeeder::class,
         ]);
 
-        // User::factory(10)->create();
-
-        User::factory()->create([
-            'username' => 'testuser',
-            'email' => 'test@example.com',
-        ]);
+        // Create a test user (idempotent)
+        User::firstOrCreate(
+            ['email' => 'test@example.com'],
+            ['username' => 'testuser']
+        );
     }
 }

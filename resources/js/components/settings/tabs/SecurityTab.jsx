@@ -1,81 +1,69 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Loader from '../../common/Loader';
-import { Input, Label, Switch } from '../controls';
+import { Input, Label } from '../controls';
 
 export default function SecurityTab({
-    showChangePassword,
-    setShowChangePassword,
     currentPassword,
     setCurrentPassword,
     newPassword,
     setNewPassword,
     confirmPassword,
     setConfirmPassword,
-    twoFactorEnabled,
-    onToggleTwoFactor,
     saving = false,
     onSavePassword,
+    onDeleteAccount,
+    isDirty = false,
+    onCancel,
 }) {
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
+    const handleDeleteClick = () => {
+        setShowDeleteConfirm(true);
+    };
+
+    const handleConfirmDelete = () => {
+        setShowDeleteConfirm(false);
+        onDeleteAccount();
+    };
+
     return (
         <div className="settings-tab settings-tab--security">
-            {!showChangePassword ? (
-                <div className="settings-tab__body settings-tab__body--large-gap">
-                    <button
-                        type="button"
-                        onClick={() => setShowChangePassword(true)}
-                        className="settings-tab__link-button"
-                    >
-                        Change Password
-                    </button>
+            {/* Change Password Section - Always Visible */}
+            <div className="settings-tab__body settings-tab__body--compact-gap">
+                <h3 className="settings-tab__section-title">Change Password</h3>
+                <label className="settings-tab__label-wrap">
+                    <Label>Current Password</Label>
+                    <Input
+                        type="password"
+                        value={currentPassword}
+                        onChange={(e) => setCurrentPassword(e.target.value)}
+                        placeholder="Enter current password"
+                    />
+                </label>
+                <label className="settings-tab__label-wrap">
+                    <Label>New Password</Label>
+                    <Input
+                        type="password"
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                        placeholder="Enter new password"
+                    />
+                </label>
+                <label className="settings-tab__label-wrap">
+                    <Label>Confirm Password</Label>
+                    <Input
+                        type="password"
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        placeholder="Confirm new password"
+                    />
+                </label>
+            </div>
 
-                    <div className="settings-tab__toggle-row settings-tab__toggle-row--title">
-                        <p className="settings-tab__toggle-title">Two-Factor Authentication</p>
-                        <Switch enabled={twoFactorEnabled} onToggle={onToggleTwoFactor} />
-                    </div>
-                </div>
-            ) : (
-                <div className="settings-tab__body settings-tab__body--compact-gap">
-                    <label className="settings-tab__label-wrap">
-                        <Label>Current Password</Label>
-                        <Input
-                            type="password"
-                            value={currentPassword}
-                            onChange={(e) => setCurrentPassword(e.target.value)}
-                            placeholder="Enter current password"
-                        />
-                    </label>
-                    <label className="settings-tab__label-wrap">
-                        <Label>New Password</Label>
-                        <Input
-                            type="password"
-                            value={newPassword}
-                            onChange={(e) => setNewPassword(e.target.value)}
-                            placeholder="Enter New Password"
-                        />
-                    </label>
-                    <label className="settings-tab__label-wrap">
-                        <Label>Confirm Password</Label>
-                        <Input
-                            type="password"
-                            value={confirmPassword}
-                            onChange={(e) => setConfirmPassword(e.target.value)}
-                        />
-                    </label>
-                </div>
-            )}
-
-            {showChangePassword && (
+            {/* Password Action Buttons - Only show if isDirty */}
+            {isDirty && (
                 <div className="settings-tab__actions">
-                    <button
-                        type="button"
-                        onClick={() => {
-                            setShowChangePassword(false);
-                            setCurrentPassword('');
-                            setNewPassword('');
-                            setConfirmPassword('');
-                        }}
-                        className="settings-tab__text-button"
-                    >
+                    <button type="button" onClick={onCancel} className="settings-tab__text-button">
                         Cancel
                     </button>
                     <button
@@ -86,6 +74,49 @@ export default function SecurityTab({
                     >
                         {saving ? <Loader /> : 'Save'}
                     </button>
+                </div>
+            )}
+
+            {/* Delete Account Section - Danger Zone */}
+            <div className="settings-tab__danger-zone">
+                <h3 className="settings-tab__danger-zone-title">Danger Zone</h3>
+                <button
+                    type="button"
+                    onClick={handleDeleteClick}
+                    className="settings-tab__danger-button"
+                >
+                    Delete Account
+                </button>
+            </div>
+
+            {/* Delete Confirmation Modal */}
+            {showDeleteConfirm && (
+                <div className="settings-tab__delete-modal-overlay" onClick={() => setShowDeleteConfirm(false)}>
+                    <div className="settings-tab__delete-modal" onClick={(e) => e.stopPropagation()}>
+                        <h2 className="settings-tab__delete-modal-title">Delete Account?</h2>
+                        <p className="settings-tab__delete-modal-message">
+                            This action will deactivate your account and hide all your journal entries.
+                        </p>
+                        <p className="settings-tab__delete-modal-warning">
+                            This action cannot be undone.
+                        </p>
+                        <div className="settings-tab__delete-modal-actions">
+                            <button
+                                type="button"
+                                onClick={() => setShowDeleteConfirm(false)}
+                                className="settings-tab__text-button"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                type="button"
+                                onClick={handleConfirmDelete}
+                                className="settings-tab__delete-confirm-button"
+                            >
+                                Delete Account
+                            </button>
+                        </div>
+                    </div>
                 </div>
             )}
         </div>

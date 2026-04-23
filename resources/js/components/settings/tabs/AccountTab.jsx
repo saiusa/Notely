@@ -7,17 +7,12 @@ export default function AccountTab({
     setUsername,
     email,
     setEmail,
-    country,
-    phone,
-    setPhone,
-    countries,
-    showCountryMenu,
-    setShowCountryMenu,
-    onCountrySelect,
     onOpenDeactivate,
     deactivateDone,
     saving = false,
     onSave,
+    isDirty = false,
+    onCancel,
 }) {
     return (
         <div className="settings-tab settings-tab--account">
@@ -31,55 +26,23 @@ export default function AccountTab({
                     <Label>Email</Label>
                     <Input value={email} onChange={(e) => setEmail(e.target.value)} />
                 </label>
+            </div>
 
-                <div className="settings-tab__phone-section">
-                    <Label>Phone Number</Label>
-                    <div className="settings-tab__phone-row">
-                        <div className="settings-tab__country-select-wrap">
-                            <button
-                                type="button"
-                                onClick={() => setShowCountryMenu((prev) => !prev)}
-                                className="settings-tab__country-select"
-                            >
-                                {country.code}
-                                <span className="material-symbols-outlined settings-tab__country-select-icon">keyboard_arrow_down</span>
-                            </button>
-
-                            {showCountryMenu && (
-                                <div className="settings-tab__country-menu">
-                                    {countries.map((item) => (
-                                        <button
-                                            key={item.key}
-                                            type="button"
-                                            onClick={() => onCountrySelect(item)}
-                                            className="settings-tab__country-menu-item"
-                                        >
-                                            {item.label} ({item.code})
-                                        </button>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
-
-                        <Input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder={country.placeholder} />
-                    </div>
+            {isDirty && (
+                <div className="settings-tab__actions">
+                    <button type="button" onClick={onCancel} className="settings-tab__text-button">
+                        Cancel
+                    </button>
+                    <button
+                        type="button"
+                        disabled={saving}
+                        onClick={onSave}
+                        className="settings-tab__primary-button settings-tab__primary-button--small"
+                    >
+                        {saving ? <Loader /> : 'Save'}
+                    </button>
                 </div>
-
-            </div>
-
-            <div className="settings-tab__actions">
-                <button type="button" className="settings-tab__text-button">
-                    Cancel
-                </button>
-                <button
-                    type="button"
-                    disabled={saving}
-                    onClick={onSave}
-                    className="settings-tab__primary-button settings-tab__primary-button--small"
-                >
-                    {saving ? <Loader /> : 'Save'}
-                </button>
-            </div>
+            )}
         </div>
     );
 }

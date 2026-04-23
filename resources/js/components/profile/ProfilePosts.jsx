@@ -145,6 +145,7 @@ export default function ProfilePostsPage() {
             title=""
             showBack
             onBack={() => navigate(-1)}
+            showRecentJournals={false}
         >
             <div className="profile-posts-layout">
                 <section className="profile-posts-layout__main">

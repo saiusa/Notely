@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import SmallPostCard from '../components/journal/SmallPostCard';
+
 import ProfileLayout from '../components/layout/ProfileLayout';
 import Loader from '../components/common/Loader';
 import '../../sass/pages/ProfilePage.scss';
@@ -10,11 +10,13 @@ import {
 } from '../components/profile/ProfileUser';
 import ProfileCommunityPanel from '../components/profile/ProfileCommunityPanel';
 import ProfileEditModal from '../components/profile/ProfileEditModal';
+import PostCard from '../components/posts/PostCard';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
 import profileService from '../services/profileService';
 import postService from '../services/postService';
 import communityService from '../services/communityService';
+import { getFullImageUrl } from '../utils/imageUrl';
 
 export default function ProfilePage() {
     const { user, refreshUser } = useAuth();
@@ -205,11 +207,11 @@ export default function ProfilePage() {
             <div className="profile-page-layout">
                 <section className="profile-page-layout__main">
                     <article className="profile-card">
-                        <img src={profileData.coverPhoto} alt="cover" className="profile-card__cover" />
+                        <img src={getFullImageUrl(profileData.coverPhoto)} alt="cover" className="profile-card__cover" />
 
                         <div className="profile-card__content">
                             <img
-                                src={profileData.profilePhoto}
+                                src={getFullImageUrl(profileData.profilePhoto)}
                                 alt="avatar"
                                 className="profile-card__avatar"
                             />
@@ -259,13 +261,11 @@ export default function ProfilePage() {
                             <p style={{ color: '#a5abb9', padding: '20px 0' }}>No public posts yet.</p>
                         ) : (
                             recentPublicPosts.map((post) => (
-                                <SmallPostCard
+                                <PostCard
                                     key={`profile-overview-${post.id}`}
                                     post={post}
-                                    onCardClick={() => {}}
-                                    onEdit={() => {}}
-                                    onTogglePrivacy={() => {}}
-                                    onCopyLink={() => {}}
+                                    compact={true}
+                                    variant="feed"
                                 />
                             ))
                         )}

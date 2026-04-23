@@ -2,22 +2,9 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { formatRelativeTime } from '../../utils/timeFormatter';
 import { getMoodColorPalette } from '../../utils/moodColorMapper';
+import { getFullImageUrl } from '../../utils/imageUrl';
 import PostContent from './PostContent';
 import '../../../sass/components/posts/PostCard.scss';
-
-/**
- * Helper function to normalize image URLs for deep routing compatibility
- * Ensures images resolve correctly regardless of current URL depth
- * Handles storage paths by adding /storage/ prefix if needed
- */
-const getImageUrl = (url) => {
-    if (!url) return null;
-    if (url.startsWith('http')) return url;
-    if (url.startsWith('/storage/')) return url;
-    if (url.startsWith('/')) return url;
-    // For relative paths like 'posts/filename.jpg', add /storage/ prefix
-    return `/storage/${url}`;
-};
 
 /**
  * PostDisplay - Pure presentation component for post content
@@ -63,29 +50,51 @@ export default function PostDisplay({
     const categorySlug = postCommunity?.category?.slug || '';
     const hasCommunity = Boolean(postCommunity && communityId && categorySlug);
 
+    // Anonymous post handling
+    const isAnonymous = post.is_anonymous === true;
+    const displayName = post.is_anonymous ? (post.anonymous_name || "Anonymous") : post.user?.username;
+    const displayAvatar = isAnonymous ? 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22%3E%3Cpath d=%22M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z%22 fill=%22%23999%22/%3E%3C/svg%3E' : getFullImageUrl(postAvatar);
+
+    // User settings checks (post.settings is the POST OWNER's settings, not current user's)
+    const hideReactionCounts = post.settings?.show_reaction_counts === false;
+    const hideComments = post.settings?.hide_comments === true;
+
     return (
         <>
             {/* Header with Author Info */}
             <div className="post-card__header">
                 <div className="post-card__author-wrap">
-                    <Link to={`/profile/${postUsername}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+                    {/* Avatar - link only if not anonymous */}
+                    {isAnonymous ? (
                         <img 
-                            src={getImageUrl(postAvatar) || ''} 
-                            alt={postUsername} 
+                            src={displayAvatar} 
+                            alt="Anonymous" 
                             className="post-card__author-avatar" 
                         />
-                    </Link>
+                    ) : (
+                        <Link to={`/profile/${postUsername}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+                            <img 
+                                src={displayAvatar || ''} 
+                                alt={postUsername} 
+                                className="post-card__author-avatar" 
+                            />
+                        </Link>
+                    )}
                     <div className="post-card__author-meta">
                         {hasCommunity ? (
                             // Community Post Header: username ▸ Community Name • timestamp
                             <>
                                 <div className="post-card__author-name-row">
-                                    <Link 
-                                        to={`/profile/${postUsername}`} 
-                                        style={{ textDecoration: 'none', color: 'inherit' }}
-                                    >
-                                        <span className="post-card__author-name">{postUsername}</span>
-                                    </Link>
+                                    {isAnonymous ? (
+                                        <span className="post-card__author-name">{displayName}</span>
+                                    ) : (
+                                        <Link 
+                                            to={`/profile/${postUsername}`} 
+                                            style={{ textDecoration: 'none', color: 'inherit' }}
+                                        >
+                                            <span className="post-card__author-name">{displayName}</span>
+                                        </Link>
+                                    )}
                                     <span className="post-card__author-separator">▸</span>
                                     <Link 
                                         to={`/community/browse/${categorySlug}/${communityId}`}
@@ -99,12 +108,16 @@ export default function PostDisplay({
                         ) : (
                             // Individual Post Header: username • timestamp
                             <>
-                                <Link 
-                                    to={`/profile/${postUsername}`} 
-                                    style={{ textDecoration: 'none', color: 'inherit' }}
-                                >
-                                    <p className="post-card__author-name">{postUsername}</p>
-                                </Link>
+                                {isAnonymous ? (
+                                    <p className="post-card__author-name">{displayName}</p>
+                                ) : (
+                                    <Link 
+                                        to={`/profile/${postUsername}`} 
+                                        style={{ textDecoration: 'none', color: 'inherit' }}
+                                    >
+                                        <p className="post-card__author-name">{displayName}</p>
+                                    </Link>
+                                )}
                                 <p className="post-card__author-time">• {formatRelativeTime(postTime)}</p>
                             </>
                         )}
@@ -207,17 +220,19 @@ export default function PostDisplay({
                         <span className={`material-symbols-outlined post-card__action-icon ${liked ? 'post-card__action-icon--active' : ''}`}>
                             {liked ? 'favorite' : 'favorite_border'}
                         </span>
-                        {likesCount}
+                        {!hideReactionCounts && likesCount}
                     </button>
 
-                    <button
-                        type="button"
-                        onClick={onCommentsClick}
-                        className="post-card__action-btn"
-                    >
-                        <span className="material-symbols-outlined post-card__action-icon">chat_bubble_outline</span>
-                        {commentsCount}
-                    </button>
+                    {!hideComments && (
+                        <button
+                            type="button"
+                            onClick={onCommentsClick}
+                            className="post-card__action-btn"
+                        >
+                            <span className="material-symbols-outlined post-card__action-icon">chat_bubble_outline</span>
+                            {commentsCount}
+                        </button>
+                    )}
 
                     <button
                         type="button"
@@ -230,6 +245,13 @@ export default function PostDisplay({
                         <span className="post-card__share-label">{shared ? 'Copied' : 'Share'}</span>
                     </button>
                 </div>
+
+                {/* Comments Disabled Message */}
+                {hideComments && (
+                    <p className="post-card__comments-disabled">
+                        <em>The author has disabled comments for this post.</em>
+                    </p>
+                )}
             </div>
         </>
     );

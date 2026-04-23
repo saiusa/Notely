@@ -1,4 +1,4 @@
-import '../../sass/pages/Auth.scss';
+import '../../sass/pages/ForgotPassword.scss';
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import Loader from '../components/common/Loader';
@@ -27,69 +27,67 @@ export default function ForgotPassword() {
     };
 
     return (
-        <div className="auth-page auth-page--forgot-password">
-            <div className="auth-page__container auth-page__container--forgot-password">
-                <section className="auth-page__content">
-                    <h1 className="auth-page__brand">
-                        Notely
-                    </h1>
+        <div className="min-h-screen flex flex-col items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-[#16171c] text-gray-200">
+            <div className="max-w-md w-full space-y-8">
+                {/* Logo */}
+                <div className="flex justify-center">
+                    <h1 className="text-2xl font-bold text-white">Notely</h1>
+                </div>
 
-                    <div className="auth-page__panel">
-                        <div className="auth-page__intro">
-                            <h2 className="auth-page__heading">
-                                Reset your password
-                            </h2>
-                            <p className="auth-page__description">
-                                Enter your email address and we&apos;ll send you instructions to reset your password.
-                            </p>
+                {/* Heading */}
+                <div className="text-center">
+                    <h2 className="text-2xl font-bold text-white">Reset your password</h2>
+                    <p className="mt-2 text-sm text-gray-400">Enter your email address and we&apos;ll send you instructions to reset your password.</p>
+                </div>
+
+                {/* Form */}
+                <form onSubmit={onSubmit} className="space-y-6">
+                    {message && (
+                        <div className="p-3 bg-green-900 bg-opacity-30 border border-green-600 rounded-lg text-green-400 text-sm text-center">
+                            {message}
                         </div>
+                    )}
+                    {error && (
+                        <div className="p-3 bg-red-900 bg-opacity-30 border border-red-600 rounded-lg text-red-400 text-sm text-center">
+                            {error}
+                        </div>
+                    )}
 
-                        <form onSubmit={onSubmit} className="auth-page__form">
-                            {message && (
-                                <div style={{ color: '#4ade80', fontSize: '13px', textAlign: 'center', marginBottom: '8px' }}>
-                                    {message}
-                                </div>
-                            )}
-                            {error && (
-                                <div style={{ color: '#ff6b6b', fontSize: '13px', textAlign: 'center', marginBottom: '8px' }}>
-                                    {error}
-                                </div>
-                            )}
-                            <div className="auth-page__field">
-                                <label
-                                    htmlFor="forgot-email"
-                                    className="auth-page__label"
-                                >
-                                    Email address
-                                </label>
-                                <input
-                                    id="forgot-email"
-                                    type="email"
-                                    placeholder="Enter your email"
-                                    className="auth-page__input"
-                                    value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
-                                    required
-                                />
-                            </div>
-
-                            <button
-                                type="submit"
-                                disabled={loading}
-                                className="auth-page__submit"
-                            >
-                                {loading ? <Loader /> : 'Send reset link'}
-                            </button>
-                        </form>
-
-                        <div className="auth-page__back-link-row">
-                            <span className="material-symbols-outlined auth-page__back-icon">arrow_back</span>
-                            <Link to="/login" className="auth-page__back-link">
-                                Back to login
-                            </Link>
+                    <div className="space-y-4">
+                        {/* Email Field */}
+                        <div>
+                            <label htmlFor="forgot-email" className="block text-sm font-medium text-gray-300 mb-1.5">
+                                Email address
+                            </label>
+                            <input
+                                id="forgot-email"
+                                type="email"
+                                placeholder="Enter your email"
+                                className="w-full px-4 py-2.5 bg-[#1a1b26] border border-gray-700 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-white text-sm transition-colors"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                required
+                            />
                         </div>
                     </div>
-                </section>
+
+                    {/* Submit Button */}
+                    <button
+                        type="submit"
+                        disabled={loading}
+                        className="w-full flex justify-center py-2.5 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition-colors disabled:opacity-50"
+                    >
+                        {loading ? <Loader /> : 'Send reset link'}
+                    </button>
+                </form>
+
+                {/* Back Link */}
+                <div className="flex items-center justify-center text-sm">
+                    <span className="material-symbols-outlined text-base text-gray-400 mr-2">arrow_back</span>
+                    <Link to="/login" className="text-purple-400 hover:text-purple-300 transition-colors">
+                        Back to login
+                    </Link>
+                </div>
             </div>
         </div>
     );

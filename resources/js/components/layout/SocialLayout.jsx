@@ -18,9 +18,8 @@ export default function SocialLayout(props) {
         onTabChange,
         onFilterChange = () => {},
         currentFilter = 'recent',
-        recentJournals,
-        onClearRecentJournals,
         notificationCount = 0,
+        showRecentJournals = true,
         children,
     } = props;
 
@@ -104,12 +103,9 @@ export default function SocialLayout(props) {
                     </main>
 
                     {/* Recent Journals */}
-                    {recentJournals && (
+                    {showRecentJournals && (
                         <aside className="social-layout__recent-journals">
-                            <RecentJournals
-                                journals={recentJournals}
-                                onClear={onClearRecentJournals}
-                            />
+                            <RecentJournals />
                         </aside>
                     )}
                 </div>

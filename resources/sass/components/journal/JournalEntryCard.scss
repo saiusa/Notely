@@ -1,0 +1,245 @@
+@import '../../variables';
+
+.journal-entry-card {
+  position: relative;
+  display: flex;
+  gap: 16px;
+  padding-left: 12px;
+  margin-bottom: 24px;
+
+  &__dot {
+    position: absolute;
+    left: -20px;
+    top: 24px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #785ebf;
+    box-shadow: 0 0 12px rgba(120, 94, 191, 0.6);
+    flex-shrink: 0;
+  }
+
+  &__content {
+    flex: 1;
+    background: #21232c;
+    border-left: 4px solid rgba(120, 94, 191, 0.5);
+    border-radius: 0 10px 10px 0;
+    padding: 16px;
+    transition: all 0.2s ease;
+
+    &:hover {
+      border-left-color: #785ebf;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+    }
+  }
+
+  &__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 12px;
+    gap: 12px;
+  }
+
+  &__title {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+    line-height: 1.2;
+    color: #fff;
+    flex: 1;
+    cursor: pointer;
+    transition: color 0.2s ease;
+
+    &:hover {
+      color: #d4d8e3;
+    }
+  }
+
+  &__meta-only {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: #8f94a2;
+    white-space: nowrap;
+    flex-shrink: 0;
+    margin-bottom: 12px;
+  }
+
+  &__meta {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: #8f94a2;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  &__icon {
+    font-size: 16px;
+  }
+
+  &__time {
+    font-size: 12px;
+  }
+
+  &__body {
+    margin: 0 0 12px 0;
+    font-size: 14px;
+    line-height: 1.6;
+    color: #b6bac6;
+  }
+
+  &__body-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 12px;
+    cursor: pointer;
+    transition: opacity 0.2s ease;
+
+    &:hover {
+      opacity: 0.9;
+    }
+  }
+
+  &__quote {
+    margin: 0;
+    padding: 12px 12px;
+    border-left: 3px solid #785ebf;
+    font-style: italic;
+    font-weight: 500;
+    color: #d4d8e3;
+    font-size: 14px;
+    line-height: 1.6;
+    background: rgba(120, 94, 191, 0.08);
+    border-radius: 0 4px 4px 0;
+  }
+
+  &__expand-btn {
+    align-self: flex-start;
+    background: none;
+    border: none;
+    color: #785ebf;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 4px 0;
+    transition: color 0.2s ease;
+
+    &:hover {
+      color: #9b7dd4;
+    }
+  }
+
+  &__image {
+    width: 100%;
+    max-height: 300px;
+    object-fit: cover;
+    border-radius: 8px;
+    margin-bottom: 12px;
+  }
+
+  &__tags-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 12px;
+  }
+
+  &__mood-pill {
+    font-size: 11px;
+    padding: 6px 12px;
+    border-radius: 9999px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-weight: 500;
+  }
+
+  &__mood-emoji {
+    font-size: 12px;
+  }
+
+  &__hashtag {
+    font-size: 12px;
+    color: #b6bac6;
+    transition: color 0.2s ease;
+
+    &:hover {
+      color: #8e74d5;
+    }
+  }
+
+  &__footer {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  &__actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(120, 94, 191, 0.1);
+  }
+
+  &__action-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border: 0;
+    border-radius: 6px;
+    background: rgba(120, 94, 191, 0.1);
+    color: #785ebf;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:hover {
+      background: rgba(120, 94, 191, 0.2);
+      color: #9b7dd4;
+    }
+
+    .material-symbols-outlined {
+      font-size: 16px;
+    }
+  }
+
+  &__privacy-toggle {
+    display: flex;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(120, 94, 191, 0.1);
+  }
+
+  &__privacy-toggle-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    background: rgba(120, 94, 191, 0.1);
+    border: 1px solid rgba(120, 94, 191, 0.2);
+    border-radius: 6px;
+    color: #785ebf;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:hover {
+      background: rgba(120, 94, 191, 0.15);
+      border-color: rgba(120, 94, 191, 0.4);
+    }
+
+    .material-symbols-outlined {
+      font-size: 14px;
+    }
+  }
+}

@@ -1,0 +1,127 @@
+@import '../../variables';
+
+.search-bar {
+  display: flex;
+  position: relative;
+  width: 100%;
+  max-width: 300px;
+
+  &__form {
+    position: relative;
+    width: 100%;
+  }
+
+  &__input-wrapper {
+    display: flex;
+    height: 36px;
+    align-items: center;
+    gap: 8px;
+    border-radius: 9999px;
+    background: #21232c;
+    padding: 0 16px;
+    color: #757575;
+    transition: all 0.15s ease;
+
+    &:focus-within {
+      background: #23283a;
+      color: #9ca3b7;
+    }
+  }
+
+  &__icon {
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+
+  &__input {
+    width: 100%;
+    border: 0;
+    background: transparent;
+    color: #d4d8e6;
+    font-size: 15px;
+    transition: color 0.15s ease;
+
+    &::placeholder {
+      color: #9ca3b7;
+    }
+
+    &:focus {
+      outline: none;
+    }
+  }
+
+  &__button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: 0;
+    color: inherit;
+    cursor: pointer;
+    padding: 0;
+    transition: color 0.15s ease;
+
+    &:hover {
+      color: #d4d8e6;
+    }
+  }
+
+  &__suggestions {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    right: 0;
+    border-radius: 8px;
+    background: #1b1c24;
+    border: 1px solid #323848;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    max-height: 320px;
+    overflow-y: auto;
+    z-index: 50;
+  }
+
+  &__suggestions-header {
+    padding: 8px 16px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: #757575;
+    background: #121318;
+    border-bottom: 1px solid #323848;
+
+    &:not(:first-child) {
+      border-top: 1px solid #323848;
+    }
+  }
+
+  &__suggestion-item {
+    width: 100%;
+    text-align: left;
+    padding: 8px 16px;
+    background: transparent;
+    border: 0;
+    border-bottom: 1px solid #323848;
+    color: #d4d8e6;
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+
+    &:hover {
+      background-color: rgba(142, 116, 213, 0.08);
+    }
+
+    &:last-child {
+      border-bottom: 0;
+    }
+  }
+
+  &__suggestion-title {
+    font-size: 14px;
+    font-weight: 500;
+  }
+
+  &__suggestion-meta {
+    font-size: 12px;
+    color: #757575;
+    margin-top: 2px;
+  }
+}

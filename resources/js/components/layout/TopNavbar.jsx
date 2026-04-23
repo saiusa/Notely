@@ -242,10 +242,11 @@ export default function TopNavbar({
   const handleMarkAsRead = useCallback(async (notificationId) => {
     try {
       await notificationService.markAsRead(notificationId);
+      const now = new Date().toISOString();
       setNotifications((prevNotifications) =>
         prevNotifications.map((notif) =>
           notif.notification_id === notificationId
-            ? { ...notif, is_read: true }
+            ? { ...notif, read_at: now }
             : notif
         )
       );
@@ -260,8 +261,9 @@ export default function TopNavbar({
   const handleMarkAllAsRead = useCallback(async () => {
     try {
       await notificationService.markAllAsRead();
+      const now = new Date().toISOString();
       setNotifications((prevNotifications) =>
-        prevNotifications.map((notif) => ({ ...notif, is_read: true }))
+        prevNotifications.map((notif) => ({ ...notif, read_at: now }))
       );
     } catch (error) {
       console.error('Failed to mark all notifications as read:', error);

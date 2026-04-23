@@ -16,11 +16,11 @@ const authService = {
 
     /**
      * POST /api/auth/login
-     * @param {{ email: string, password: string }} credentials
+     * @param {{ email: string, password: string, remember_me?: boolean }} credentials
      */
     async login(credentials) {
         const res = await api.post('/auth/login', credentials);
-        return res.data; // { message, user, token, token_type }
+        return res.data; // { message, user, token, token_type, remember_token? }
     },
 
     /**
@@ -56,6 +56,16 @@ const authService = {
     async getMe() {
         const res = await api.get('/me');
         return res.data;
+    },
+
+    /**
+     * POST /api/auth/remember-me/validate
+     * Validates remember_token and returns new session token for auto-login
+     * @param {{ remember_token: string }} data
+     */
+    async validateRememberToken(data) {
+        const res = await api.post('/auth/remember-me/validate', data);
+        return res.data; // { message, user, token, token_type, remember_token }
     },
 };
 

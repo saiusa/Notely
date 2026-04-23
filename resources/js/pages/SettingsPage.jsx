@@ -1,15 +1,13 @@
 import '../../sass/components/settings/index.scss';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import SettingsPageLayout from '../components/layout/SettingsPageLayout';
 import SettingsLayout from '../components/settings/SettingsLayout';
 import Loader from '../components/common/Loader';
-import { COUNTRY_OPTIONS } from '../components/settings/constants';
 import AccountTab from '../components/settings/tabs/AccountTab';
 import SecurityTab from '../components/settings/tabs/SecurityTab';
 import PrivacyTab from '../components/settings/tabs/PrivacyTab';
 import NotificationTab from '../components/settings/tabs/NotificationTab';
-import TwoFactorModal from '../components/settings/modals/TwoFactorModal';
 import { useAuth } from '../context/AuthContext';
 import settingsService from '../services/settingsService';
 
@@ -24,18 +22,17 @@ export default function SettingsPage() {
     // Account fields — initialized from auth user
     const [username, setUsername] = useState('');
     const [email, setEmail] = useState('');
-    const [country, setCountry] = useState(COUNTRY_OPTIONS[0]);
-    const [phone, setPhone] = useState('');
-    const [showCountryMenu, setShowCountryMenu] = useState(false);
+    
+    // Original account values (for dirty checking)
+    const [originalUsername, setOriginalUsername] = useState('');
+    const [originalEmail, setOriginalEmail] = useState('');
 
     // Security
-    const [showChangePassword, setShowChangePassword] = useState(false);
     const [currentPassword, setCurrentPassword] = useState('');
     const [newPassword, setNewPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
 
-    const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
-    const [showTwoFactorModal, setShowTwoFactorModal] = useState(false);
+
 
     // Privacy
     const [defaultPrivacy, setDefaultPrivacy] = useState('public');
@@ -63,10 +60,10 @@ export default function SettingsPage() {
         if (user) {
             setUsername(user.username || '');
             setEmail(user.email || '');
-            setPhone(user.phone_number || '');
+            setOriginalUsername(user.username || '');
+            setOriginalEmail(user.email || '');
 
             if (user.setting) {
-                setTwoFactorEnabled(user.setting.two_factor_enabled || false);
                 setDefaultPrivacy(user.setting.default_post_privacy || 'public');
                 setHideComments(user.setting.hide_comments || false);
                 setShowReactions(user.setting.show_reaction_counts !== false);
@@ -77,18 +74,12 @@ export default function SettingsPage() {
         }
     }, [user]);
 
-    const handleCountrySelect = (selected) => {
-        setCountry(selected);
-        setPhone(selected.placeholder);
-        setShowCountryMenu(false);
-    };
-
     // ── Save Account ──
     const handleSaveAccount = async () => {
         setSaving(true);
         setSaveMessage('');
         try {
-            await settingsService.updateAccount({ username, email, phone_number: phone });
+            await settingsService.updateAccount({ username, email });
             await refreshUser();
             setSaveMessage('Account updated successfully.');
         } catch (err) {
@@ -116,7 +107,6 @@ export default function SettingsPage() {
             setCurrentPassword('');
             setNewPassword('');
             setConfirmPassword('');
-            setShowChangePassword(false);
             setSaveMessage('Password updated successfully.');
         } catch (err) {
             setSaveMessage(err.response?.data?.message || 'Failed to update password.');
@@ -152,24 +142,49 @@ export default function SettingsPage() {
         }
     };
 
-    // ── 2FA ──
-    const handleToggleTwoFactor = () => {
-        if (twoFactorEnabled) {
-            setTwoFactorEnabled(false);
-            settingsService.updateTwoFactor({ two_factor_enabled: false }).catch(() => {});
-            return;
+    // ── Delete Account ──
+    const handleDeleteAccount = async () => {
+        setSaving(true);
+        setSaveMessage('');
+        try {
+            await settingsService.deleteAccount();
+            setSaveMessage('Account deleted successfully.');
+            // Redirect to login after a short delay
+            // Note: Don't call logout() because the token is already invalid after account deletion
+            setTimeout(() => {
+                localStorage.removeItem('auth_token');
+                navigate('/login');
+                // Force page reload to clear all auth state
+                window.location.href = '/login';
+            }, 1500);
+        } catch (err) {
+            setSaveMessage(err.response?.data?.message || 'Failed to delete account.');
+        } finally {
+            setSaving(false);
         }
-        setShowTwoFactorModal(true);
     };
 
-    const handleActivateTwoFactor = async () => {
-        try {
-            await settingsService.updateTwoFactor({ two_factor_enabled: true });
-        } catch (_) {
-            // ignore
-        }
-        setTwoFactorEnabled(true);
-        setShowTwoFactorModal(false);
+    // ── Dirty State Checks ──
+    const accountIsDirty = useMemo(
+        () => username !== originalUsername || email !== originalEmail,
+        [username, originalUsername, email, originalEmail]
+    );
+
+    const securityIsDirty = useMemo(
+        () => currentPassword.length > 0 || newPassword.length > 0 || confirmPassword.length > 0,
+        [currentPassword, newPassword, confirmPassword]
+    );
+
+    // ── Cancel Handlers ──
+    const handleAccountCancel = () => {
+        setUsername(originalUsername);
+        setEmail(originalEmail);
+    };
+
+    const handleSecurityCancel = () => {
+        setCurrentPassword('');
+        setNewPassword('');
+        setConfirmPassword('');
     };
 
     return (
@@ -193,32 +208,26 @@ export default function SettingsPage() {
                         setUsername={setUsername}
                         email={email}
                         setEmail={setEmail}
-                        country={country}
-                        phone={phone}
-                        setPhone={setPhone}
-                        countries={COUNTRY_OPTIONS}
-                        showCountryMenu={showCountryMenu}
-                        setShowCountryMenu={setShowCountryMenu}
-                        onCountrySelect={handleCountrySelect}
                         onSave={handleSaveAccount}
                         saving={saving}
+                        isDirty={accountIsDirty}
+                        onCancel={handleAccountCancel}
                     />
                 )}
 
                 {activeMenu === 'security' && (
                     <SecurityTab
-                        showChangePassword={showChangePassword}
-                        setShowChangePassword={setShowChangePassword}
                         currentPassword={currentPassword}
                         setCurrentPassword={setCurrentPassword}
                         newPassword={newPassword}
                         setNewPassword={setNewPassword}
                         confirmPassword={confirmPassword}
                         setConfirmPassword={setConfirmPassword}
-                        twoFactorEnabled={twoFactorEnabled}
-                        onToggleTwoFactor={handleToggleTwoFactor}
                         onSavePassword={handleSavePassword}
+                        onDeleteAccount={handleDeleteAccount}
                         saving={saving}
+                        isDirty={securityIsDirty}
+                        onCancel={handleSecurityCancel}
                     />
                 )}
 
@@ -245,11 +254,7 @@ export default function SettingsPage() {
                 )}
             </SettingsLayout>
 
-            <TwoFactorModal
-                open={showTwoFactorModal}
-                onCancel={() => setShowTwoFactorModal(false)}
-                onActivate={handleActivateTwoFactor}
-            />
+
         </SettingsPageLayout>
     );
 }

@@ -13,21 +13,45 @@ export function AuthProvider({ children }) {
     const [token, setToken] = useState(() => localStorage.getItem('auth_token'));
     const [loading, setLoading] = useState(true);
 
-    // ── On mount: if a token exists, fetch current user ──
+    // ── On mount: try remember_token first, then check API token ──
     useEffect(() => {
-        if (!token) {
-            setLoading(false);
-            return;
-        }
-        authService.getMe()
-            .then((userData) => setUser(userData))
-            .catch(() => {
-                // Token is invalid / expired
-                localStorage.removeItem('auth_token');
-                setToken(null);
-                setUser(null);
-            })
-            .finally(() => setLoading(false));
+        const tryAutoLogin = async () => {
+            const rememberToken = localStorage.getItem('remember_token');
+            
+            // Try auto-login with remember_token first
+            if (rememberToken && !token) {
+                try {
+                    const data = await authService.validateRememberToken({ remember_token: rememberToken });
+                    saveToken(data.token);
+                    localStorage.setItem('remember_token', data.remember_token);
+                    const userData = await authService.getMe();
+                    setUser(userData);
+                    setLoading(false);
+                    return;
+                } catch (_) {
+                    // Remember token is invalid, clear it
+                    localStorage.removeItem('remember_token');
+                }
+            }
+
+            // Fall back to API token validation
+            if (!token) {
+                setLoading(false);
+                return;
+            }
+
+            authService.getMe()
+                .then((userData) => setUser(userData))
+                .catch(() => {
+                    // Token is invalid / expired
+                    localStorage.removeItem('auth_token');
+                    setToken(null);
+                    setUser(null);
+                })
+                .finally(() => setLoading(false));
+        };
+
+        tryAutoLogin();
     }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
     /** Persist token to localStorage and state */
@@ -37,9 +61,17 @@ export function AuthProvider({ children }) {
     }, []);
 
     /** Login with email + password → stores token, sets user */
-    const login = useCallback(async (email, password) => {
-        const data = await authService.login({ email, password });
+    const login = useCallback(async (email, password, rememberMe = false) => {
+        const data = await authService.login({ email, password, remember_me: rememberMe });
         saveToken(data.token);
+        
+        // Store remember_token if provided and remember_me was checked
+        if (rememberMe && data.remember_token) {
+            localStorage.setItem('remember_token', data.remember_token);
+        } else {
+            localStorage.removeItem('remember_token');
+        }
+        
         // Fetch full user profile (includes profile, setting, communities)
         const userData = await authService.getMe();
         setUser(userData);
@@ -55,7 +87,7 @@ export function AuthProvider({ children }) {
         return data;
     }, [saveToken]);
 
-    /** Logout → clears token + user */
+    /** Logout → clears token + user + remember_token */
     const logout = useCallback(async () => {
         try {
             await authService.logout();
@@ -63,6 +95,7 @@ export function AuthProvider({ children }) {
             // Even if the API call fails, clear local state
         }
         localStorage.removeItem('auth_token');
+        localStorage.removeItem('remember_token');
         setToken(null);
         setUser(null);
     }, []);

@@ -41,43 +41,4 @@ class ProfileController extends Controller
 
         return response()->json($profile);
     }
-
-    public function updateWithFiles(Request $request): JsonResponse
-    {
-        $validated = $request->validate([
-            'first_name' => ['required', 'string', 'max:255'],
-            'last_name' => ['required', 'string', 'max:255'],
-            'location' => ['nullable', 'string', 'max:255'],
-            'birthday' => ['nullable', 'date'],
-            'gender' => ['nullable', 'string', 'max:50'],
-            'description' => ['nullable', 'string'],
-            'profile_picture' => ['nullable', 'image', 'max:5120'],
-            'cover_photo' => ['nullable', 'image', 'max:5120'],
-        ]);
-
-        $userDir = 'profiles/' . $request->user()->user_id;
-
-        // Handle profile picture
-        if ($request->hasFile('profile_picture')) {
-            $file = $request->file('profile_picture');
-            $filename = 'profile_' . time() . '.' . $file->getClientOriginalExtension();
-            $path = Storage::disk('public')->putFileAs($userDir, $file, $filename);
-            $validated['profile_picture'] = Storage::disk('public')->url($path);
-        }
-
-        // Handle cover photo
-        if ($request->hasFile('cover_photo')) {
-            $file = $request->file('cover_photo');
-            $filename = 'cover_' . time() . '.' . $file->getClientOriginalExtension();
-            $path = Storage::disk('public')->putFileAs($userDir, $file, $filename);
-            $validated['cover_photo'] = Storage::disk('public')->url($path);
-        }
-
-        $profile = $request->user()->profile()->updateOrCreate(
-            ['user_id' => $request->user()->user_id],
-            $validated
-        );
-
-        return response()->json($profile);
-    }
 }

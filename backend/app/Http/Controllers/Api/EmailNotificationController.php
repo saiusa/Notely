@@ -148,34 +148,5 @@ class EmailNotificationController
         }
     }
 
-    /**
-     * Get email notification statistics/history
-     * GET /api/email-notifications/history
-     */
-    public function getHistory(Request $request): JsonResponse
-    {
-        $user = $request->user();
-        
-        // Return basic history info
-        return response()->json([
-            'last_email_sent' => null, // Timestamp of last email sent
-            'total_emails_sent' => 0,
-            'unsubscribe_token' => $this->generateUnsubscribeToken($user->user_id),
-            'preferences_updated_at' => null,
-        ]);
-    }
-
-    /**
-     * Generate secure unsubscribe token
-     */
-    private function generateUnsubscribeToken(int $userId): string
-    {
-        $data = [
-            'user_id' => $userId,
-            'timestamp' => time(),
-            'hash' => hash('sha256', $userId . config('app.key'))
-        ];
-
-        return base64_encode(json_encode($data));
-    }
 }
+

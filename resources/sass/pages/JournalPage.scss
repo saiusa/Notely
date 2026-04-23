@@ -159,3 +159,111 @@
     }
   }
 }
+
+// Timeline and Empty State Styles
+.journal-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  margin: 60px 0;
+
+  &__icon {
+    font-size: 64px;
+    color: #4a5568;
+    margin-bottom: 16px;
+    opacity: 0.7;
+  }
+
+  &__title {
+    margin: 0 0 12px;
+    font-size: 24px;
+    font-weight: 600;
+    color: #d4d8e3;
+  }
+
+  &__subtitle {
+    margin: 0 0 32px;
+    max-width: 400px;
+    font-size: 15px;
+    text-align: center;
+    color: #8f94a2;
+    line-height: 1.6;
+  }
+
+  &__button {
+    display: inline-block;
+    padding: 12px 28px;
+    background: linear-gradient(135deg, #785ebf 0%, #9b7dd4 100%);
+    color: #fff;
+    border: 0;
+    border-radius: 24px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(120, 94, 191, 0.3);
+
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(120, 94, 191, 0.5);
+    }
+  }
+}
+
+.journal-timeline {
+  position: relative;
+  padding-left: 28px;
+  margin: 32px 0;
+
+  &::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: linear-gradient(180deg, #785ebf 0%, #785ebf 50%, transparent 100%);
+  }
+
+  &__month-group {
+    margin-bottom: 48px;
+  }
+
+  &__month-header {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 32px;
+    padding-left: 28px;
+  }
+
+  &__month-dot {
+    position: absolute;
+    left: -20px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #21232c;
+    border: 3px solid #785ebf;
+    box-shadow: 0 0 16px rgba(120, 94, 191, 0.4);
+    flex-shrink: 0;
+  }
+
+  &__month-title {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    color: #b6bac6;
+  }
+
+  &__entries {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+}

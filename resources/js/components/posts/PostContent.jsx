@@ -1,18 +1,6 @@
 import React, { useState } from 'react';
+import { getFullImageUrl } from '../../utils/imageUrl';
 import '../../../sass/components/posts/PostContent.scss';
-
-/**
- * Helper function to normalize image URLs for deep routing compatibility
- * Handles storage paths by adding /storage/ prefix if needed
- */
-const getImageUrl = (url) => {
-    if (!url) return null;
-    if (url.startsWith('http')) return url;
-    if (url.startsWith('/storage/')) return url;
-    if (url.startsWith('/')) return url;
-    // For relative paths like 'posts/filename.jpg', add /storage/ prefix
-    return `/storage/${url}`;
-};
 
 /**
  * PostContent - Specialized component for displaying post body content
@@ -99,7 +87,7 @@ export default function PostContent({
                 {image ? (
                     !imgError ? (
                         <img 
-                            src={getImageUrl(image)} 
+                            src={getFullImageUrl(image)} 
                             alt="Post attachment" 
                             className="post-content__image"
                             onError={(e) => { 
