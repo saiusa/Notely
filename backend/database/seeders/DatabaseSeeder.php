@@ -22,9 +22,9 @@ class DatabaseSeeder extends Seeder
         ]);
 
         // Create a test user (idempotent)
-        User::firstOrCreate(
-            ['email' => 'test@example.com'],
-            ['username' => 'testuser']
-        );
+        // User::firstOrCreate(
+        //     ['email' => 'test@example.com'],
+        //     ['username' => 'testuser']
+        // );
     }
 }
