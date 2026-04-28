@@ -74,11 +74,22 @@ class PostCommentController extends Controller
 
         // Notify post owner about top-level comments
         if ((int) $post->user_id !== (int) $request->user()->user_id && ! $comment->parent_id) {
+            $causer     = $request->user()->load('profile');
+            $causerName = trim(($causer->profile->first_name ?? '') . ' ' . ($causer->profile->last_name ?? ''));
             Notification::create([
-                'user_id' => $post->user_id,
-                'type' => 'comment',
+                'user_id'      => $post->user_id,
+                'type'         => 'comment',
                 'reference_id' => $comment->comment_id,
-                'is_read' => false,
+                'is_read'      => false,
+                'data'         => [
+                    'causer_id'     => $causer->user_id,
+                    'causer_name'   => $causerName ?: $causer->username,
+                    'causer_avatar' => $causer->profile->profile_picture ?? null,
+                    'action'        => 'commented on your post',
+                    'snippet'       => \Illuminate\Support\Str::limit($comment->content, 60),
+                    'post_id'       => $post->post_id,
+                    'target_url'    => '?postId=' . $post->post_id,
+                ],
             ]);
         }
 
@@ -86,11 +97,22 @@ class PostCommentController extends Controller
         if ($comment->parent_id) {
             $parentComment = Comment::find($comment->parent_id);
             if ($parentComment && (int) $parentComment->user_id !== (int) $request->user()->user_id) {
+                $causer     = $causer ?? $request->user()->load('profile');
+                $causerName = $causerName ?? trim(($causer->profile->first_name ?? '') . ' ' . ($causer->profile->last_name ?? ''));
                 Notification::create([
-                    'user_id' => $parentComment->user_id,
-                    'type' => 'reply',
+                    'user_id'      => $parentComment->user_id,
+                    'type'         => 'reply',
                     'reference_id' => $comment->comment_id,
-                    'is_read' => false,
+                    'is_read'      => false,
+                    'data'         => [
+                        'causer_id'     => $causer->user_id,
+                        'causer_name'   => $causerName ?: $causer->username,
+                        'causer_avatar' => $causer->profile->profile_picture ?? null,
+                        'action'        => 'replied to your comment',
+                        'snippet'       => \Illuminate\Support\Str::limit($comment->content, 60),
+                        'post_id'       => $post->post_id,
+                        'target_url'    => '?postId=' . $post->post_id,
+                    ],
                 ]);
             }
         }

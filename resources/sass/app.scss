@@ -15,8 +15,14 @@
 @import './components/settings/index';
 @import './components/journal/index';
 @import './components/ui/index';
+@import './components/notification/NotificationDropdown';
 
 // Pages
 @import './pages/index';
 
 // @import 'https://fonts.google.com/icons';
+
+// Utility classes
+.flex-shrink-0 {
+  flex-shrink: 0;
+}

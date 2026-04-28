@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Models\Profile;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -15,20 +16,34 @@ class AuthController extends Controller
     public function register(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'username' => ['required', 'string', 'max:255', 'unique:users,username'],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
-            'password' => ['required', 'confirmed', Password::defaults()],
+            'first_name'   => ['required', 'string', 'max:255'],
+            'last_name'    => ['required', 'string', 'max:255'],
+            'username'     => ['required', 'string', 'max:30', 'unique:users,username', 'regex:/^[a-zA-Z0-9._]+$/'],
+            'email'        => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
+            'password'     => ['required', 'confirmed', Password::defaults()],
             'phone_number' => ['nullable', 'string', 'max:30'],
         ]);
 
-        $user = User::create($validated);
+        $user = User::create([
+            'username'     => $validated['username'],
+            'email'        => $validated['email'],
+            'password'     => $validated['password'],
+            'phone_number' => $validated['phone_number'] ?? null,
+        ]);
+
+        // Auto-create the user's profile with their name
+        Profile::create([
+            'user_id'    => $user->user_id,
+            'first_name' => $validated['first_name'],
+            'last_name'  => $validated['last_name'],
+        ]);
 
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([
-            'message' => 'User registered successfully.',
-            'user' => $user,
-            'token' => $token,
+            'message'    => 'User registered successfully.',
+            'user'       => $user->load('profile'),
+            'token'      => $token,
             'token_type' => 'Bearer',
         ], 201);
     }
@@ -47,6 +62,12 @@ class AuthController extends Controller
             return response()->json([
                 'message' => 'Invalid credentials.',
             ], 422);
+        }
+
+        if ($user->is_suspended) {
+            return response()->json([
+                'message' => 'Your account has been suspended by an administrator.',
+            ], 403);
         }
 
         $token = $user->createToken('auth_token')->plainTextToken;

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { getFullImageUrl } from '../../utils/imageUrl';
 import '../../../sass/components/posts/PostContent.scss';
 
@@ -6,13 +7,13 @@ import '../../../sass/components/posts/PostContent.scss';
  * PostContent - Specialized component for displaying post body content
  * Handles: text, quotes, and images with proper visual hierarchy
  */
-export default function PostContent({ 
-    content = '', 
-    title = '', 
+export default function PostContent({
+    content = '',
+    title = '',
     image = null,
     type = 'text',
     isQuote = false,
-    compact = false 
+    compact = false
 }) {
     const [expanded, setExpanded] = useState(false);
     const [imgError, setImgError] = useState(false);
@@ -26,16 +27,40 @@ export default function PostContent({
     }
 
     const shouldTruncate = content.length > longTextLimit && postType !== 'quote';
-    const visibleContent = shouldTruncate && !expanded 
-        ? `${content.slice(0, longTextLimit)}...` 
+    const visibleContent = shouldTruncate && !expanded
+        ? `${content.slice(0, longTextLimit)}...`
         : content;
+
+    // Helper to parse hashtags and wrap them in Link components
+    const renderWithHashtags = (text) => {
+        if (!text) return null;
+        
+        // Split by hashtags, preserving the hashtag in the array
+        const parts = text.split(/(#\w+)/g);
+        
+        return parts.map((part, index) => {
+            if (part.match(/^#\w+/)) {
+                return (
+                    <Link 
+                        key={index} 
+                        to={`/search?q=${encodeURIComponent(part)}`}
+                        className="post-content__hashtag"
+                        onClick={(e) => e.stopPropagation()} // Prevent card click
+                    >
+                        {part}
+                    </Link>
+                );
+            }
+            return part;
+        });
+    };
 
     // TEXT POST: Title + content
     if (postType === 'text') {
         return (
             <div className="post-content__text-wrapper">
                 {title && title !== 'null' && <h3 className="post-content__title">{title}</h3>}
-                {content && <p className="post-content__body">{visibleContent}</p>}
+                {content && <p className="post-content__body">{renderWithHashtags(visibleContent)}</p>}
                 {shouldTruncate && (
                     <button
                         type="button"
@@ -57,7 +82,7 @@ export default function PostContent({
         return (
             <div className="post-content__quote-wrapper">
                 <blockquote className="post-content__quote">
-                    "{content}"
+                    "{renderWithHashtags(content)}"
                 </blockquote>
             </div>
         );
@@ -69,7 +94,7 @@ export default function PostContent({
             <div className="post-content__image-wrapper">
                 {content && (
                     <div>
-                        <p className="post-content__body">{visibleContent}</p>
+                        <p className="post-content__body">{renderWithHashtags(visibleContent)}</p>
                         {shouldTruncate && (
                             <button
                                 type="button"
@@ -86,14 +111,14 @@ export default function PostContent({
                 )}
                 {image ? (
                     !imgError ? (
-                        <img 
-                            src={getFullImageUrl(image)} 
-                            alt="Post attachment" 
+                        <img
+                            src={getFullImageUrl(image)}
+                            alt="Post attachment"
                             className="post-content__image"
-                            onError={(e) => { 
+                            onError={(e) => {
                                 setImgError(true);
-                                e.target.style.display = 'none'; 
-                            }} 
+                                e.target.style.display = 'none';
+                            }}
                         />
                     ) : (
                         <div className="p-4 bg-red-500/10 text-red-400 text-sm rounded border border-red-500/20">
@@ -109,7 +134,7 @@ export default function PostContent({
     return (
         <div className="post-content__text-wrapper">
             {title && title !== 'null' && <h3 className="post-content__title">{title}</h3>}
-            {content && <p className="post-content__body">{visibleContent}</p>}
+            {content && <p className="post-content__body">{renderWithHashtags(visibleContent)}</p>}
         </div>
     );
 }

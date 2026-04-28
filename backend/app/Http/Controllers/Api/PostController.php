@@ -9,6 +9,7 @@ use App\Models\Post;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
 class PostController extends Controller
@@ -30,19 +31,28 @@ class PostController extends Controller
                 ->orderByDesc('created_at')
                 ->paginate(15);
         } else {
-            // Explore/Main tab: public posts + community posts user is member of
+            // Home Feed Algorithm:
+            // 1. Public posts with no community (global posts)
+            // 2. Public posts from communities the user is a member of
+            // 3. Own posts (any privacy)
+            // Ordered by recency; engagement-based ranking can be layered in future.
+            $communityIds = \DB::table('community_members')
+                ->where('user_id', $user->user_id)
+                ->pluck('community_id');
+
             $posts = $this->baseQuery()
-                ->where('privacy', 'public')
-                ->where(function (Builder $query) use ($user): void {
-                    $query->where('community_id', null)
-                        ->orWhere(function (Builder $q) use ($user): void {
-                            // Only show community posts to members or creator
-                            $q->whereIn('community_id', function ($subquery) use ($user): void {
-                                $subquery->select('community_id')
-                                    ->from('community_members')
-                                    ->where('user_id', $user->user_id);
-                            })
-                            ->orWhere('user_id', $user->user_id);
+                ->where(function (Builder $query) use ($user, $communityIds): void {
+                    // Own posts (any privacy)
+                    $query->where('user_id', $user->user_id)
+                        // Public posts with no community
+                        ->orWhere(function (Builder $q): void {
+                            $q->where('privacy', 'public')
+                              ->whereNull('community_id');
+                        })
+                        // Public posts in communities the user belongs to
+                        ->orWhere(function (Builder $q) use ($communityIds): void {
+                            $q->where('privacy', 'public')
+                              ->whereIn('community_id', $communityIds);
                         });
                 })
                 ->orderByDesc('created_at')
@@ -87,7 +97,7 @@ class PostController extends Controller
             'title' => ['nullable', 'string', 'max:255'],
             'content' => ['required', 'string', 'max:5000'],
             'community_id' => ['nullable', 'integer', 'exists:communities,community_id'],
-            'image' => ['required_if:type,image', 'nullable', 'file', 'image', 'max:5120'],
+            'image' => ['required_if:type,image', 'nullable', 'file', 'image', 'mimes:jpeg,png,jpg,gif,mp4,mov', 'max:51200'],
             'mood_id' => ['required', 'integer', 'exists:moods,mood_id'],
             'privacy' => ['required', 'in:public,private'],
             'allow_comments' => ['boolean'],
@@ -179,7 +189,7 @@ class PostController extends Controller
             'title' => ['nullable', 'string', 'max:255'],
             'content' => ['sometimes', 'string', 'max:5000'],
             'community_id' => ['nullable', 'integer', 'exists:communities,community_id'],
-            'image' => ['nullable', 'file', 'image', 'max:5120'],
+            'image' => ['nullable', 'file', 'image', 'mimes:jpeg,png,jpg,gif,mp4,mov', 'max:51200'],
             'mood_id' => ['sometimes', 'integer', 'exists:moods,mood_id'],
             'privacy' => ['sometimes', 'in:public,private'],
             'allow_comments' => ['sometimes', 'boolean'],

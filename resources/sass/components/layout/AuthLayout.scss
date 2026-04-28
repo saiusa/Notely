@@ -1,99 +1,196 @@
-@import '../../variables';
-
 .auth-layout {
-  &__container {
-    position: relative;
     min-height: 100vh;
-    overflow: hidden;
-    background: $color-bg-primary;
-    color: $color-text-primary;
-
-    &::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      pointer-events: none;
-      background: radial-gradient(circle at 16% 10%, rgba(122, 82, 230, 0.12), transparent 42%),
-                  radial-gradient(circle at 84% 14%, rgba(56, 89, 189, 0.09), transparent 42%);
-    }
-  }
-
-  &__wrapper {
-    position: relative;
     display: flex;
-    min-height: 100vh;
     align-items: center;
     justify-content: center;
-    padding: $spacing-xl $spacing-lg;
+    background-color: #1b1c24;
+    position: relative;
+    overflow: hidden;
+    padding: 1rem;
+    font-family: 'Inter', sans-serif;
 
-    @media (min-width: $breakpoint-sm) {
-      padding: $spacing-xl * 1.5 $spacing-xl;
+    /* Ambient Glow */
+    &::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 150vw;
+        height: 150vw;
+        max-width: 800px;
+        max-height: 800px;
+        pointer-events: none;
+        z-index: 0;
     }
-  }
 
-  &__section {
-    width: 100%;
-    max-width: 332px;
-
-    @media (min-width: $breakpoint-sm) {
-      max-width: 420px;
+    &__card {
+        background: rgba(31, 41, 55, 0.7);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 1.5rem;
+        padding: 3rem;
+        max-width: 540px;
+        width: 100%;
+        position: relative;
+        z-index: 1;
+        display: flex;
+        flex-direction: column;
     }
-  }
 
-  &__header {
-    margin-bottom: 56px;
-    text-align: center;
-
-    @media (min-width: $breakpoint-sm) {
-      margin-bottom: 64px;
+    &__logo-container {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 2rem;
     }
-  }
 
-  &__logo {
-    font-family: 'Notely', sans-serif;
-    font-size: 54px;
-    line-height: 1;
-    letter-spacing: -0.02em;
-    color: #7b5ccf;
-
-    @media (min-width: $breakpoint-sm) {
-      font-size: 62px;
+    &__logo {
+        height: 48px;
+        width: auto;
     }
-  }
 
-  &__content {
-    // Additional wrapper for form content
-  }
-
-  &__title {
-    text-align: center;
-    font-size: 27px;
-    font-weight: 600;
-    line-height: 1.2;
-    color: $color-text-primary;
-
-    @media (min-width: $breakpoint-sm) {
-      font-size: 42px;
+    &__brand {
+        font-family: 'Outfit', sans-serif;
+        font-size: 2.5rem;
+        font-weight: 800;
+        background: linear-gradient(135deg, #fff 0%, #8b5cf6 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        letter-spacing: -0.05em;
     }
-  }
 
-  &__subtitle {
-    margin-top: 12px;
-    text-align: center;
-    font-size: 16px;
-    line-height: 1.5;
-    color: #8a8fa8;
-
-    @media (min-width: $breakpoint-sm) {
-      font-size: 31px;
+    /* Standardized Auth Form Elements */
+    form {
+        display: flex;
+        flex-direction: column;
+        gap: 1.25rem;
     }
-  }
 
-  &__form-wrapper {
-    margin-top: 28px;
-
-    @media (min-width: $breakpoint-sm) {
-      margin-top: 32px;
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
     }
-  }
+
+    label {
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: #d1d5db;
+        margin-bottom: 0.25rem;
+    }
+
+    input[type="text"],
+    input[type="email"],
+    input[type="password"] {
+        background-color: rgba(17, 24, 39, 0.8);
+        border: 1px solid rgba(75, 85, 99, 0.4);
+        border-radius: 0.75rem;
+        color: white;
+        padding: 0.75rem 1rem;
+        font-size: 1rem;
+        transition: all 0.2s ease;
+        width: 100%;
+
+        &::placeholder {
+            color: #6b7280;
+        }
+
+        &:focus {
+            border-color: #8b5cf6;
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.2);
+            background-color: rgba(17, 24, 39, 0.9);
+        }
+    }
+
+    button[type="submit"] {
+        width: 100%;
+        background-color: #8b5cf6;
+        color: white;
+        padding: 0.875rem;
+        border-radius: 0.75rem;
+        border: none;
+        font-weight: 600;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        margin-top: 1rem;
+
+        &:hover {
+            background-color: #7c3aed;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+        }
+
+        &:active {
+            transform: translateY(0);
+        }
+
+        &:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+    }
+
+    .auth-footer {
+        margin-top: 2rem;
+        text-align: center;
+        font-size: 0.875rem;
+        color: #9ca3af;
+
+        a {
+            color: #8b5cf6;
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.2s;
+
+            &:hover {
+                color: #a78bfa;
+            }
+        }
+    }
+
+    .auth-utilities {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-top: 0.5rem;
+        font-size: 0.875rem;
+
+        .remember-me {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #9ca3af;
+            cursor: pointer;
+
+            input[type="checkbox"] {
+                accent-color: #8b5cf6;
+                width: 1rem;
+                height: 1rem;
+            }
+        }
+
+        .forgot-password {
+            color: #8b5cf6;
+            text-decoration: none;
+
+            &:hover {
+                text-decoration: underline;
+            }
+        }
+    }
+
+    .error-box {
+        padding: 0.875rem;
+        margin-bottom: 1.5rem;
+        text-align: center;
+        font-size: 0.875rem;
+        color: #f87171;
+        background-color: rgba(239, 68, 68, 0.1);
+        border: 1px solid rgba(239, 68, 68, 0.2);
+        border-radius: 0.75rem;
+    }
 }

@@ -1,13 +1,20 @@
 import React, { useRef, useState } from 'react';
 import { countryOptions } from './countries';
+import UserAvatar from '../common/UserAvatar';
 import '../../../sass/components/profile/ProfileEditModal.scss';
 
 export default function ProfileEditModal({ profile, onSave, onClose }) {
-    const [draft, setDraft] = useState(profile);
+    const [draft, setDraft] = useState({
+        ...profile,
+        birthday: profile.birthday ? profile.birthday.split('T')[0] : '',
+    });
     const [profilePhotoFile, setProfilePhotoFile] = useState(null);
     const [coverPhotoFile, setCoverPhotoFile] = useState(null);
+    const [error, setError] = useState('');
     const fileInputRef = useRef(null);
     const coverInputRef = useRef(null);
+
+    const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB in bytes.
 
     const handleFieldChange = (field) => (event) => {
         setDraft((prev) => ({
@@ -34,6 +41,13 @@ export default function ProfileEditModal({ profile, onSave, onClose }) {
             return;
         }
 
+        if (selectedFile.size > MAX_FILE_SIZE) {
+            setError('Profile picture exceeds the 50MB limit.');
+            return;
+        }
+        
+        setError('');
+
         // Store the file object for upload
         setProfilePhotoFile(selectedFile);
 
@@ -55,6 +69,13 @@ export default function ProfileEditModal({ profile, onSave, onClose }) {
             return;
         }
 
+        if (selectedFile.size > MAX_FILE_SIZE) {
+            setError('Cover photo exceeds the 50MB limit.');
+            return;
+        }
+        
+        setError('');
+
         // Store the file object for upload
         setCoverPhotoFile(selectedFile);
 
@@ -75,12 +96,24 @@ export default function ProfileEditModal({ profile, onSave, onClose }) {
             <section className="profile-edit-modal">
                 <h2 className="profile-edit-modal__title">Edit Profile</h2>
 
+                {error && (
+                    <div style={{ color: '#ef4444', fontSize: '14px', marginTop: '8px', marginBottom: '16px', backgroundColor: 'rgba(239, 68, 68, 0.1)', padding: '10px', borderRadius: '6px' }}>
+                        {error}
+                    </div>
+                )}
+
                 <div className="profile-edit-modal__header-section">
                     <div className="profile-edit-modal__photo-container">
-                        <img
-                            src={draft.profilePhoto || ''}
-                            alt="avatar"
+                        <UserAvatar
+                            user={{
+                                avatar_url: draft.profilePhoto,
+                                first_name: draft.firstName,
+                                last_name: draft.lastName,
+                                username: draft.username,
+                            }}
+                            size="lg"
                             className="profile-edit-modal__photo"
+                            style={{ width: undefined, height: undefined }}
                         />
                         <div className="profile-edit-modal__photo-info">
                             <h3 className="profile-edit-modal__photo-label">Profile Picture</h3>
@@ -96,11 +129,24 @@ export default function ProfileEditModal({ profile, onSave, onClose }) {
                     </div>
 
                     <div className="profile-edit-modal__cover-section">
-                        <img
-                            src={draft.coverPhoto || 'https://via.placeholder.com/860x180/2a2d3a/2a2d3a?text=Cover'}
-                            alt="cover"
-                            className="profile-edit-modal__cover"
-                        />
+                        {draft.coverPhoto && !draft.coverPhoto.startsWith('https://via.placeholder') ? (
+                            <img
+                                src={draft.coverPhoto}
+                                alt="cover"
+                                className="profile-edit-modal__cover"
+                            />
+                        ) : (
+                            <div
+                                className="profile-edit-modal__cover"
+                                style={{
+                                    background: 'linear-gradient(to right, #1f2937, #4c1d95)',
+                                    width: '100%',
+                                    height: '100%',
+                                    borderTopLeftRadius: 'inherit',
+                                    borderTopRightRadius: 'inherit',
+                                }}
+                            />
+                        )}
                         <button
                             type="button"
                             onClick={handlePickCover}

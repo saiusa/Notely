@@ -16,6 +16,7 @@ import api from '../services/api';
 import profileService from '../services/profileService';
 import postService from '../services/postService';
 import communityService from '../services/communityService';
+import UserAvatar from '../components/common/UserAvatar';
 import { getFullImageUrl } from '../utils/imageUrl';
 
 export default function ProfilePage() {
@@ -34,6 +35,8 @@ export default function ProfilePage() {
     const displayUser = viewedUser || user;
 
     // Build profile data from auth user or viewed user
+    // No Unsplash fallbacks — UserAvatar handles missing images with letter initials,
+    // and the cover photo conditional rendering shows a gradient fallback.
     const profileData = useMemo(() => ({
         firstName: displayUser?.profile?.first_name || '',
         lastName: displayUser?.profile?.last_name || '',
@@ -42,8 +45,8 @@ export default function ProfilePage() {
         country: displayUser?.profile?.location || 'south-korea',
         gender: displayUser?.profile?.gender || '',
         description: displayUser?.profile?.description || '',
-        coverPhoto: displayUser?.profile?.cover_photo || 'https://images.unsplash.com/photo-1473643068424-cd2485f9a97f?auto=format&fit=crop&w=1400&q=80',
-        profilePhoto: displayUser?.profile?.profile_picture || 'https://images.unsplash.com/photo-1543852786-1cf6624b9987?auto=format&fit=crop&w=130&q=80',
+        coverPhoto: displayUser?.profile?.cover_photo || null,
+        profilePhoto: displayUser?.profile?.profile_picture || null,
     }), [displayUser]);
 
     // Load profile of other user if username is provided in URL
@@ -70,13 +73,10 @@ export default function ProfilePage() {
     const fetchPosts = useCallback(async () => {
         setLoadingPosts(true);
         try {
-            const res = await postService.getFeed();
-            const allPosts = res.data || res || [];
-            // Filter to only the viewed user's public posts
-            const targetUserId = displayUser?.user_id;
-            const userPosts = allPosts
-                .filter((p) => p.user_id === targetUserId && p.privacy === 'public')
-                .map((post) => ({
+            if (!isOwnProfile && viewedUser?.posts) {
+                // Other user's profile — posts are already eager-loaded from the API
+                const userPosts = viewedUser.posts.map((post) => ({
+                    ...post,
                     id: post.post_id || post.id,
                     date: post.created_at ? new Date(post.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : '',
                     time: post.created_at ? new Date(post.created_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false }) : '',
@@ -88,13 +88,35 @@ export default function ProfilePage() {
                     likes: post.likes_count ?? 0,
                     comments: post.comments_count ?? 0,
                 }));
-            setPosts(userPosts);
+                setPosts(userPosts);
+            } else if (isOwnProfile) {
+                // Own profile — fetch all own posts (public + private) via dedicated endpoint
+                const res = await api.get('/me/posts').catch(() => postService.getFeed());
+                const allPosts = res.data?.data || res.data || res || [];
+                const targetUserId = displayUser?.user_id;
+                const userPosts = (Array.isArray(allPosts) ? allPosts : [])
+                    .filter((p) => !targetUserId || p.user_id === targetUserId)
+                    .map((post) => ({
+                        ...post,
+                        id: post.post_id || post.id,
+                        date: post.created_at ? new Date(post.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : '',
+                        time: post.created_at ? new Date(post.created_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false }) : '',
+                        createdAt: post.created_at || new Date().toISOString(),
+                        isPublic: post.privacy === 'public',
+                        text: post.content || '',
+                        mood: post.mood?.name || '',
+                        image: post.image || null,
+                        likes: post.likes_count ?? 0,
+                        comments: post.comments_count ?? 0,
+                    }));
+                setPosts(userPosts);
+            }
         } catch (_) {
             setPosts([]);
         } finally {
             setLoadingPosts(false);
         }
-    }, [displayUser?.user_id]);
+    }, [displayUser?.user_id, isOwnProfile, viewedUser]);
 
     // Fetch user's communities
     const fetchCommunities = useCallback(async () => {
@@ -102,7 +124,7 @@ export default function ProfilePage() {
         try {
             const res = await communityService.getMyCommunities();
             console.log('Communities API response:', res);
-            
+
             // The API returns { created: [...], joined: [...] }
             // Only display joined communities to avoid duplicates
             let data = [];
@@ -114,9 +136,9 @@ export default function ProfilePage() {
             } else if (Array.isArray(res)) {
                 data = res;
             }
-            
+
             console.log('Processed communities data:', data);
-            
+
             if (Array.isArray(data) && data.length > 0) {
                 // Deduplicate by ID just in case
                 const uniqueIds = new Set();
@@ -150,19 +172,25 @@ export default function ProfilePage() {
 
     useEffect(() => {
         fetchPosts();
-        // Only fetch communities when viewing own profile
         if (isOwnProfile) {
             fetchCommunities();
+        } else if (viewedUser?.communities) {
+            // Public profile — map eager-loaded communities from the API
+            const mapped = (viewedUser.communities || []).map((c) => ({
+                id: c.community_id || c.id,
+                name: c.name,
+                handle: `@${c.name.toLowerCase().replace(/\s+/g, '-')}`,
+                image: c.image || c.card_image || '',
+                categorySlug: c.category?.slug || '',
+            }));
+            setCommunities(mapped);
         } else {
             setCommunities([]);
         }
-    }, [fetchPosts, fetchCommunities, isOwnProfile]);
+    }, [fetchPosts, fetchCommunities, isOwnProfile, viewedUser]);
 
-    const recentPublicPosts = useMemo(() => {
-        return posts
-            .filter((p) => p.isPublic)
-            .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-            .slice(0, 4);
+    const displayPosts = useMemo(() => {
+        return posts.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
     }, [posts]);
 
     const handleSaveProfile = async (nextProfile, profilePhotoFile, coverPhotoFile) => {
@@ -175,7 +203,7 @@ export default function ProfilePage() {
             formData.append('birthday', nextProfile.birthday);
             formData.append('gender', nextProfile.gender);
             formData.append('description', nextProfile.description);
-            
+
             // Append files only if they were selected
             if (profilePhotoFile) {
                 formData.append('profile_picture', profilePhotoFile);
@@ -183,14 +211,13 @@ export default function ProfilePage() {
             if (coverPhotoFile) {
                 formData.append('cover_photo', coverPhotoFile);
             }
-            
-            // Send the request with FormData
-            await api.post('/me/profile-with-files', formData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data',
-                },
-            });
-            
+            // Method spoofing for Laravel PUT with multipart/form-data
+            formData.append('_method', 'PUT');
+
+            // Send the request with FormData using POST + _method=PUT spoofing
+            // The api interceptor auto-handles Content-Type for FormData
+            await api.post('/me/profile', formData);
+
             await refreshUser();
         } catch (err) {
             console.error('Failed to save profile:', err);
@@ -207,13 +234,21 @@ export default function ProfilePage() {
             <div className="profile-page-layout">
                 <section className="profile-page-layout__main">
                     <article className="profile-card">
-                        <img src={getFullImageUrl(profileData.coverPhoto)} alt="cover" className="profile-card__cover" />
+                        {displayUser?.profile?.cover_photo ? (
+                            <img src={getFullImageUrl(profileData.coverPhoto)} alt="cover" className="profile-card__cover" />
+                        ) : (
+                            <div
+                                className="profile-card__cover"
+                                style={{ background: 'linear-gradient(to right, #1f2937, #581c87)', borderRadius: '10px 10px 0 0' }}
+                            ></div>
+                        )}
 
                         <div className="profile-card__content">
-                            <img
-                                src={getFullImageUrl(profileData.profilePhoto)}
-                                alt="avatar"
+                            <UserAvatar
+                                user={displayUser}
+                                size="xl"
                                 className="profile-card__avatar"
+                                style={{ width: undefined, height: undefined }}
                             />
 
                             {isOwnProfile && (
@@ -245,26 +280,24 @@ export default function ProfilePage() {
                     </article>
 
                     <div className="profile-page-layout__posts-header">
-                        <h3 className="profile-page-layout__posts-title">Post</h3>
-                        <Link to="/profile/posts" className="profile-page-layout__show-all-link">
-                            Show all
-                            <span className="material-symbols-outlined profile-page-layout__show-all-icon">chevron_right</span>
-                        </Link>
+                        <h3 className="profile-page-layout__posts-title">Posts</h3>
                     </div>
 
-                    <div className="profile-page-layout__posts-grid">
+                    <div
+                        className="profile-page-layout__posts-feed"
+                        style={{ display: 'flex', flexDirection: 'column', gap: '24px', maxWidth: '600px', margin: '0 auto', width: '100%' }}
+                    >
                         {loadingPosts ? (
-                            <div style={{ display: 'flex', justifyContent: 'center', padding: '40px 0', gridColumn: '1 / -1' }}>
+                            <div style={{ display: 'flex', justifyContent: 'center', padding: '40px 0' }}>
                                 <Loader />
                             </div>
-                        ) : recentPublicPosts.length === 0 ? (
-                            <p style={{ color: '#a5abb9', padding: '20px 0' }}>No public posts yet.</p>
+                        ) : displayPosts.length === 0 ? (
+                            <p style={{ color: '#a5abb9', padding: '20px 0' }}>No posts yet.</p>
                         ) : (
-                            recentPublicPosts.map((post) => (
+                            displayPosts.map((post) => (
                                 <PostCard
                                     key={`profile-overview-${post.id}`}
                                     post={post}
-                                    compact={true}
                                     variant="feed"
                                 />
                             ))

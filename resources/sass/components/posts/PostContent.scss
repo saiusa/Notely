@@ -44,6 +44,17 @@
     }
   }
 
+  &__hashtag {
+    color: $color-primary;
+    text-decoration: none;
+    transition: $transition-fast;
+
+    &:hover {
+      color: $color-primary-hover;
+      text-decoration: none;
+    }
+  }
+
   // Quote post styling
   &__quote-wrapper {
     padding: $spacing-2xl $spacing-2xl + 2px;

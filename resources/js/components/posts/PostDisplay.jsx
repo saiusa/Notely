@@ -4,6 +4,7 @@ import { formatRelativeTime } from '../../utils/timeFormatter';
 import { getMoodColorPalette } from '../../utils/moodColorMapper';
 import { getFullImageUrl } from '../../utils/imageUrl';
 import PostContent from './PostContent';
+import UserAvatar from '../common/UserAvatar';
 import '../../../sass/components/posts/PostCard.scss';
 
 /**
@@ -73,10 +74,11 @@ export default function PostDisplay({
                         />
                     ) : (
                         <Link to={`/profile/${postUsername}`} style={{ textDecoration: 'none', color: 'inherit' }}>
-                            <img 
-                                src={displayAvatar || ''} 
-                                alt={postUsername} 
-                                className="post-card__author-avatar" 
+                            <UserAvatar
+                                user={post.user}
+                                size="sm"
+                                className="post-card__author-avatar"
+                                style={{ width: undefined, height: undefined }}
                             />
                         </Link>
                     )}
@@ -189,21 +191,31 @@ export default function PostDisplay({
                     (() => {
                         const moodColors = getMoodColorPalette(postMood);
                         return (
-                            <span 
+                            <Link 
+                                to={`/search?q=${encodeURIComponent(postMood)}`}
+                                onClick={(e) => e.stopPropagation()}
                                 className="post-card__mood-pill"
                                 style={{
                                     backgroundColor: moodColors.backgroundColor,
                                     color: moodColors.textColor,
+                                    textDecoration: 'none'
                                 }}
                             >
                                 {moodColors.emoji && <span className="post-card__mood-emoji">{moodColors.emoji}</span>}
                                 {postMood}
-                            </span>
+                            </Link>
                         );
                     })()
                 )}
                 {postHashtags.map((tag) => (
-                    <span key={tag} className="post-card__hashtag">{tag}</span>
+                    <Link 
+                        key={tag} 
+                        to={`/search?q=${encodeURIComponent(tag)}`}
+                        onClick={(e) => e.stopPropagation()}
+                        className="post-card__hashtag"
+                    >
+                        {tag}
+                    </Link>
                 ))}
             </div>
 

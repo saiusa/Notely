@@ -17,7 +17,7 @@ export function AuthProvider({ children }) {
     useEffect(() => {
         const tryAutoLogin = async () => {
             const rememberToken = localStorage.getItem('remember_token');
-            
+
             // Try auto-login with remember_token first
             if (rememberToken && !token) {
                 try {
@@ -64,14 +64,14 @@ export function AuthProvider({ children }) {
     const login = useCallback(async (email, password, rememberMe = false) => {
         const data = await authService.login({ email, password, remember_me: rememberMe });
         saveToken(data.token);
-        
+
         // Store remember_token if provided and remember_me was checked
         if (rememberMe && data.remember_token) {
             localStorage.setItem('remember_token', data.remember_token);
         } else {
             localStorage.removeItem('remember_token');
         }
-        
+
         // Fetch full user profile (includes profile, setting, communities)
         const userData = await authService.getMe();
         setUser(userData);

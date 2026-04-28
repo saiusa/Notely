@@ -18,6 +18,7 @@ class Notification extends Model
         'user_id',
         'type',
         'reference_id',
+        'data',
         'is_read',
     ];
 
@@ -25,6 +26,7 @@ class Notification extends Model
     {
         return [
             'is_read' => 'boolean',
+            'data'    => 'array',
             'created_at' => 'datetime',
         ];
     }

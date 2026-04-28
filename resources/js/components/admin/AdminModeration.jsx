@@ -10,6 +10,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import api from '../../services/api';
 import ModerationCard from './ModerationCard';
+import UserAvatar from '../common/UserAvatar';
 import '../../../sass/components/admin/AdminModeration.scss';
 
 // ─── Skeleton: triage card placeholder ───────────────────────────────────────
@@ -68,8 +69,8 @@ function ModerationCommentCard({ comment, onDismiss, onDelete, isDismissing, isD
             {/* Header */}
             <div className="moderation-card__header">
                 <div className="author-info">
-                    <div className="author-avatar">
-                        {comment.user?.username?.charAt(0)?.toUpperCase() || '?'}
+                    <div className="author-avatar" style={{ border: 'none', background: 'transparent' }}>
+                        <UserAvatar user={comment.user} size="sm" />
                     </div>
                     <div className="author-details">
                         <p className="author-username">{comment.user?.username || 'Unknown User'}</p>
@@ -211,16 +212,9 @@ function UserTriageCard({ user, onPostDismiss, onPostDelete, onCommentDismiss, o
                 tabIndex={0}
                 onKeyDown={e => e.key === 'Enter' && setIsOpen(p => !p)}
             >
-                {user.avatar && !avatarError ? (
-                    <img
-                        src={user.avatar}
-                        alt={user.username}
-                        className="triage-card__avatar"
-                        onError={() => setAvatarError(true)}
-                    />
-                ) : (
-                    <div className="triage-card__avatar-fallback">{initials}</div>
-                )}
+                <div style={{ flexShrink: 0, marginRight: '16px' }}>
+                    <UserAvatar user={user} size="md" />
+                </div>
 
                 <div className="triage-card__user-info">
                     <span className="triage-card__username">{user.username ?? user.name ?? 'Unknown'}</span>

@@ -236,9 +236,11 @@
     font-size: 13px;
     transition: color 0.2s ease;
     cursor: pointer;
+    text-decoration: none;
 
     &:hover {
       color: #8e74d5;
+      text-decoration: none;
     }
   }
 

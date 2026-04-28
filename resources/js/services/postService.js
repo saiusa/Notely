@@ -47,7 +47,11 @@ const postService = {
      * @param {Object} data - Post data
      */
     async createPost(data) {
-        const res = await api.post('/posts', data);
+        const res = await api.post('/posts', data, {
+            headers: {
+                'Content-Type': 'multipart/form-data'
+            }
+        });
         return res.data;
     },
 
@@ -58,13 +62,13 @@ const postService = {
     async uploadFile(file) {
         const formData = new FormData();
         formData.append('file', file);
-        
+
         console.log('Uploading file:', {
             name: file.name,
             type: file.type,
             size: file.size,
         });
-        
+
         try {
             // Use axios with FormData - it handles Content-Type and auth headers automatically
             const res = await api.post('/uploads', formData);
@@ -106,7 +110,7 @@ const postService = {
 
     /** POST /api/posts/:id/comments */
     async createComment(postId, content, parentId = null) {
-        const res = await api.post(`/posts/${postId}/comments`, { 
+        const res = await api.post(`/posts/${postId}/comments`, {
             content,
             parent_id: parentId
         });

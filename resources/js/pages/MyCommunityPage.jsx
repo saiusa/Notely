@@ -11,8 +11,8 @@ export default function MyCommunityPage() {
     const { tab } = useParams();
     const navigate = useNavigate();
     
-    // Default to 'created' if tab is undefined
-    const activeTab = tab || 'created';
+    // Default to 'joined' if tab is undefined
+    const activeTab = tab || 'joined';
     
     const [categories, setCategories] = useState([]);
     const [myCommunities, setMyCommunities] = useState({
@@ -59,8 +59,8 @@ export default function MyCommunityPage() {
 
     // Type filter options
     const typeOptions = useMemo(() => [
-        { value: 'created', label: 'Created Communities' },
         { value: 'joined', label: 'Joined Communities' },
+        { value: 'created', label: 'Created Communities' },
     ], []);
 
     // Category filter options
@@ -162,7 +162,7 @@ export default function MyCommunityPage() {
                             <span className="my-community-page__count">{filteredCommunities.length} {filteredCommunities.length === 1 ? 'community' : 'communities'}</span>
                         </div>
 
-                        <div className="my-community-page__grid">
+                        <div className="community-grid">
                             {filteredCommunities.map((community) => {
                                 const category = categories.find(c => c.category_id === community.category_id);
                                 const categoryName = category?.name || '';

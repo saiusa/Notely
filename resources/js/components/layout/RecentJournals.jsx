@@ -4,6 +4,7 @@ import { getFullImageUrl } from '../../utils/imageUrl';
 import api from '../../services/api';
 import postService from '../../services/postService';
 import CommentFloatingModal from '../posts/comments/CommentFloatingModal';
+import UserAvatar from '../common/UserAvatar';
 import '../../../sass/components/layout/RecentJournals.scss';
 
 /**
@@ -329,10 +330,11 @@ export default function RecentJournals() {
                   >
                     {/* Card Header: Avatar + Info */}
                     <div className="recent-journals__card-header">
-                      <img
-                        src={getFullImageUrl(userAvatar) || '/storage/logo/Notely-Logo.svg'}
-                        alt={username}
+                      <UserAvatar
+                        user={entry.user}
+                        size="sm"
                         className="recent-journals__avatar"
+                        style={{ width: undefined, height: undefined }}
                       />
                       <div className="recent-journals__card-info">
                         <p className="recent-journals__username">{username}</p>

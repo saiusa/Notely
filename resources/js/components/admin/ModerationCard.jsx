@@ -6,6 +6,7 @@
  * - Provides dismiss reports and delete post actions
  */
 import React, { useState } from 'react';
+import UserAvatar from '../common/UserAvatar';
 import '../../../sass/components/admin/ModerationCard.scss';
 
 export default function ModerationCard({
@@ -52,8 +53,8 @@ export default function ModerationCard({
             {/* Header: Author Info */}
             <div className="moderation-card__header">
                 <div className="author-info">
-                    <div className="author-avatar">
-                        {post.user?.username?.charAt(0)?.toUpperCase() || '?'}
+                    <div className="author-avatar" style={{ border: 'none', background: 'transparent' }}>
+                        <UserAvatar user={post.user} size="sm" />
                     </div>
                     <div className="author-details">
                         <p className="author-username">{post.user?.username || 'Unknown User'}</p>

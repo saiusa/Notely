@@ -15,6 +15,7 @@ class CommunityMembershipController extends Controller
     {
         $members = $community->users()
             ->select('users.user_id', 'users.username', 'community_members.joined_at')
+            ->with('profile:profile_id,user_id,profile_picture,first_name,last_name')
             ->orderByDesc('community_members.joined_at')
             ->paginate(20);
 

@@ -36,6 +36,7 @@ Route::prefix('auth')->group(function (): void {
 
 Route::middleware('auth:sanctum')->group(function (): void {
     Route::get('/me', [MeController::class, 'show']);
+    Route::get('/me/posts', [MeController::class, 'myPosts']);
     Route::put('/me/profile', [ProfileController::class, 'update']);
     
     // Get public user profile by username
@@ -105,8 +106,7 @@ Route::middleware('auth:sanctum')->group(function (): void {
     Route::delete('/communities/{community}/leave', [CommunityMembershipController::class, 'leave']);
 
     // ─── Search Routes ───────────────────────────
-    Route::get('/search', [SearchController::class, 'search']);
-    Route::get('/search/suggestions', [SearchController::class, 'suggestions']);
+    Route::get('/search', [SearchController::class, 'index']);
 
     // ─── Email Notification Routes ───────────────
     Route::prefix('email-notifications')->group(function (): void {
@@ -120,7 +120,7 @@ Route::middleware('auth:sanctum')->group(function (): void {
 // Protected by both 'auth:sanctum' and 'admin' middleware
 Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function (): void {
     // Stats & users
-    Route::get('/stats', [AdminController::class, 'getStats']);
+    Route::get('/dashboard', [AdminController::class, 'dashboard']);
     Route::get('/users', [AdminController::class, 'users']);
     Route::patch('/users/{user}/toggle-status', [AdminController::class, 'toggleStatus']);
     Route::post('/users/{user}/suspend', [AdminController::class, 'suspendUser']);

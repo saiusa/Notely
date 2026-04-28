@@ -1,29 +1,30 @@
 /**
  * pages/SearchPage.jsx
  * Full-text search page with tabs for posts, communities, and users
- * Displays search results with pagination and filtering
  */
 import React, { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, Link } from 'react-router-dom';
 import searchService from '../services/searchService';
 import PostCard from '../components/posts/PostCard';
 import CommunityListCard from '../components/community/CommunityListCard';
+import UserAvatar from '../components/common/UserAvatar';
 import Loader from '../components/common/Loader';
+
+import SocialLayout from '../components/layout/SocialLayout';
 
 export default function SearchPage() {
     const [searchParams] = useSearchParams();
     const query = searchParams.get('q') || '';
     
-    const [activeTab, setActiveTab] = useState('all'); // all|posts|communities|users
-    const [results, setResults] = useState(null);
+    const [activeTab, setActiveTab] = useState('all'); // all|posts|communities|people
+    const [results, setResults] = useState({ users: [], communities: [], posts: [] });
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
-    const [currentPage, setCurrentPage] = useState(1);
 
     // Fetch search results
     useEffect(() => {
         if (!query.trim()) {
-            setResults(null);
+            setResults({ users: [], communities: [], posts: [] });
             return;
         }
 
@@ -31,202 +32,245 @@ export default function SearchPage() {
             try {
                 setLoading(true);
                 setError(null);
-                setCurrentPage(1);
-
-                let data;
-                if (activeTab === 'all') {
-                    data = await searchService.search(query);
-                } else if (activeTab === 'posts') {
-                    data = await searchService.searchPosts(query, currentPage);
-                } else if (activeTab === 'communities') {
-                    data = await searchService.searchCommunities(query, currentPage);
-                } else if (activeTab === 'users') {
-                    data = await searchService.searchUsers(query, currentPage);
-                }
-
-                setResults(data);
+                
+                // Fetch flat response from backend
+                const data = await searchService.search(query);
+                setResults({
+                    users: data.users || [],
+                    communities: data.communities || [],
+                    posts: data.posts || []
+                });
             } catch (err) {
                 console.error('Search error:', err);
-                setError(err.response?.data?.message || 'Search failed. Please try again.');
+                setError('Search failed. Please try again.');
             } finally {
                 setLoading(false);
             }
         };
 
         performSearch();
-    }, [query, activeTab]);
+    }, [query]);
 
     if (!query.trim()) {
         return (
-            <div className="flex flex-col items-center justify-center h-96 text-center">
-                <h2 className="text-2xl font-semibold text-gray-400 mb-2">Search Notely</h2>
-                <p className="text-gray-500">Enter a query to find posts, communities, and users</p>
-            </div>
+            <SocialLayout navbarMode="title" title="Search" showRecentJournals={false} hideSidebar>
+                <div className="search-page__container">
+                    <div className="search-page__empty" style={{ minHeight: '300px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                        <h2 className="search-page__section-title">Search Notely</h2>
+                        <p className="search-page__subtitle">Enter a query to find posts, communities, and people</p>
+                    </div>
+                </div>
+            </SocialLayout>
         );
     }
 
     if (loading) {
-        return <Loader />;
+        return (
+            <SocialLayout navbarMode="title" title="Search" showRecentJournals={false} hideSidebar>
+                <Loader />
+            </SocialLayout>
+        );
     }
 
     if (error) {
         return (
-            <div className="bg-red-900/20 border border-red-700 rounded-lg p-4 text-red-400">
-                {error}
-            </div>
+            <SocialLayout navbarMode="title" title="Search" showRecentJournals={false} hideSidebar>
+                <div className="search-page__container">
+                    <div className="search-page__error" style={{ backgroundColor: 'rgba(153, 27, 27, 0.2)', border: '1px solid #b91c1c', borderRadius: '8px', padding: '16px', color: '#f87171' }}>
+                        {error}
+                    </div>
+                </div>
+            </SocialLayout>
         );
     }
 
     const getTabCount = (type) => {
-        if (!results) return 0;
-        if (type === 'posts') return results.results?.posts?.data?.length || 0;
-        if (type === 'communities') return results.results?.communities?.data?.length || 0;
-        if (type === 'users') return results.results?.users?.data?.length || 0;
+        if (type === 'posts') return results.posts.length;
+        if (type === 'communities') return results.communities.length;
+        if (type === 'people') return results.users.length;
         return 0;
     };
 
+    const totalResults = results.posts.length + results.communities.length + results.users.length;
+
+    const renderUsers = (usersToRender) => (
+        <div className="search-page__results-grid search-page__results-grid--people">
+            {usersToRender.map((user) => (
+                <Link 
+                    key={user.user_id} 
+                    to={`/profile/${user.username}`} 
+                    className="search-page__person-card"
+                    style={{ textDecoration: 'none' }}
+                >
+                    <UserAvatar 
+                        user={{
+                            username: user.username,
+                            first_name: user.profile?.first_name,
+                            last_name: user.profile?.last_name,
+                            avatar_url: user.profile?.profile_picture,
+                            avatar: user.profile?.profile_picture
+                        }} 
+                        size="md" 
+                    />
+                    <div className="search-page__person-info">
+                        <span className="search-page__person-name">
+                            {user.profile?.first_name ? `${user.profile.first_name} ${user.profile.last_name || ''}` : `@${user.username}`}
+                        </span>
+                        <span className="search-page__person-username">@{user.username}</span>
+                    </div>
+                </Link>
+            ))}
+        </div>
+    );
+
+    const renderCommunities = (communitiesToRender) => (
+        <div className="search-page__community-list">
+            {communitiesToRender.map((community) => (
+                <Link 
+                    key={community.community_id} 
+                    to={`/community/browse/${community.category?.slug || 'uncategorized'}/${community.community_id}`}
+                    className="search-page__community-card"
+                >
+                    {community.image ? (
+                        <img 
+                            src={community.image} 
+                            alt={community.name} 
+                            className="search-page__community-avatar" 
+                        />
+                    ) : (
+                        <div className="search-page__community-avatar" />
+                    )}
+                    <div className="search-page__community-info">
+                        <span className="search-page__community-name">{community.name}</span>
+                        <span className="search-page__community-meta">
+                            {community.members_count || 0} members • {community.category?.name || 'Uncategorized'}
+                        </span>
+                    </div>
+                    <div className="search-page__community-view-btn">
+                        View
+                    </div>
+                </Link>
+            ))}
+        </div>
+    );
+
     return (
-        <div className="space-y-6">
-            {/* Header */}
-            <div className="mg-b-6">
-                <h1 className="text-3xl font-bold text-white mb-2">
-                    Search Results for "<span className="text-purple-400">{query}</span>"
-                </h1>
-                <p className="text-gray-400">
-                    Found {results?.results ? Object.values(results.results).reduce((sum, cat) => sum + (cat.data?.length || 0), 0) : 0} results
-                </p>
-            </div>
+        <SocialLayout navbarMode="title" title="Search" showRecentJournals={false} hideSidebar>
+            <div className="search-page__container">
+                {/* Header */}
+                <div className="search-page__header">
+                    <h1 className="search-page__title">
+                        Results for "<span className="search-page__query-highlight">{query}</span>"
+                    </h1>
+                    <p className="search-page__subtitle">
+                        Found {totalResults} results
+                    </p>
+                </div>
 
-            {/* Tabs */}
-            <div className="flex border-b border-gray-700 gap-8">
-                {['all', 'posts', 'communities'].map((tab) => (
-                    <button
-                        key={tab}
-                        onClick={() => setActiveTab(tab)}
-                        className={`pb-3 font-medium transition ${
-                            activeTab === tab
-                                ? 'text-purple-400 border-b-2 border-purple-400'
-                                : 'text-gray-400 hover:text-gray-300'
-                        }`}
-                    >
-                        {tab.charAt(0).toUpperCase() + tab.slice(1)}
-                        {tab !== 'all' && <span className="ml-1 text-xs">({getTabCount(tab)})</span>}
-                    </button>
-                ))}
-            </div>
+                {/* Tabs */}
+                <div className="search-page__tabs">
+                    {['all', 'posts', 'communities', 'people'].map((tab) => (
+                        <button
+                            key={tab}
+                            onClick={() => setActiveTab(tab)}
+                            className={`search-page__tab ${activeTab === tab ? 'search-page__tab--active' : ''}`}
+                        >
+                            {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                            {tab !== 'all' && <span className="search-page__tab-count">({getTabCount(tab)})</span>}
+                        </button>
+                    ))}
+                </div>
 
-            {/* Results */}
-            <div className="space-y-4">
-                {activeTab === 'all' ? (
-                    <>
-                        {/* Posts Section */}
-                        {results?.results?.posts?.data?.length > 0 && (
-                            <div>
-                                <h2 className="text-xl font-semibold text-white mb-3">Posts</h2>
-                                <div className="space-y-3">
-                                    {results.results.posts.data.map((post) => (
-                                        <PostCard key={post.post_id} post={post} />
-                                    ))}
+                {/* Results */}
+                <div className="search-page__results search-page__results-container">
+                    {activeTab === 'all' ? (
+                        <>
+                            {/* Posts Section */}
+                            {results.posts.length > 0 && (
+                                <div className="search-page__section">
+                                    <h2 className="search-page__section-title">Posts</h2>
+                                    <div className="search-page__results-list">
+                                        {results.posts.slice(0, 3).map((post) => (
+                                            <PostCard key={post.post_id} post={post} />
+                                        ))}
+                                    </div>
+                                    {results.posts.length > 3 && (
+                                        <button onClick={() => setActiveTab('posts')} className="search-page__see-all">
+                                            See all {results.posts.length} posts
+                                        </button>
+                                    )}
                                 </div>
-                            </div>
-                        )}
+                            )}
 
-                        {/* Communities Section */}
-                        {results?.results?.communities?.data?.length > 0 && (
-                            <div>
-                                <h2 className="text-xl font-semibold text-white mb-3 mt-8">Communities</h2>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    {results.results.communities.data.map((community) => (
-                                        <CommunityListCard key={community.community_id} community={community} />
-                                    ))}
+                            {/* Communities Section */}
+                            {results.communities.length > 0 && (
+                                <div className="search-page__section">
+                                    <h2 className="search-page__section-title">Communities</h2>
+                                    {renderCommunities(results.communities.slice(0, 3))}
+                                    {results.communities.length > 3 && (
+                                        <button onClick={() => setActiveTab('communities')} className="search-page__see-all">
+                                            See all {results.communities.length} communities
+                                        </button>
+                                    )}
                                 </div>
-                            </div>
-                        )}
+                            )}
 
-                        {!results?.results?.posts?.data?.length &&
-                            !results?.results?.communities?.data?.length && (
-                                <div className="text-center py-12 text-gray-400">
+                            {/* People Section */}
+                            {results.users.length > 0 && (
+                                <div className="search-page__section">
+                                    <h2 className="search-page__section-title">People</h2>
+                                    {renderUsers(results.users.slice(0, 3))}
+                                    {results.users.length > 3 && (
+                                        <button onClick={() => setActiveTab('people')} className="search-page__see-all">
+                                            See all {results.users.length} people
+                                        </button>
+                                    )}
+                                </div>
+                            )}
+
+                            {totalResults === 0 && (
+                                <div className="search-page__empty">
                                     No results found for "{query}"
                                 </div>
                             )}
-                    </>
-                ) : activeTab === 'posts' ? (
-                    <>
-                        {results?.results?.posts?.data?.length > 0 ? (
-                            <div className="space-y-3">
-                                {results.results.posts.data.map((post) => (
-                                    <PostCard key={post.post_id} post={post} />
-                                ))}
-                                {/* Pagination */}
-                                {results.results.posts.last_page > 1 && (
-                                    <PaginationControls
-                                        current={results.results.posts.current_page}
-                                        last={results.results.posts.last_page}
-                                        onPageChange={setCurrentPage}
-                                    />
-                                )}
-                            </div>
-                        ) : (
-                            <div className="text-center py-12 text-gray-400">
-                                No posts found matching "{query}"
-                            </div>
-                        )}
-                    </>
-                ) : activeTab === 'communities' ? (
-                    <>
-                        {results?.results?.communities?.data?.length > 0 ? (
-                            <>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    {results.results.communities.data.map((community) => (
-                                        <CommunityListCard key={community.community_id} community={community} />
+                        </>
+                    ) : activeTab === 'posts' ? (
+                        <>
+                            {results.posts.length > 0 ? (
+                                <div className="search-page__results-list">
+                                    {results.posts.map((post) => (
+                                        <PostCard key={post.post_id} post={post} />
                                     ))}
                                 </div>
-                                {/* Pagination */}
-                                {results.results.communities.last_page > 1 && (
-                                    <PaginationControls
-                                        current={results.results.communities.current_page}
-                                        last={results.results.communities.last_page}
-                                        onPageChange={setCurrentPage}
-                                    />
-                                )}
-                            </>
-                        ) : (
-                            <div className="text-center py-12 text-gray-400">
-                                No communities found matching "{query}"
-                            </div>
-                        )}
-                    </>
-                ) : null}
+                            ) : (
+                                <div className="search-page__empty">
+                                    No posts found matching "{query}"
+                                </div>
+                            )}
+                        </>
+                    ) : activeTab === 'communities' ? (
+                        <>
+                            {results.communities.length > 0 ? (
+                                renderCommunities(results.communities)
+                            ) : (
+                                <div className="search-page__empty">
+                                    No communities found matching "{query}"
+                                </div>
+                            )}
+                        </>
+                    ) : activeTab === 'people' ? (
+                        <>
+                            {results.users.length > 0 ? (
+                                renderUsers(results.users)
+                            ) : (
+                                <div className="search-page__empty">
+                                    No people found matching "{query}"
+                                </div>
+                            )}
+                        </>
+                    ) : null}
+                </div>
             </div>
-        </div>
-    );
-}
-
-/**
- * Pagination controls component
- */
-function PaginationControls({ current, last, onPageChange }) {
-    return (
-        <div className="flex items-center justify-center gap-2 mt-6 pb-6">
-            <button
-                onClick={() => onPageChange(current - 1)}
-                disabled={current === 1}
-                className="px-3 py-2 rounded bg-gray-700 hover:bg-gray-600 disabled:opacity-50 text-white"
-            >
-                Previous
-            </button>
-
-            <div className="text-gray-400">
-                Page {current} of {last}
-            </div>
-
-            <button
-                onClick={() => onPageChange(current + 1)}
-                disabled={current === last}
-                className="px-3 py-2 rounded bg-gray-700 hover:bg-gray-600 disabled:opacity-50 text-white"
-            >
-                Next
-            </button>
-        </div>
+        </SocialLayout>
     );
 }

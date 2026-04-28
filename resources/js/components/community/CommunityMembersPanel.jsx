@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import UserAvatar from '../common/UserAvatar';
 import '../../../sass/components/community/CommunityMembersPanel.scss';
 
 /**
@@ -51,11 +52,16 @@ export default function CommunityMembersPanel({ memberSearch, onSearchChange, vi
                 {visibleMembers.map((member) => (
                     <Link key={member.id} to={`/profile/${member.name}`} style={{ textDecoration: 'none', color: 'inherit' }}>
                         <article className="community-members-panel__item">
-                            <img
-                                src={getImageUrl(member.avatar) || AVATAR_PLACEHOLDER_SVG}
-                                alt={member.name}
+                            <UserAvatar
+                                user={{
+                                    user_id: member.id,
+                                    avatar_url: member.avatar,
+                                    username: member.name,
+                                    first_name: member.name,
+                                }}
+                                size="sm"
                                 className="community-members-panel__avatar"
-                                onError={handleImageError}
+                                style={{ width: undefined, height: undefined }}
                             />
                             <div className="community-members-panel__info">
                                 <p className="community-members-panel__name">{member.name}</p>

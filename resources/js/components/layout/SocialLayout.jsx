@@ -20,6 +20,7 @@ export default function SocialLayout(props) {
         currentFilter = 'recent',
         notificationCount = 0,
         showRecentJournals = true,
+        hideSidebar = false, // When true, suppresses the right-sidebar right-padding so content can expand
         children,
     } = props;
 
@@ -94,7 +95,7 @@ export default function SocialLayout(props) {
                     onCloseNotification={handleCloseNotifications}
                 />
 
-                <div className="social-layout__content-area">
+                <div className={`social-layout__content-area${hideSidebar ? ' social-layout__content-area--no-sidebar' : ''}`}>
                     {/* Main */}
                     <main className="social-layout__main-content">
                         <div className={contentContainerClassName}>

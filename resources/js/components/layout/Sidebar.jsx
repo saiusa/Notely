@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import UserAvatar from '../common/UserAvatar';
+
 import '../../../sass/components/layout/Sidebar.scss';
 
-export default function Sidebar({ active = 'home', onActiveChange = () => {} }) {
+export default function Sidebar({ active = 'home', onActiveChange = () => { } }) {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout } = useAuth();
@@ -22,12 +24,12 @@ export default function Sidebar({ active = 'home', onActiveChange = () => {} }) 
   }, [pathname]);
 
   // Derive display values from auth user (fallback to defaults)
-  const displayName = user?.profile
-    ? `${user.profile.first_name || ''} ${user.profile.last_name || ''}`.trim() || user.username
-    : user?.username || 'User';
+  const displayName = user?.first_name
+    ? `${user.first_name} ${user.last_name || ''}`.trim()
+    : user?.profile
+      ? `${user.profile.first_name || ''} ${user.profile.last_name || ''}`.trim() || user.username
+      : user?.username || 'User';
   const displayUsername = user ? `@${user.username}` : '@user';
-  const displayAvatar = user?.profile?.profile_picture
-    || 'https://images.unsplash.com/photo-1543852786-1cf6624b9987?auto=format&fit=crop&w=120&q=80';
 
   const handleLogout = async () => {
     await logout();
@@ -46,11 +48,10 @@ export default function Sidebar({ active = 'home', onActiveChange = () => {} }) 
         <Link
           to="/home"
           onClick={() => onActiveChange('home')}
-          className={`sidebar__nav-item ${
-            active === 'home'
-              ? 'sidebar__nav-item--active'
-              : 'sidebar__nav-item--inactive'
-          }`}
+          className={`sidebar__nav-item ${active === 'home'
+            ? 'sidebar__nav-item--active'
+            : 'sidebar__nav-item--inactive'
+            }`}
         >
           <span className="material-symbols-outlined sidebar__nav-icon">home</span>
           Home
@@ -63,13 +64,12 @@ export default function Sidebar({ active = 'home', onActiveChange = () => {} }) 
           className="sidebar__community-toggle"
         >
           <span className="sidebar__community-left">
-            <span className="material-symbols-outlined sidebar__nav-icon" style={{fontVariationSettings: '"FILL" 0'}}>groups</span>
+            <span className="material-symbols-outlined sidebar__nav-icon" style={{ fontVariationSettings: '"FILL" 0' }}>groups</span>
             Community
           </span>
           <span
-            className={`material-symbols-outlined sidebar__chevron ${
-              communityOpen ? 'sidebar__chevron--open' : ''
-            }`}
+            className={`material-symbols-outlined sidebar__chevron ${communityOpen ? 'sidebar__chevron--open' : ''
+              }`}
           >
             chevron_right
           </span>
@@ -80,22 +80,20 @@ export default function Sidebar({ active = 'home', onActiveChange = () => {} }) 
           <div className="sidebar__community-menu">
             <Link
               to="/community/browse"
-              className={`sidebar__community-link ${
-                isCommunityBrowse
-                  ? 'sidebar__community-link--active'
-                  : 'sidebar__community-link--inactive'
-              }`}
+              className={`sidebar__community-link ${isCommunityBrowse
+                ? 'sidebar__community-link--active'
+                : 'sidebar__community-link--inactive'
+                }`}
             >
               Browse
             </Link>
 
             <Link
               to="/community/my-community/created"
-              className={`sidebar__community-link ${
-                isCommunityMy
-                  ? 'sidebar__community-link--active'
-                  : 'sidebar__community-link--inactive'
-              }`}
+              className={`sidebar__community-link ${isCommunityMy
+                ? 'sidebar__community-link--active'
+                : 'sidebar__community-link--inactive'
+                }`}
             >
               My Community
             </Link>
@@ -106,11 +104,10 @@ export default function Sidebar({ active = 'home', onActiveChange = () => {} }) 
         <Link
           to="/journal"
           onClick={() => onActiveChange('journal')}
-          className={`sidebar__nav-item ${
-            active === 'journal'
-              ? 'sidebar__nav-item--active'
-              : 'sidebar__nav-item--inactive'
-          }`}
+          className={`sidebar__nav-item ${active === 'journal'
+            ? 'sidebar__nav-item--active'
+            : 'sidebar__nav-item--inactive'
+            }`}
         >
           <span className="material-symbols-outlined sidebar__nav-icon">book_2</span>
           Journal
@@ -120,13 +117,12 @@ export default function Sidebar({ active = 'home', onActiveChange = () => {} }) 
 
         {/* Profile */}
         <Link
-          to="/profile"
+          to={`/profile/${user?.username || ''}`}
           onClick={() => onActiveChange('profile')}
-          className={`sidebar__nav-item ${
-            active === 'profile'
-              ? 'sidebar__nav-item--active'
-              : 'sidebar__nav-item--inactive'
-          }`}
+          className={`sidebar__nav-item ${active === 'profile'
+            ? 'sidebar__nav-item--active'
+            : 'sidebar__nav-item--inactive'
+            }`}
         >
           <span className="material-symbols-outlined sidebar__nav-icon">person</span>
           Profile
@@ -136,11 +132,10 @@ export default function Sidebar({ active = 'home', onActiveChange = () => {} }) 
         <Link
           to="/settings"
           onClick={() => onActiveChange('settings')}
-          className={`sidebar__nav-item ${
-            active === 'settings'
-              ? 'sidebar__nav-item--active'
-              : 'sidebar__nav-item--inactive'
-          }`}
+          className={`sidebar__nav-item ${active === 'settings'
+            ? 'sidebar__nav-item--active'
+            : 'sidebar__nav-item--inactive'
+            }`}
         >
           <span className="material-symbols-outlined sidebar__nav-icon">settings</span>
           Settings
@@ -155,11 +150,7 @@ export default function Sidebar({ active = 'home', onActiveChange = () => {} }) 
           className="sidebar__profile-toggle"
         >
           <div className="sidebar__profile-left">
-            <img
-              src={displayAvatar}
-              alt={displayName}
-              className="sidebar__profile-avatar"
-            />
+            <UserAvatar user={user} size="sm" className="sidebar__profile-avatar" />
             <div className="sidebar__profile-meta">
               <p className="sidebar__profile-name">
                 {displayName}
@@ -171,9 +162,8 @@ export default function Sidebar({ active = 'home', onActiveChange = () => {} }) 
           </div>
 
           <span
-            className={`material-symbols-outlined sidebar__profile-chevron ${
-              menuOpen ? 'sidebar__profile-chevron--open' : ''
-            }`}
+            className={`material-symbols-outlined sidebar__profile-chevron ${menuOpen ? 'sidebar__profile-chevron--open' : ''
+              }`}
           >
             chevron_right
           </span>
@@ -183,7 +173,7 @@ export default function Sidebar({ active = 'home', onActiveChange = () => {} }) 
           <div className="sidebar__profile-menu">
             <button
               className="sidebar__profile-menu-item"
-              onClick={() => { setMenuOpen(false); navigate('/profile'); }}
+              onClick={() => { setMenuOpen(false); navigate(user ? `/profile/${user.username}` : '/profile'); }}
             >
               <span className="material-symbols-outlined sidebar__profile-menu-icon">
                 person
@@ -200,6 +190,7 @@ export default function Sidebar({ active = 'home', onActiveChange = () => {} }) 
           </div>
         )}
       </div>
+
     </aside>
   );
 }

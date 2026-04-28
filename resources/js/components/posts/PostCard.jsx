@@ -3,6 +3,7 @@ import { CommentFloatingModal, ReportModal } from './comments';
 import PostDisplay from './PostDisplay';
 import ComposerModal from '../layout/ComposerModal';
 import RecentJournalCard from '../journal/RecentJournalCard';
+import ShareModal from './ShareModal';
 import postService from '../../services/postService';
 import { useAuth } from '../../context/AuthContext';
 import '../../../sass/components/posts/PostCard.scss';
@@ -15,6 +16,7 @@ export default function PostCard({ post, compact = false, variant = 'feed', onPo
     const [likesCount, setLikesCount] = useState(post.likes_count ?? post.likes ?? 0);
     const [commentsCount, setCommentsCount] = useState(post.comments_count ?? post.comments ?? 0);
     const [shared, setShared] = useState(false);
+    const [showShareModal, setShowShareModal] = useState(false);
     const [expanded, setExpanded] = useState(false);
     const [localComments, setLocalComments] = useState(post.commentList || []);
     const [isEditing, setIsEditing] = useState(false);
@@ -43,15 +45,8 @@ export default function PostCard({ post, compact = false, variant = 'feed', onPo
         return false;
     }, [user, post.isOwner, post.user_id, postUsername]);
 
-    const handleShare = async () => {
-        const shareLink = post.link || `${window.location.origin}/#/post/${post.post_id || post.id}`;
-        try {
-            await navigator.clipboard.writeText(shareLink);
-            setShared(true);
-            setTimeout(() => setShared(false), 1600);
-        } catch (_) {
-            setShared(false);
-        }
+    const handleShare = () => {
+        setShowShareModal(true);
     };
 
     const handleToggleLike = async () => {
@@ -461,6 +456,12 @@ export default function PostCard({ post, compact = false, variant = 'feed', onPo
                     isSubmitting={isSubmittingReport}
                 />
             )}
+            {/* Share Modal */}
+            <ShareModal
+                isOpen={showShareModal}
+                postId={post.post_id || post.id}
+                onClose={() => setShowShareModal(false)}
+            />
         </article>
     );
 }

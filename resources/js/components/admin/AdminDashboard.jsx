@@ -8,10 +8,12 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import api from '../../services/api';
 import StatCard from './StatCard';
+import UserAvatar from '../common/UserAvatar';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import '../../../sass/components/admin/AdminDashboard.scss';
 
 export default function AdminDashboard() {
-    const [stats, setStats] = useState(null);
+    const [dashboardData, setDashboardData] = useState({ metrics: {}, topPosts: [], chartData: [] });
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [lastUpdated, setLastUpdated] = useState(null);
@@ -23,13 +25,17 @@ export default function AdminDashboard() {
         setLoading(true);
         setError(null);
         try {
-            const response = await api.get('/admin/stats');
+            const response = await api.get('/admin/dashboard');
             if (response.data) {
-                setStats(response.data.stats);
-                setLastUpdated(new Date(response.data.stats.timestamp));
+                setDashboardData({
+                    metrics: response.data.metrics || {},
+                    topPosts: response.data.topPosts || [],
+                    chartData: response.data.chartData || []
+                });
+                setLastUpdated(new Date(response.data.metrics?.timestamp || Date.now()));
             }
         } catch (err) {
-            console.error('Failed to fetch admin stats:', err);
+            console.error('Failed to fetch admin dashboard data:', err);
             setError('Failed to load dashboard statistics. Please try again.');
         } finally {
             setLoading(false);
@@ -63,23 +69,23 @@ export default function AdminDashboard() {
         <div className="admin-dashboard__container">
             {/* Header Section */}
             <div className="admin-dashboard__header">
-            <div className="admin-dashboard__header-text">
-                <p className="admin-dashboard__subheading">
-                    Monitor key metrics and platform health
-                </p>
-            </div>
+                <div className="admin-dashboard__header-text">
+                    <p className="admin-dashboard__subheading">
+                        Monitor key metrics and platform health
+                    </p>
+                </div>
 
-            {/* Refresh Button */}
-            <button
-                type="button"
-                onClick={handleRefresh}
-                disabled={loading}
-                className="admin-dashboard__refresh-btn"
-                aria-label="Refresh statistics"
-            >
-                <span className="material-symbols-outlined">refresh</span>
-            </button>
-        </div>
+                {/* Refresh Button */}
+                <button
+                    type="button"
+                    onClick={handleRefresh}
+                    disabled={loading}
+                    className="admin-dashboard__refresh-btn"
+                    aria-label="Refresh statistics"
+                >
+                    <span className="material-symbols-outlined">refresh</span>
+                </button>
+            </div>
 
             {/* Error State */}
             {error && (
@@ -92,7 +98,7 @@ export default function AdminDashboard() {
             )}
 
             {/* Skeleton loading state */}
-            {loading && !stats ? (
+            {loading ? (
                 <>
                     {/* Stat card skeletons */}
                     <div className="admin-dashboard__grid">
@@ -131,7 +137,7 @@ export default function AdminDashboard() {
                         {/* Total Users */}
                         <StatCard
                             label="Total Users"
-                            value={stats?.total_users || '0'}
+                            value={dashboardData.metrics?.total_users || '0'}
                             icon="people"
                             subtitle="Registered users"
                             variant="default"
@@ -140,7 +146,7 @@ export default function AdminDashboard() {
                         {/* Total Posts */}
                         <StatCard
                             label="Active Posts"
-                            value={stats?.total_posts || '0'}
+                            value={dashboardData.metrics?.total_posts || '0'}
                             icon="article"
                             subtitle="Published posts"
                             variant="success"
@@ -149,20 +155,79 @@ export default function AdminDashboard() {
                         {/* Total Communities */}
                         <StatCard
                             label="Communities"
-                            value={stats?.total_communities || '0'}
+                            value={dashboardData.metrics?.total_communities || '0'}
                             icon="groups"
                             subtitle="Active communities"
                             variant="default"
                         />
 
-                        {/* Placeholder for future metrics */}
-                        <StatCard
-                            label="System Health"
-                            value="Healthy"
-                            icon="check_circle"
-                            subtitle="All systems operational"
-                            variant="success"
-                        />
+                    </div>
+
+                    {/* Engagement Overview Chart */}
+                    <div className="admin-dashboard__section">
+                        <h3 className="admin-dashboard__section-title">Engagement Overview</h3>
+                        <div className="h-80 w-full mt-4" style={{ height: '320px', width: '100%' }}>
+                            <ResponsiveContainer width="100%" height="100%">
+                                <LineChart data={dashboardData.chartData} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
+                                    <CartesianGrid strokeDasharray="3 3" stroke="#374151" vertical={false} />
+                                    <XAxis dataKey="name" stroke="#9CA3AF" tick={{ fill: '#9CA3AF' }} />
+                                    <YAxis stroke="#9CA3AF" tick={{ fill: '#9CA3AF' }} allowDecimals={false} />
+                                    <Tooltip contentStyle={{ backgroundColor: '#1F2937', borderColor: '#374151', color: '#fff' }} />
+                                    <Legend wrapperStyle={{ paddingTop: '10px' }} />
+                                    <Line type="monotone" dataKey="engagements" name="Total Engagements" stroke="#8B5CF6" strokeWidth={3} activeDot={{ r: 8 }} />
+                                    <Line type="monotone" dataKey="posts" name="New Posts" stroke="#10B981" strokeWidth={3} />
+                                </LineChart>
+                            </ResponsiveContainer>
+                        </div>
+                    </div>
+
+                    {/* Top Performing Posts */}
+                    <div className="admin-dashboard__section">
+                        <h3 className="admin-dashboard__section-title">Top Performing Posts</h3>
+                        <div className="admin-dashboard__table-wrapper">
+                            <table className="admin-dashboard__table">
+                                <thead>
+                                    <tr>
+                                        <th>Rank</th>
+                                        <th>Post Content</th>
+                                        <th>Likes</th>
+                                        <th>Comments</th>
+                                        <th>Total Engagement</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {dashboardData.topPosts?.length > 0 ? (
+                                        dashboardData.topPosts.map((post, index) => (
+                                            <tr key={post.post_id}>
+                                                <td>
+                                                    <span className="admin-dashboard__rank-badge">#{index + 1}</span>
+                                                </td>
+                                                <td>
+                                                    <div className="admin-dashboard__post-cell">
+                                                        <UserAvatar user={post.user} size="sm" />
+                                                        <div className="admin-dashboard__post-snippet">
+                                                            <span className="admin-dashboard__post-author">@{post.user?.username}</span>
+                                                            <span className="admin-dashboard__post-text">{post.content?.substring(0, 50)}{post.content?.length > 50 ? '...' : ''}</span>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td>{post.likes_count}</td>
+                                                <td>{post.comments_count}</td>
+                                                <td>
+                                                    <span className="admin-dashboard__engagement-badge">
+                                                        {post.total_engagement}
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        ))
+                                    ) : (
+                                        <tr>
+                                            <td colSpan="5" style={{ textAlign: 'center', padding: '20px' }}>No posts available</td>
+                                        </tr>
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
 
                     {/* Last Updated */}

@@ -60,12 +60,12 @@ class CommunityController extends Controller
         if ($request->hasFile('image')) {
             // Get category to find slug
             $category = Category::find($validated['category_id']);
-            
+
             // Generate filename from community name (slug-friendly)
             $filename = strtolower(
                 preg_replace('/[^a-z0-9]+/', '-', $validated['name'])
             ) . '.' . $request->file('image')->getClientOriginalExtension();
-            
+
             // Store in category-specific folder
             $path = $request->file('image')->storeAs(
                 "communities/category-list/{$category->slug}",
@@ -76,10 +76,10 @@ class CommunityController extends Controller
         }
 
         $community = Community::create($validated);
-        
+
         // Automatically add creator as a member
         $community->users()->attach($request->user()->user_id, ['joined_at' => now()]);
-        
+
         $community->load('category:category_id,name,slug,image', 'creator:user_id,username');
 
         return response()->json($community, 201);
@@ -89,7 +89,8 @@ class CommunityController extends Controller
     {
         $community->load([
             'category:category_id,name,slug,image',
-            'members:user_id,username,email', // Load members to check if user has joined
+            'members:user_id,username,email',
+            'members.profile:profile_id,user_id,profile_picture',
         ])->loadCount('communityMembers');
 
         return response()->json($community);
@@ -126,12 +127,12 @@ class CommunityController extends Controller
         if ($request->hasFile('image')) {
             // Get category for folder structure
             $category = Category::find($validated['category_id']);
-            
+
             // Generate new filename
             $filename = strtolower(
                 preg_replace('/[^a-z0-9]+/', '-', $validated['name'])
             ) . '.' . $request->file('image')->getClientOriginalExtension();
-            
+
             // Store in category-specific folder
             $path = $request->file('image')->storeAs(
                 "communities/category-list/{$category->slug}",
@@ -167,7 +168,10 @@ class CommunityController extends Controller
             })
             ->with([
                 'user:user_id,username',
-                'community:community_id,name',
+                'user.profile:profile_id,user_id,profile_picture',
+                'user.setting:user_id,show_reaction_counts,hide_comments',
+                'community:community_id,name,category_id',
+                'community.category:category_id,slug,name',
                 'mood:mood_id,name,color',
                 'hashtags:hashtag_id,name',
             ])

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import PostDisplay from '../PostDisplay';
 import CommentThread from './CommentThread';
 import Loader from '../../common/Loader';
+import UserAvatar from '../../common/UserAvatar';
 import { useAuth } from '../../../context/AuthContext';
 import '../../../../sass/components/posts/comments/CommentFloatingModal.scss';
 
@@ -166,11 +167,14 @@ export default function CommentFloatingModal({
 
                 {/* Comment Input Footer */}
                 <div className="comment-floating-modal__footer">
-                    <img 
-                        src={user?.profile?.avatar || user?.avatar || '/default-avatar.png'} 
-                        alt={user?.username} 
-                        className="comment-floating-modal__avatar" 
-                    />
+                    <div className="flex-shrink-0">
+                        <UserAvatar
+                            user={user}
+                            size="sm"
+                            className="comment-floating-modal__avatar"
+                            style={{ width: undefined, height: undefined }}
+                        />
+                    </div>
                     <div className="comment-floating-modal__input-wrap">
                         <input 
                             type="text"

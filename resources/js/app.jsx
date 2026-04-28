@@ -56,7 +56,6 @@ if (rootElement) {
                                 <Route path="/community/my-community/joined/:categorySlug/:communityId" element={<ProtectedRoute><CommunityPage /></ProtectedRoute>} />
                                 <Route path="/journal" element={<ProtectedRoute><Navigate to="/journal/private" replace /></ProtectedRoute>} />
                                 <Route path="/journal/:tab" element={<ProtectedRoute><JournalPage /></ProtectedRoute>} />
-                                <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
                                 <Route path="/profile/:username" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
                                 <Route path="/profile/posts" element={<ProtectedRoute><ProfilePostsPage /></ProtectedRoute>} />
                                 <Route path="/settings" element={<ProtectedRoute><Navigate to="/settings/account" replace /></ProtectedRoute>} />

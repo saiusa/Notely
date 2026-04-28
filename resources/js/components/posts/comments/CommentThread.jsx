@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { formatRelativeTime } from '../../../utils/timeFormatter';
+import UserAvatar from '../../common/UserAvatar';
 import ReplyInput from './ReplyInput';
 import '../../../../sass/components/posts/comments/CommentThread.scss';
 
@@ -39,11 +40,14 @@ function ReplyItem({ reply, currentUserId, onDelete, onReport, onEdit, onSubmitE
     return (
         <div key={reply.id} className="comment-thread__reply">
             <Link to={`/profile/${reply.user?.username}`} style={{ textDecoration: 'none', color: 'inherit' }}>
-                <img 
-                    src={reply.user?.profile?.profile_picture || '/default-avatar.png'} 
-                    alt={reply.user?.username}
-                    className="comment-thread__reply-avatar"
-                />
+                <div className="flex-shrink-0">
+                    <UserAvatar
+                        user={reply.user}
+                        size="xs"
+                        className="comment-thread__reply-avatar"
+                        style={{ width: undefined, height: undefined }}
+                    />
+                </div>
             </Link>
             
             <div className="comment-thread__reply-content">
@@ -222,11 +226,14 @@ export default function CommentThread({
             {/* Main Comment */}
             <div className="comment-thread__main">
                 <Link to={`/profile/${comment.user?.username}`} style={{ textDecoration: 'none', color: 'inherit' }}>
-                    <img 
-                        src={comment.user?.profile?.profile_picture || '/default-avatar.png'} 
-                        alt={comment.user?.username}
-                        className="comment-thread__avatar"
-                    />
+                    <div className="flex-shrink-0">
+                        <UserAvatar
+                            user={comment.user}
+                            size="sm"
+                            className="comment-thread__avatar"
+                            style={{ width: undefined, height: undefined }}
+                        />
+                    </div>
                 </Link>
                 
                 <div className="comment-thread__content">

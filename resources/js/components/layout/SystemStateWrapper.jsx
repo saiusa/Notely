@@ -11,6 +11,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../services/api';
+import GlobalPostModal from './GlobalPostModal';
 import '../../../sass/components/layout/SystemStateWrapper.scss';
 
 const POLL_INTERVAL_MS = 60_000; // re-check every 60 s
@@ -100,6 +101,9 @@ export default function SystemStateWrapper({ children }) {
                     </div>
                 </div>
             )}
+
+            {/* ── Global Post Modal (Intercepts ?postId=xxx) ───────────────── */}
+            <GlobalPostModal />
         </>
     );
 }

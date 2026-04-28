@@ -8,33 +8,52 @@ use App\Models\Community;
 use App\Models\Post;
 use App\Models\Report;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class AdminController extends Controller
 {
     /**
-     * Get dashboard statistics
+     * Get dashboard statistics and top posts
      */
-    public function getStats(Request $request): JsonResponse
+    public function dashboard(Request $request): JsonResponse
     {
-        $user = $request->user();
+        $metrics = [
+            'total_users'       => \App\Models\User::count(),
+            'total_posts'       => \App\Models\Post::count(),
+            'total_communities' => \App\Models\Community::count(),
+            'total_reports'     => \App\Models\Report::count(),
+            'timestamp'         => now()->toIso8601String(),
+        ];
+
+        $topPosts = \App\Models\Post::with([
+            'user:user_id,username',
+            'user.profile:profile_id,user_id,profile_picture'
+        ])
+        ->withCount(['likes', 'comments'])
+        ->orderByRaw('(likes_count + comments_count) DESC')
+        ->take(5)
+        ->get()
+        ->map(function ($post) {
+            $post->total_engagement = $post->likes_count + $post->comments_count;
+            return $post;
+        });
+
+        $chartData = collect(range(6, 0))->map(function($daysAgo) {
+            $date = Carbon::now()->subDays($daysAgo)->toDateString();
+            return [
+                'name' => Carbon::parse($date)->format('M d'),
+                'posts' => \App\Models\Post::whereDate('created_at', $date)->count(),
+                'engagements' => \App\Models\Like::whereDate('created_at', $date)->count() + \App\Models\Comment::whereDate('created_at', $date)->count(),
+            ];
+        });
 
         return response()->json([
-            'success' => true,
-            'admin_user' => [
-                'user_id'  => $user->user_id,
-                'username' => $user->username,
-                'email'    => $user->email,
-                'is_admin' => $user->is_admin,
-            ],
-            'stats' => [
-                'total_users'       => User::count(),
-                'total_posts'       => Post::count(),
-                'total_communities' => Community::count(),
-                'total_reports'     => Report::count(),
-                'timestamp'         => now()->toIso8601String(),
-            ],
+            'success'   => true,
+            'metrics'   => $metrics,
+            'topPosts'  => $topPosts,
+            'chartData' => $chartData
         ], 200);
     }
 
@@ -43,7 +62,7 @@ class AdminController extends Controller
      */
     public function users(Request $request): JsonResponse
     {
-        $users = User::paginate(15);
+        $users = User::with('profile')->paginate(15);
 
         return response()->json([
             'success'    => true,
@@ -66,6 +85,13 @@ class AdminController extends Controller
     {
         $user->is_suspended = ! $user->is_suspended;
         $user->save();
+
+        if ($user->is_suspended) {
+            if (method_exists($user, 'tokens')) {
+                $user->tokens()->delete();
+            }
+            \Illuminate\Support\Facades\DB::table('sessions')->where('user_id', $user->user_id)->delete();
+        }
 
         return response()->json([
             'success' => true,
@@ -156,7 +182,7 @@ class AdminController extends Controller
             'posts' => function ($q) {
                 $q->has('reports')
                   ->withCount('reports')
-                  ->with('user:user_id,username')
+                  ->with(['user:user_id,username', 'user.profile:profile_id,user_id,profile_picture'])
                   ->orderByDesc('reports_count');
             },
             // Eager-load comments that have at least one report, with the report count
@@ -167,6 +193,7 @@ class AdminController extends Controller
                   ->with([
                       'post:post_id,title,content',
                       'user:user_id,username',
+                      'user.profile:profile_id,user_id,profile_picture'
                   ])
                   ->orderByDesc('reports_count');
             },
@@ -214,9 +241,8 @@ class AdminController extends Controller
                 'user_id'           => $user->user_id,
                 'username'          => $user->username,
                 'email'             => $user->email,
-                'avatar'            => $user->profile?->profile_picture
-                                         ? asset('storage/' . $user->profile->profile_picture)
-                                         : null,
+                'avatar'            => $user->profile?->profile_picture,
+                'profile'           => $user->profile,
                 'is_suspended'      => $user->is_suspended,
                 'status'            => $user->is_suspended ? 'suspended' : 'active',
                 'reported_posts'    => $reportedPosts,

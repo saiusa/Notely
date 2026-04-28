@@ -1,8 +1,10 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { moodOptions } from './moodOptions';
 import postService from '../../services/postService';
+import UserAvatar from '../common/UserAvatar';
 import { useAuth } from '../../context/AuthContext';
 import { generateAnonymousName } from '../../utils/anonymousNameGenerator';
+import api from '../../services/api';
 
 const modeConfig = {
     text: {
@@ -19,26 +21,26 @@ const modeConfig = {
     },
 };
 
-export default function ComposerModal({ 
-    mode, 
-    onClose, 
-    onPostCreated, 
-    communityId, 
+export default function ComposerModal({
+    mode,
+    onClose,
+    onPostCreated,
+    communityId,
     community,
     embedded = false,
     initialPost = null,  // Unified prop: null for create, full post object for edit
     myCommunities = []
 }) {
     const { user } = useAuth();
-    
+
     // Determine if we're in edit mode
     const isEditing = !!initialPost;
-    
+
     const config = modeConfig[mode] || modeConfig.text;
     const [isMoodOpen, setIsMoodOpen] = useState(false);
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
     const [isDestMenuOpen, setIsDestMenuOpen] = useState(false);
-    
+
     // Pre-populate state from initialPost if editing
     const [selectedMoodId, setSelectedMoodId] = useState(
         isEditing && initialPost?.mood_id ? initialPost.mood_id : null
@@ -178,38 +180,39 @@ export default function ComposerModal({
 
             // Build FormData for potential file uploads
             const formData = new FormData();
+            formData.append('content', body);
             formData.append('type', mode);
             
             // Only append title for text posts if it has actual content
             if (mode === 'text' && title && title.trim() !== '' && title !== 'null') {
                 formData.append('title', title);
             }
-            
-            formData.append('content', body);
+
             formData.append('mood_id', selectedMood.mood_id);
             formData.append('is_anonymous', isAnonymous ? 1 : 0);
-            
+
             // Append anonymous_name only if posting anonymously
             if (isAnonymous && anonymousName) {
                 formData.append('anonymous_name', anonymousName);
             }
 
             // Extract community_id from destination if applicable
-            let postCommunityId = communityId;
+            let postCommunityId = null;
             let postPrivacy = 'public';
-            
+
             if (destination.startsWith('community_')) {
                 postCommunityId = parseInt(destination.split('_')[1], 10);
+                postPrivacy = 'public'; // Community posts are always public
             } else if (destination === 'journal_private') {
                 postPrivacy = 'private';
             } else if (destination === 'journal_public') {
                 postPrivacy = 'public';
             }
-            
+
             // Set privacy based on destination
             formData.append('privacy', postPrivacy);
-            
-            // Only append community_id if it's a valid number
+
+            // explicitly include community_id if we have one
             if (postCommunityId) {
                 formData.append('community_id', postCommunityId);
             }
@@ -222,30 +225,46 @@ export default function ComposerModal({
             }
 
             // Add image file if present and a new image was selected
+            // CRITICAL: Only append the file if we are in image mode AND a file is selected
             if (mode === 'image' && image) {
                 formData.append('image', image);
             }
 
             // Send request (create or update)
-            let result;
+            const requestConfig = {
+                headers: { 'Content-Type': 'multipart/form-data' }
+            };
+
+            let requestPromise;
             if (isEditing && initialPost) {
-                // Update existing post - postService.updatePost handles _method spoofing
+                // Update existing post
                 const postId = initialPost.post_id || initialPost.id;
-                result = await postService.updatePost(postId, formData);
+                formData.append('_method', 'PUT'); // Method spoofing for Laravel
+                requestPromise = api.post(`/posts/${postId}`, formData, requestConfig);
             } else {
                 // Create new post
-                result = await postService.createPost(formData);
+                requestPromise = api.post('/posts', formData, requestConfig);
             }
 
-            if (onPostCreated) {
-                onPostCreated(result, destination);
-            }
+            requestPromise
+                .then((res) => {
+                    const result = res.data || res;
+                    if (onPostCreated) {
+                        onPostCreated(result, destination);
+                    }
+                    onClose();
+                })
+                .catch((err) => {
+                    const msg = err.response?.data?.message || (isEditing ? 'Failed to update post.' : 'Failed to create post.');
+                    setError(msg);
+                })
+                .finally(() => {
+                    setPosting(false);
+                });
 
-            onClose();
         } catch (err) {
-            const msg = err.response?.data?.message || (isEditing ? 'Failed to update post.' : 'Failed to create post.');
-            setError(msg);
-        } finally {
+            console.error('Error preparing form data:', err);
+            setError('An unexpected error occurred.');
             setPosting(false);
         }
     };
@@ -260,9 +279,10 @@ export default function ComposerModal({
             return;
         }
 
-        // Validate file size (max 5MB)
-        if (file.size > 5 * 1024 * 1024) {
-            setError('Image must be smaller than 5MB');
+        const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB in bytes.
+        // Validate file size (max 50MB)
+        if (file.size > MAX_FILE_SIZE) {
+            setError('Image exceeds the 50MB limit.');
             return;
         }
 
@@ -310,13 +330,14 @@ export default function ComposerModal({
                 {!community && (
                     <div className="composer-modal__top-header">
                         {/* Avatar and User Info */}
-                        {user?.profile?.profile_picture && (
-                            <img 
-                                src={user.profile.profile_picture} 
-                                className="composer-modal__avatar" 
-                                alt={user?.username || 'User'} 
+                        <div className="flex-shrink-0">
+                            <UserAvatar
+                                user={user}
+                                size="sm"
+                                className="composer-modal__avatar"
+                                style={{ width: undefined, height: undefined }}
                             />
-                        )}
+                        </div>
 
                         {/* Name and Destination Pill */}
                         <div className="composer-modal__user-info">
@@ -343,7 +364,7 @@ export default function ComposerModal({
                                     <div className="composer-modal__destination-menu">
                                         {/* Journal Options - No Header */}
                                         <div className="composer-modal__menu-group composer-modal__menu-group--standalone">
-                                            <button 
+                                            <button
                                                 type="button"
                                                 onClick={() => {
                                                     setDestination('journal_public');
@@ -354,7 +375,7 @@ export default function ComposerModal({
                                                 <span className="material-symbols-outlined">public</span>
                                                 <span>Public (Explore)</span>
                                             </button>
-                                            <button 
+                                            <button
                                                 type="button"
                                                 onClick={() => {
                                                     setDestination('journal_private');
@@ -373,7 +394,7 @@ export default function ComposerModal({
                                                 <div className="composer-modal__menu-header">Communities</div>
                                                 <div className="composer-modal__menu-scroll">
                                                     {myCommunities.map((c) => (
-                                                        <button 
+                                                        <button
                                                             key={c.id || c.community_id}
                                                             type="button"
                                                             onClick={() => {
@@ -567,11 +588,10 @@ export default function ComposerModal({
                                             setSelectedMoodId(option.id);
                                             setIsMoodOpen(false);
                                         }}
-                                        className={`composer-modal__mood-option ${
-                                            selectedMoodId === option.id
+                                        className={`composer-modal__mood-option ${selectedMoodId === option.id
                                                 ? 'composer-modal__mood-option--active'
                                                 : ''
-                                        }`}
+                                            }`}
                                     >
                                         <span className="mood-emoji">{option.emoji}</span>
                                         <span className="mood-label">{option.label}</span>

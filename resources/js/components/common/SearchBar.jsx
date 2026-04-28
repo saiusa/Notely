@@ -27,8 +27,8 @@ export default function SearchBar() {
         const fetchSuggestions = async () => {
             try {
                 setLoading(true);
-                const data = await searchService.getSuggestions(query);
-                setSuggestions(data.suggestions);
+                const data = await searchService.search(query);
+                setSuggestions(data); // data is { users, communities, posts }
                 setShowSuggestions(true);
             } catch (err) {
                 console.error('Suggestions error:', err);
@@ -89,20 +89,20 @@ export default function SearchBar() {
             {showSuggestions && suggestions && (
                 <div
                     ref={suggestionsRef}
-                    className="search-bar__suggestions"
+                    className="absolute top-full left-0 right-0 mt-2 bg-[#25252b] border border-gray-700 rounded-xl shadow-xl overflow-hidden z-50"
                 >
                     {/* Posts Suggestions */}
                     {suggestions.posts?.length > 0 && (
-                        <div>
-                            <div className="search-bar__suggestions-header">Posts</div>
+                        <div className="py-2 border-b border-gray-700/50 last:border-0">
+                            <div className="px-4 py-1 text-xs text-gray-400 uppercase tracking-wider font-semibold">Posts</div>
                             {suggestions.posts.slice(0, 3).map((post) => (
                                 <button
-                                    key={post.post_id}
-                                    onClick={() => handleSuggestionClick(post.title || post.content?.substring(0, 50))}
-                                    className="search-bar__suggestion-item"
+                                    key={post?.post_id || post?.id}
+                                    onClick={() => handleSuggestionClick(post?.content?.substring(0, 50) || 'Post')}
+                                    className="w-full text-left px-4 py-2 hover:bg-gray-800 transition-colors flex flex-col"
                                 >
-                                    <div className="search-bar__suggestion-title">{(post.title || post.content?.substring(0, 50))}</div>
-                                    <div className="search-bar__suggestion-meta">{post.author?.username}</div>
+                                    <div className="text-sm text-gray-200 font-medium truncate w-full">{post?.content?.substring(0, 50) || 'Untitled'}</div>
+                                    <div className="text-xs text-gray-500 mt-0.5">@{post?.user?.username || 'user'}</div>
                                 </button>
                             ))}
                         </div>
@@ -110,16 +110,16 @@ export default function SearchBar() {
 
                     {/* Communities Suggestions */}
                     {suggestions.communities?.length > 0 && (
-                        <div>
-                            <div className="search-bar__suggestions-header">Communities</div>
+                        <div className="py-2 border-b border-gray-700/50 last:border-0">
+                            <div className="px-4 py-1 text-xs text-gray-400 uppercase tracking-wider font-semibold">Communities</div>
                             {suggestions.communities.slice(0, 3).map((community) => (
                                 <button
-                                    key={community.community_id}
-                                    onClick={() => handleSuggestionClick(community.name)}
-                                    className="search-bar__suggestion-item"
+                                    key={community?.community_id || community?.id}
+                                    onClick={() => handleSuggestionClick(community?.name || 'Community')}
+                                    className="w-full text-left px-4 py-2 hover:bg-gray-800 transition-colors flex flex-col"
                                 >
-                                    <div className="search-bar__suggestion-title">{community.name}</div>
-                                    <div className="search-bar__suggestion-meta">{community.members_count} members</div>
+                                    <div className="text-sm text-gray-200 font-medium truncate w-full">{community?.name || 'Unnamed Community'}</div>
+                                    <div className="text-xs text-gray-500 mt-0.5">{community?.category?.name || 'Community'}</div>
                                 </button>
                             ))}
                         </div>
@@ -127,16 +127,15 @@ export default function SearchBar() {
 
                     {/* Users Suggestions */}
                     {suggestions.users?.length > 0 && (
-                        <div>
-                            <div className="search-bar__suggestions-header">Users</div>
+                        <div className="py-2 border-b border-gray-700/50 last:border-0">
+                            <div className="px-4 py-1 text-xs text-gray-400 uppercase tracking-wider font-semibold">Users</div>
                             {suggestions.users.slice(0, 3).map((user) => (
                                 <button
-                                    key={user.user_id}
-                                    onClick={() => handleSuggestionClick(user.username)}
-                                    className="search-bar__suggestion-item"
+                                    key={user?.user_id || user?.id}
+                                    onClick={() => handleSuggestionClick(user?.username || '')}
+                                    className="w-full text-left px-4 py-2 hover:bg-gray-800 transition-colors flex flex-col"
                                 >
-                                    <div className="search-bar__suggestion-title">@{user.username}</div>
-                                    <div className="search-bar__suggestion-meta">{user.email}</div>
+                                    <div className="text-sm text-gray-200 font-medium truncate w-full">@{user?.username || 'user'}</div>
                                 </button>
                             ))}
                         </div>
@@ -144,15 +143,15 @@ export default function SearchBar() {
 
                     {/* No Results */}
                     {!suggestions.posts?.length && !suggestions.communities?.length && !suggestions.users?.length && (
-                        <div className="search-bar__suggestion-item" style={{padding: '12px 16px', textAlign: 'center', borderBottom: 'none'}}>
-                            <span style={{color: '#757575', fontSize: '13px'}}>No suggestions found</span>
+                        <div className="px-4 py-6 text-center">
+                            <span className="text-sm text-gray-500">No suggestions found</span>
                         </div>
                     )}
 
                     {/* Loading State */}
                     {loading && (
-                        <div className="search-bar__suggestion-item" style={{padding: '12px 16px', textAlign: 'center', borderBottom: 'none'}}>
-                            <span style={{color: '#757575', fontSize: '13px'}}>Searching...</span>
+                        <div className="px-4 py-6 text-center">
+                            <span className="text-sm text-gray-500">Searching...</span>
                         </div>
                     )}
 
@@ -163,7 +162,7 @@ export default function SearchBar() {
                                 setShowSuggestions(false);
                                 handleSearch({ preventDefault: () => {} });
                             }}
-                            className="w-full px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium text-center transition"
+                            className="w-full px-4 py-3 bg-purple-600/10 hover:bg-purple-600/20 text-purple-400 hover:text-purple-300 text-sm font-medium text-center transition-colors border-t border-gray-700/50"
                         >
                             View all results →
                         </button>

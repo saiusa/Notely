@@ -43,11 +43,19 @@ api.interceptors.response.use(
     (error) => {
         if (error.response?.status === 401) {
             localStorage.removeItem('auth_token');
-            // Navigate to login – works with HashRouter
             if (!window.location.hash.includes('/login')) {
                 window.location.hash = '#/login';
             }
         }
+        
+        // Handle global suspension
+        if (error.response?.status === 403 && error.response?.data?.message?.toLowerCase().includes('suspended')) {
+            localStorage.removeItem('auth_token');
+            if (!window.location.hash.includes('/login')) {
+                window.location.hash = '#/login';
+            }
+        }
+        
         return Promise.reject(error);
     }
 );

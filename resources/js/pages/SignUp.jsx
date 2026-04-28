@@ -1,7 +1,7 @@
-import '../../sass/pages/SignUp.scss';
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import AuthLayout from '../components/layout/AuthLayout';
 
 export default function SignUp() {
     const { register, isAuthenticated } = useAuth();
@@ -12,6 +12,7 @@ export default function SignUp() {
 
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');
+    const [username, setUsername] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [passwordConfirmation, setPasswordConfirmation] = useState('');
@@ -21,6 +22,32 @@ export default function SignUp() {
         return null;
     }
 
+    // Auto-suggest username from name
+    const buildUsername = (fn, ln) =>
+        `${fn.toLowerCase()}.${ln.toLowerCase()}`.replace(/[^a-z0-9._]/g, '');
+
+    const handleFirstNameChange = (e) => {
+        const val = e.target.value;
+        setFirstName(val);
+        setUsername((prev) => {
+            if (!prev || prev === buildUsername(firstName, lastName)) {
+                return buildUsername(val, lastName);
+            }
+            return prev;
+        });
+    };
+
+    const handleLastNameChange = (e) => {
+        const val = e.target.value;
+        setLastName(val);
+        setUsername((prev) => {
+            if (!prev || prev === buildUsername(firstName, lastName)) {
+                return buildUsername(firstName, val);
+            }
+            return prev;
+        });
+    };
+
     const onSubmit = async (event) => {
         event.preventDefault();
         setLoading(true);
@@ -28,7 +55,9 @@ export default function SignUp() {
         setFieldErrors({});
         try {
             await register({
-                username: `${firstName.toLowerCase()}.${lastName.toLowerCase()}`,
+                first_name: firstName,
+                last_name: lastName,
+                username,
                 email,
                 password,
                 password_confirmation: passwordConfirmation,
@@ -46,135 +75,142 @@ export default function SignUp() {
     };
 
     return (
-        <div className="min-h-screen flex flex-col items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-[#16171c] text-gray-200">
-            <div className="max-w-md w-full space-y-8">
-                {/* Logo */}
-                <div className="flex justify-center">
-                    <img src="/storage/logo/Notely-Logo.svg" alt="Notely" className="h-12 w-auto" />
-                </div>
-
-                {/* Heading */}
-                <div className="text-center">
-                    <h2 className="text-2xl font-bold text-white">Create your account</h2>
-                    <p className="mt-2 text-sm text-gray-400">Join Notely and share your everyday journal</p>
-                </div>
-
-                {/* Form */}
-                <form onSubmit={onSubmit} className="space-y-6">
-                    {error && (
-                        <div className="p-3 bg-red-900 bg-opacity-30 border border-red-600 rounded-lg text-red-400 text-sm text-center">
-                            {error}
-                        </div>
-                    )}
-
-                    <div className="space-y-4">
-                        {/* First Name & Last Name Row */}
-                        <div className="grid grid-cols-2 gap-3">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-300 mb-1.5">
-                                    First Name
-                                </label>
-                                <input
-                                    type="text"
-                                    placeholder="John"
-                                    className="w-full px-4 py-2.5 bg-[#1a1b26] border border-gray-700 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-white text-sm transition-colors"
-                                    value={firstName}
-                                    onChange={(e) => setFirstName(e.target.value)}
-                                    required
-                                />
-                                {fieldErrors.username && (
-                                    <span className="text-red-400 text-xs mt-1 block">{fieldErrors.username[0]}</span>
-                                )}
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-gray-300 mb-1.5">
-                                    Last Name
-                                </label>
-                                <input
-                                    type="text"
-                                    placeholder="Doe"
-                                    className="w-full px-4 py-2.5 bg-[#1a1b26] border border-gray-700 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-white text-sm transition-colors"
-                                    value={lastName}
-                                    onChange={(e) => setLastName(e.target.value)}
-                                    required
-                                />
-                            </div>
-                        </div>
-
-                        {/* Email Field */}
-                        <div>
-                            <label className="block text-sm font-medium text-gray-300 mb-1.5">
-                                Email address
-                            </label>
-                            <input
-                                type="email"
-                                placeholder="Enter your email"
-                                className="w-full px-4 py-2.5 bg-[#1a1b26] border border-gray-700 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-white text-sm transition-colors"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                required
-                            />
-                            {fieldErrors.email && (
-                                <span className="text-red-400 text-xs mt-1 block">{fieldErrors.email[0]}</span>
-                            )}
-                        </div>
-
-                        {/* Password Field */}
-                        <div>
-                            <label className="block text-sm font-medium text-gray-300 mb-1.5">
-                                Password
-                            </label>
-                            <input
-                                type="password"
-                                placeholder="Enter your password"
-                                className="w-full px-4 py-2.5 bg-[#1a1b26] border border-gray-700 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-white text-sm transition-colors"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                required
-                            />
-                            {fieldErrors.password && (
-                                <span className="text-red-400 text-xs mt-1 block">{fieldErrors.password[0]}</span>
-                            )}
-                        </div>
-
-                        {/* Password Confirmation Field */}
-                        <div>
-                            <label className="block text-sm font-medium text-gray-300 mb-1.5">
-                                Confirm Password
-                            </label>
-                            <input
-                                type="password"
-                                placeholder="Confirm your password"
-                                className="w-full px-4 py-2.5 bg-[#1a1b26] border border-gray-700 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-white text-sm transition-colors"
-                                value={passwordConfirmation}
-                                onChange={(e) => setPasswordConfirmation(e.target.value)}
-                                required
-                            />
-                            {fieldErrors.password_confirmation && (
-                                <span className="text-red-400 text-xs mt-1 block">{fieldErrors.password_confirmation[0]}</span>
-                            )}
-                        </div>
-                    </div>
-
-                    {/* Submit Button */}
-                    <button
-                        type="submit"
-                        disabled={loading}
-                        className="w-full flex justify-center py-2.5 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition-colors disabled:opacity-50"
-                    >
-                        Create Account
-                    </button>
-                </form>
-
-                {/* Footer */}
-                <p className="text-center text-sm text-gray-400">
-                    Already have an account?{' '}
-                    <Link to="/login" className="text-purple-400 hover:text-purple-300 transition-colors font-medium">
-                        Sign in
-                    </Link>
+        <AuthLayout>
+            <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+                <h2 style={{ fontSize: '1.5rem', fontWeight: 700, color: 'white', marginBottom: '0.5rem' }}>
+                    Create Account
+                </h2>
+                <p style={{ color: '#9ca3af', fontSize: '0.875rem' }}>
+                    Join Notely and share your everyday journal
                 </p>
             </div>
-        </div>
+
+            {error && (
+                <div className="error-box">
+                    {error}
+                </div>
+            )}
+
+            <form onSubmit={onSubmit}>
+                <div style={{ display: 'flex', gap: '1rem' }}>
+                    <div className="form-group" style={{ flex: 1 }}>
+                        <label htmlFor="signup-firstname">First Name</label>
+                        <input
+                            id="signup-firstname"
+                            type="text"
+                            placeholder="John"
+                            value={firstName}
+                            onChange={handleFirstNameChange}
+                            required
+                            disabled={loading}
+                        />
+                        {fieldErrors.first_name && (
+                            <span style={{ color: '#f87171', fontSize: '0.75rem', marginTop: '0.25rem' }}>
+                                {fieldErrors.first_name[0]}
+                            </span>
+                        )}
+                    </div>
+                    <div className="form-group" style={{ flex: 1 }}>
+                        <label htmlFor="signup-lastname">Last Name</label>
+                        <input
+                            id="signup-lastname"
+                            type="text"
+                            placeholder="Doe"
+                            value={lastName}
+                            onChange={handleLastNameChange}
+                            required
+                            disabled={loading}
+                        />
+                        {fieldErrors.last_name && (
+                            <span style={{ color: '#f87171', fontSize: '0.75rem', marginTop: '0.25rem' }}>
+                                {fieldErrors.last_name[0]}
+                            </span>
+                        )}
+                    </div>
+                </div>
+
+                <div className="form-group">
+                    <label htmlFor="signup-username">Username</label>
+                    <div style={{ position: 'relative' }}>
+                        <span style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: '#6b7280' }}>@</span>
+                        <input
+                            id="signup-username"
+                            type="text"
+                            placeholder="username"
+                            style={{ paddingLeft: '2.25rem' }}
+                            value={username}
+                            onChange={(e) => setUsername(e.target.value.replace(/[^a-z0-9._]/gi, '').toLowerCase())}
+                            required
+                            disabled={loading}
+                        />
+                    </div>
+                    {fieldErrors.username && (
+                        <span style={{ color: '#f87171', fontSize: '0.75rem', marginTop: '0.25rem' }}>
+                            {fieldErrors.username[0]}
+                        </span>
+                    )}
+                </div>
+
+                <div className="form-group">
+                    <label htmlFor="signup-email">Email Address</label>
+                    <input
+                        id="signup-email"
+                        type="email"
+                        placeholder="john@example.com"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        required
+                        disabled={loading}
+                    />
+                    {fieldErrors.email && (
+                        <span style={{ color: '#f87171', fontSize: '0.75rem', marginTop: '0.25rem' }}>
+                            {fieldErrors.email[0]}
+                        </span>
+                    )}
+                </div>
+
+                <div className="form-group">
+                    <label htmlFor="signup-password">Password</label>
+                    <input
+                        id="signup-password"
+                        type="password"
+                        placeholder="••••••••"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        required
+                        disabled={loading}
+                    />
+                    {fieldErrors.password && (
+                        <span style={{ color: '#f87171', fontSize: '0.75rem', marginTop: '0.25rem' }}>
+                            {fieldErrors.password[0]}
+                        </span>
+                    )}
+                </div>
+
+                <div className="form-group">
+                    <label htmlFor="signup-confirm-password">Confirm Password</label>
+                    <input
+                        id="signup-confirm-password"
+                        type="password"
+                        placeholder="••••••••"
+                        value={passwordConfirmation}
+                        onChange={(e) => setPasswordConfirmation(e.target.value)}
+                        required
+                        disabled={loading}
+                    />
+                </div>
+
+                <button type="submit" disabled={loading}>
+                    {loading ? 'Creating account...' : 'Create Account'}
+                </button>
+            </form>
+
+            <div className="auth-footer">
+                Already have an account?{' '}
+                <Link to="/login">
+                    Sign in
+                </Link>
+            </div>
+        </AuthLayout>
     );
 }

@@ -688,7 +688,7 @@ export default function CommunityPage() {
                         </button>
                     </div>
 
-                    <div className="community-page__community-grid">
+                    <div className="community-grid">
                         {filteredCommunities.map((community) => (
                             <CommunityListCard
                                 key={community.id}
@@ -704,7 +704,7 @@ export default function CommunityPage() {
 
             {isMyCommunityList ? (
                 <section className="community-page__section">
-                    <div className="community-page__community-grid">
+                    <div className="community-grid">
                         {myCommunitiesList.length === 0 ? (
                             <p style={{ color: '#a5abb9', padding: '40px 0' }}>You haven't joined any communities yet.</p>
                         ) : (

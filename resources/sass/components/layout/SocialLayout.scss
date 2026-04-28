@@ -32,6 +32,13 @@
     @media (min-width: $breakpoint-xl) {
       padding-right: 300px;
     }
+
+    // Used on pages like Search that have no right sidebar
+    &--no-sidebar {
+      @media (min-width: $breakpoint-xl) {
+        padding-right: 0;
+      }
+    }
   }
 
   &__main-content {
@@ -39,10 +46,11 @@
     padding: $spacing-2xl;
     padding-left: $spacing-2xl;
     padding-top: 24px;
-    padding-bottom: $spacing-2xl;
+    padding-bottom: 5rem; // Extra safe-zone so content clears the viewport bottom
 
     @media (max-width: $breakpoint-lg) {
       padding: $spacing-lg;
+      padding-bottom: 5rem;
     }
   }
 
@@ -61,11 +69,12 @@
       margin: 0 auto;
       width: 100%;
       max-width: 720px;
-      padding-bottom: 20px;
+      padding-bottom: 100px;
     }
 
     &--default {
       width: 100%;
+      padding-bottom: 100px;
     }
   }
 }

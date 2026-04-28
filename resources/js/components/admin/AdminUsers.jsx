@@ -6,6 +6,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../services/api';
+import UserAvatar from '../common/UserAvatar';
 import '../../../sass/components/admin/AdminUsers.scss';
 
 export default function AdminUsers() {
@@ -178,9 +179,7 @@ export default function AdminUsers() {
                                 <tr key={u.user_id} className={u.is_suspended ? 'suspended' : ''}>
                                     <td className="user-cell">
                                         <div className="user-info">
-                                            <div className="user-avatar">
-                                                {u.username.charAt(0).toUpperCase()}
-                                            </div>
+                                                <UserAvatar user={u} size="sm" />
                                             <span className="user-username">{u.username}</span>
                                         </div>
                                     </td>

@@ -25,6 +25,7 @@ export default defineConfig({
     build: {
         outDir: 'backend/public/dist',
         emptyOutDir: true,
+        chunkSizeWarningLimit: 1500,
         rollupOptions: {
             output: {
                 entryFileNames: 'assets/index.js',

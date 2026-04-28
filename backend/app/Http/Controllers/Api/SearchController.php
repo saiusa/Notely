@@ -14,141 +14,67 @@ class SearchController extends Controller
 {
     /**
      * Search posts, communities, and users
-     * GET /api/search?q=query&type=all|posts|communities|users
+     * GET /api/search?q=query
      */
-    public function search(Request $request): JsonResponse
+    public function index(Request $request): JsonResponse
     {
-        $query = $request->query('q');
-        $type = $request->query('type', 'all');
-        $page = $request->query('page', 1);
+        $q = $request->query('q');
 
-        if (!$query || strlen(trim($query)) < 2) {
+        if (!$q || strlen(trim($q)) < 2) {
             return response()->json([
-                'message' => 'Search query must be at least 2 characters',
-                'results' => [],
-                'total' => 0,
-            ], 422);
+                'users' => [],
+                'communities' => [],
+                'posts' => [],
+            ]);
         }
 
-        $results = [];
-        $user = $request->user();
-
-        // Search posts
-        if (in_array($type, ['all', 'posts'])) {
-            $posts = $this->searchPosts($query, $user);
-            $results['posts'] = $posts->paginate(10, ['*'], 'page', $page);
-        }
-
-        // Search communities
-        if (in_array($type, ['all', 'communities'])) {
-            $communities = $this->searchCommunities($query);
-            $results['communities'] = $communities->paginate(10, ['*'], 'page', $page);
-        }
-
-        // Search users
-        if (in_array($type, ['all', 'users'])) {
-            $users = $this->searchUsers($query);
-            $results['users'] = $users->paginate(10, ['*'], 'page', $page);
-        }
-
-        return response()->json([
-            'results' => $results,
-            'query' => $query,
-            'type' => $type,
-        ]);
-    }
-
-    /**
-     * Get search suggestions (autocomplete)
-     * GET /api/search/suggestions?q=query
-     */
-    public function suggestions(Request $request): JsonResponse
-    {
-        $query = $request->query('q');
-
-        if (!$query || strlen(trim($query)) < 2) {
-            return response()->json(['suggestions' => []]);
-        }
-
-        $user = $request->user();
-
-        // Get top 5 suggestions from each category
-        $postSuggestions = $this->searchPosts($query, $user)
-            ->limit(5)
-            ->pluck('title', 'post_id')
-            ->toArray();
-
-        $communitySuggestions = $this->searchCommunities($query)
-            ->limit(5)
-            ->pluck('name', 'community_id')
-            ->toArray();
-
-        $userSuggestions = $this->searchUsers($query)
-            ->limit(5)
-            ->pluck('username', 'user_id')
-            ->toArray();
-
-        return response()->json([
-            'suggestions' => [
-                'posts' => array_values($postSuggestions),
-                'communities' => array_values($communitySuggestions),
-                'users' => array_values($userSuggestions),
-            ],
-        ]);
-    }
-
-    /**
-     * Search posts with visibility checks
-     */
-    private function searchPosts(string $query, $user)
-    {
-        return Post::query()
-            ->where('privacy', 'public')
-            ->where(function (Builder $q) use ($query) {
-                $q->where('title', 'LIKE', "%{$query}%")
-                  ->orWhere('content', 'LIKE', "%{$query}%");
+        $users = User::query()
+            ->with('profile:profile_id,user_id,first_name,last_name,profile_picture')
+            ->where('username', 'LIKE', "%{$q}%")
+            ->orWhereHas('profile', function ($query) use ($q) {
+                $query->where('first_name', 'LIKE', "%{$q}%")
+                    ->orWhere('last_name', 'LIKE', "%{$q}%");
             })
-            ->where(function (Builder $q) use ($user) {
-                // Show public posts or user's own posts or community member posts
-                $q->where('privacy', 'public')
-                  ->orWhere('user_id', $user?->user_id)
-                  ->orWhereIn('community_id', function ($subquery) use ($user) {
-                      $subquery->select('community_id')
-                          ->from('community_members')
-                          ->where('user_id', $user?->user_id);
-                  });
+            ->select('user_id', 'username')
+            ->limit(10)
+            ->get();
+
+        $communities = Community::query()
+            ->where('name', 'LIKE', "%{$q}%")
+            ->orWhere('description', 'LIKE', "%{$q}%")
+            ->with('category:category_id,name,slug')
+            ->limit(10)
+            ->get();
+
+        // Strip '#' if the user clicked a hashtag link
+        $cleanQ = ltrim($q, '#');
+
+        $posts = Post::query()
+            ->where('privacy', 'public')
+            ->where(function ($query) use ($q, $cleanQ) {
+                $query->where('content', 'LIKE', "%{$q}%")
+                    ->orWhereHas('hashtags', function ($q2) use ($cleanQ) {
+                        $q2->where('name', 'LIKE', "%{$cleanQ}%");
+                    })
+                    ->orWhereHas('mood', function ($q3) use ($q) {
+                        $q3->where('name', 'LIKE', "%{$q}%");
+                    });
             })
             ->with([
                 'user:user_id,username',
+                'user.profile:profile_id,user_id,profile_picture',
                 'community:community_id,name',
-                'mood:mood_id,name,color',
+                'community.category:category_id,slug,name',
+                'mood:mood_id,name',
                 'hashtags:hashtag_id,name',
             ])
-            ->orderByDesc('created_at');
-    }
+            ->limit(10)
+            ->get();
 
-    /**
-     * Search communities
-     */
-    private function searchCommunities(string $query)
-    {
-        return Community::query()
-            ->where('name', 'LIKE', "%{$query}%")
-            ->orWhere('description', 'LIKE', "%{$query}%")
-            ->with('category:category_id,name')
-            ->withCount('communityMembers')
-            ->orderByDesc('created_at');
-    }
-
-    /**
-     * Search users
-     */
-    private function searchUsers(string $query)
-    {
-        return User::query()
-            ->where('username', 'LIKE', "%{$query}%")
-            ->orWhere('email', 'LIKE', "%{$query}%")
-            ->select('user_id', 'username', 'email', 'created_at')
-            ->orderByDesc('created_at');
+        return response()->json([
+            'users' => $users,
+            'communities' => $communities,
+            'posts' => $posts,
+        ]);
     }
 }

@@ -19,6 +19,7 @@
     height: 100vh;
     flex-direction: column;
     margin-top: 80px;
+    padding-bottom: 4rem;
   }
 
   &__content-area {
@@ -34,7 +35,8 @@
     padding: 28px;
 
     @media (max-width: $breakpoint-lg) {
-      padding: 28px;;
+      padding: 28px;
+      ;
     }
   }
 }

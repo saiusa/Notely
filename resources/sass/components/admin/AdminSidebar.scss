@@ -11,12 +11,10 @@
     width: 280px;
     flex-direction: column;
     border-right: 2px solid #1a1a2e;
-    background: linear-gradient(
-      180deg,
-      #16171e 0%,
-      #1b1c24 50%,
-      #16171e 100%
-    );
+    background: linear-gradient(180deg,
+        #16171e 0%,
+        #1b1c24 50%,
+        #16171e 100%);
     padding: 20px;
     box-shadow: inset -1px 0 0 rgba(255, 255, 255, 0.05);
   }
@@ -33,23 +31,6 @@
   &__logo-image {
     height: 32px;
     width: auto;
-  }
-
-  &__badge {
-    position: absolute;
-    top: -8px;
-    right: 20px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 0.5px;
-    padding: 3px 6px;
-    background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);
-    color: white;
-    border-radius: 3px;
-    text-transform: uppercase;
   }
 
   &__nav {
@@ -112,78 +93,113 @@
   &__footer {
     display: flex;
     flex-direction: column;
-    gap: 12px;
-    padding-top: 20px;
-    border-top: 1px solid #2a2e3a;
+    gap: 0;
+    padding-top: 16px;
+    border-top: 1px solid #2b3041;
     margin-top: auto;
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    right: 20px;
   }
 
-  &__user-card {
+  &__profile-toggle {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    justify-content: space-between;
+    border: 0;
+    border-radius: 9px;
+    background: transparent;
+    padding: 8px;
+    transition: background-color 0.15s ease;
+    cursor: pointer;
+
+    &:hover {
+      background: #23283a;
+    }
+  }
+
+  &__profile-left {
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 12px;
-    background-color: rgba(139, 92, 246, 0.08);
-    border: 1px solid rgba(139, 92, 246, 0.2);
-    border-radius: 8px;
   }
 
-  &__user-info {
-    flex: 1;
-    min-width: 0;
+  &__avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #7c3aed, #6d28d9);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    user-select: none;
+  }
+
+  &__profile-meta {
+    display: flex;
+    flex-direction: column;
+    text-align: left;
   }
 
   &__user-name {
     font-size: 13px;
     font-weight: 600;
     color: $color-text-primary;
-    margin: 0 0 2px 0;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  &__user-email {
-    font-size: 11px;
-    color: $color-text-secondary;
     margin: 0;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    max-width: 130px;
   }
 
-  &__logout-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    height: 40px;
-    border: 1px solid rgba(220, 38, 38, 0.3);
-    border-radius: 8px;
-    background-color: rgba(220, 38, 38, 0.08);
-    color: #ef4444;
-    font-size: 14px;
+  &__user-email {
+    font-size: 11px;
+    color: #785ebf;
+    margin: 0;
     font-weight: 500;
+  }
+
+  &__profile-chevron {
+    font-size: 18px;
+    color: #fff;
+  }
+
+  &__profile-menu {
+    position: absolute;
+    bottom: 80px;
+    left: 0;
+    right: 0;
+    border-radius: 10px;
+    border: 1px solid #323848;
+    background: #1f2332;
+    padding: 8px;
+    font-size: 13px;
+    box-shadow: 0 20px 25px rgba(0, 0, 0, 0.1);
+  }
+
+  &__profile-menu-item {
+    display: flex;
+    height: 32px;
+    width: 100%;
+    align-items: center;
+    gap: 8px;
+    border: 0;
+    border-radius: 4px;
+    background: transparent;
+    padding: 0 12px;
+    color: #fff;
+    font-size: 13px;
+    transition: background-color 0.15s ease;
     cursor: pointer;
-    transition: all 0.2s ease;
 
     &:hover {
-      background-color: rgba(220, 38, 38, 0.15);
-      border-color: rgba(220, 38, 38, 0.5);
+      background: #2a3043;
     }
-
-    &:active {
-      transform: scale(0.98);
-    }
-
-    &:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-  }
-
-  &__logout-label {
-    font-size: 13px;
-    font-weight: 500;
   }
 }

@@ -47,11 +47,22 @@ class PostLikeController extends Controller
             $like->wasRecentlyCreated
             && (int) $post->user_id !== (int) $request->user()->user_id
         ) {
+            $causer = $request->user()->load('profile');
+            $causerName = trim(($causer->profile->first_name ?? '') . ' ' . ($causer->profile->last_name ?? ''));
             Notification::create([
-                'user_id' => $post->user_id,
-                'type' => 'like',
+                'user_id'      => $post->user_id,
+                'type'         => 'like',
                 'reference_id' => $like->like_id,
-                'is_read' => false,
+                'is_read'      => false,
+                'data'         => [
+                    'causer_id'     => $causer->user_id,
+                    'causer_name'   => $causerName ?: $causer->username,
+                    'causer_avatar' => $causer->profile->profile_picture ?? null,
+                    'action'        => 'liked your post',
+                    'snippet'       => null,
+                    'post_id'       => $post->post_id,
+                    'target_url'    => '?postId=' . $post->post_id,
+                ],
             ]);
         }
 

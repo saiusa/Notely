@@ -1,49 +1,37 @@
 import React, { useState } from 'react';
-import { formatTimeAgo, getNotificationIcon, getNotificationMessage } from './notificationHelpers';
+import { useNavigate } from 'react-router-dom';
+import { formatTimeAgo } from './notificationHelpers';
+import UserAvatar from '../common/UserAvatar';
 import notificationService from '../../services/notificationService';
 
 function NotificationCard({ notification, onNotificationClick, onDelete, onMarkAsRead }) {
   const [isHovered, setIsHovered] = useState(false);
-  const [avatarFailed, setAvatarFailed] = useState(false);
   const [isMarking, setIsMarking] = useState(false);
+  const navigate = useNavigate();
 
-  // Extract user data from notification.data
-  const userData = notification.data?.user || {};
-  const actorName = userData.username || userData.name || 'Unknown';
-  const actorAvatar = userData.avatar;
+  const data = notification.data || {};
 
-  // Extract initials from actor name
-  const getInitials = (name) => {
-    if (!name) return '?';
-    const parts = name.trim().split(' ');
-    return parts.map(p => p[0]).join('').substring(0, 2).toUpperCase();
+  // ── Canonical payload keys (causer_*) with legacy fallbacks ─────────────────
+  const causerName   = data.causer_name   || data.name   || data.username || 'Someone';
+  const causerAvatar = data.causer_avatar || data.avatar || null;
+  const causerId     = data.causer_id     || data.user_id || 0;
+  const action       = data.action        || data.message || 'interacted with your content';
+  const snippet      = data.snippet       || null;
+  const targetUrl    = data.target_url    || (data.post_id ? `/posts/${data.post_id}` : null);
+
+  const isUnread = !notification.read_at && !notification.is_read;
+
+  // Build the minimal object UserAvatar needs
+  const avatarUser = {
+    user_id: causerId,
+    username: causerName,
+    avatar:   causerAvatar,
   };
 
-  // Get a consistent color based on the actor name
-  const getAvatarColor = (name) => {
-    if (!name) return '#785ebf';
-    const colors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8', '#F7DC6F', '#BB8FCE', '#85C1E2'];
-    let hash = 0;
-    for (let i = 0; i < name.length; i++) {
-      hash = name.charCodeAt(i) + ((hash << 5) - hash);
-    }
-    return colors[Math.abs(hash) % colors.length];
-  };
-
-  const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
-  const avatarUrl = actorAvatar ? `${backendUrl}${actorAvatar}` : null;
-
-  const message = getNotificationMessage(notification);
-  const icon = getNotificationIcon(notification.type);
-  const initials = getInitials(actorName);
-  const avatarColor = getAvatarColor(actorName);
-  const isUnread = !notification.read_at;
-
-  // Handle marking notification as read
+  // ── Mark as read ──────────────────────────────────────────────────────────
   const handleMarkAsReadClick = async (e) => {
     e.stopPropagation();
     if (isMarking) return;
-    
     setIsMarking(true);
     try {
       await notificationService.markAsRead(notification.notification_id);
@@ -55,16 +43,17 @@ function NotificationCard({ notification, onNotificationClick, onDelete, onMarkA
     }
   };
 
-  // Handle notification click
+  // ── Main click: mark read, close dropdown, navigate ───────────────────────
   const handleClick = async () => {
-    if (isUnread && onNotificationClick) {
+    if (isUnread) {
       try {
         await notificationService.markAsRead(notification.notification_id);
-      } catch (err) {
-        console.error('Failed to mark notification as read:', err);
-      }
+      } catch (_) { /* silent */ }
     }
+    // Close dropdown first (parent callback)
     onNotificationClick?.();
+    // Navigate to the linked content if we have a URL
+    if (targetUrl) navigate(targetUrl);
   };
 
   return (
@@ -73,55 +62,39 @@ function NotificationCard({ notification, onNotificationClick, onDelete, onMarkA
       onClick={handleClick}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      className={`top-navbar__notification-card ${
-        isUnread ? 'top-navbar__notification-card--unread' : ''
-      }`}
-      title={message}
+      className={`notif-card ${isUnread ? 'notif-card--unread' : ''}`}
     >
-      {/* Left: Avatar */}
-      <div className="top-navbar__notification-card-avatar">
-        {avatarUrl && !avatarFailed ? (
-          <img 
-            src={avatarUrl}
-            alt={actorName}
-            className="top-navbar__notification-card-avatar-img"
-            onError={() => setAvatarFailed(true)}
-          />
-        ) : (
-          <div 
-            className="top-navbar__notification-card-avatar-fallback"
-            style={{ backgroundColor: avatarColor }}
-            title={actorName}
-          >
-            {initials}
-          </div>
-        )}
-        
-        {/* Badge with notification icon */}
-        <div className="top-navbar__notification-card-badge">
-          <span className="material-symbols-outlined">
-            {icon}
-          </span>
-        </div>
+      {/* Left unread stripe */}
+      {isUnread && <span className="notif-card__stripe" />}
+
+      {/* Avatar */}
+      <div className="notif-card__avatar">
+        <UserAvatar user={avatarUser} size="sm" />
       </div>
 
-      {/* Middle: Content */}
-      <div className="top-navbar__notification-card-content">
-        <p className="top-navbar__notification-card-text">
-          {message}
+      {/* Content */}
+      <div className="notif-card__body">
+        <p className="notif-card__text">
+          <span className="notif-card__actor">{causerName}</span>{' '}
+          <span className="notif-card__action">{action}</span>
         </p>
-        <span className="top-navbar__notification-card-time">
+
+        {snippet && (
+          <div className="notif-card__snippet">{snippet}</div>
+        )}
+
+        <span className="notif-card__time">
           {formatTimeAgo(notification.created_at)}
         </span>
       </div>
 
-      {/* Right: Actions (on hover) */}
+      {/* Hover actions */}
       {isHovered && (
-        <div className="top-navbar__notification-card-actions">
+        <div className="notif-card__actions" onClick={(e) => e.stopPropagation()}>
           {isUnread && (
             <button
               type="button"
-              className="top-navbar__notification-card-action-btn"
+              className="notif-card__action-btn"
               onClick={handleMarkAsReadClick}
               title="Mark as read"
               aria-label="Mark as read"
@@ -132,19 +105,14 @@ function NotificationCard({ notification, onNotificationClick, onDelete, onMarkA
           )}
           <button
             type="button"
-            className="top-navbar__notification-card-action-btn top-navbar__notification-card-action-btn--delete"
+            className="notif-card__action-btn notif-card__action-btn--delete"
             onClick={onDelete}
-            title="Delete notification"
-            aria-label="Delete notification"
+            title="Dismiss"
+            aria-label="Dismiss notification"
           >
             <span className="material-symbols-outlined">close</span>
           </button>
         </div>
-      )}
-
-      {/* Unread indicator line */}
-      {isUnread && (
-        <span className="top-navbar__notification-card-unread-indicator"></span>
       )}
     </button>
   );
