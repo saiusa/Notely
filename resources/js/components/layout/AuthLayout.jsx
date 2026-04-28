@@ -7,7 +7,7 @@ const AuthLayout = ({ children }) => {
             <div className="auth-layout__card">
                 <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1.5rem' }}>
                     <img 
-                        src="/storage/logo/Notely-Logo.svg" 
+                        src="/images/Notely-Logo.svg" 
                         alt="Notely" 
                         style={{ height: '3rem', width: 'auto', objectFit: 'contain' }} 
                     />

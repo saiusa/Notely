@@ -18,6 +18,7 @@ class DatabaseSeeder extends Seeder
         $this->call([
             AdminUserSeeder::class,
             MoodSeeder::class,
+            CategorySeeder::class,
         ]);
 
         // Create a test user (idempotent)

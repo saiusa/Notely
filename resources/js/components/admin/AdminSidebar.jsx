@@ -40,7 +40,7 @@ export default function AdminSidebar() {
         <aside className="admin-sidebar__container">
             {/* Logo */}
             <div className="admin-sidebar__logo">
-                <img src="/storage/logo/Notely-Logo.svg" alt="Notely" className="admin-sidebar__logo-image" />
+                <img src="/images/Notely-Logo.svg" alt="Notely" className="admin-sidebar__logo-image" />
             </div>
 
             {/* Navigation */}

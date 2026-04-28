@@ -87,7 +87,7 @@ export default function ResetPassword() {
             <div className="max-w-md w-full space-y-8">
                 {/* Logo */}
                 <div className="flex justify-center">
-                    <img src="/storage/logo/Notely-Logo.svg" alt="Notely" className="h-12 w-auto" />
+                    <img src="/images/Notely-Logo.svg" alt="Notely" className="h-12 w-auto" />
                 </div>
 
                 {/* Heading */}

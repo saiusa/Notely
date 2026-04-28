@@ -40,7 +40,7 @@ export default function Sidebar({ active = 'home', onActiveChange = () => { } })
     <aside className="sidebar__container">
       {/* Logo */}
       <div className="sidebar__logo">
-        <img src="/storage/logo/Notely-Logo.svg" alt="Notely" className="sidebar__logo-image" />
+        <img src="/images/Notely-Logo.svg" alt="Notely" className="sidebar__logo-image" />
       </div>
 
       <nav className="sidebar__nav">
