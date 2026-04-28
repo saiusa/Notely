@@ -1,4 +1,5 @@
 import React, { useRef, useEffect, useState } from 'react';
+import { getFullImageUrl } from '../../utils/imageUrl';
 import '../../../sass/components/community/CommunityDetailHeader.scss';
 
 /**
@@ -6,16 +7,6 @@ import '../../../sass/components/community/CommunityDetailHeader.scss';
  */
 const PLACEHOLDER_SVG = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="400" height="300"%3E%3Crect fill="%234a5568" width="400" height="300"/%3E%3Ctext x="50%" y="50%" font-family="system-ui" font-size="18" fill="%8e92a7" text-anchor="middle" dy=".3em"%3EImage unavailable%3C/text%3E%3C/svg%3E';
 
-/**
- * Normalize image paths to ensure they're absolute from root
- */
-const normalizeImagePath = (imagePath) => {
-    if (!imagePath) return PLACEHOLDER_SVG;
-    // If it already starts with /, return as-is
-    if (imagePath.startsWith('/')) return imagePath;
-    // Otherwise prepend /
-    return `/${imagePath}`;
-};
 
 const handleImageError = (e) => {
     e.target.src = PLACEHOLDER_SVG;
@@ -93,7 +84,7 @@ export default function CommunityDetailHeader({
     return (
         <article className="community-detail-header__container">
             <img 
-                src={normalizeImagePath(community.coverImage)} 
+                src={getFullImageUrl(community.coverImage) || PLACEHOLDER_SVG}
                 alt={community.name} 
                 className="community-detail-header__cover"
                 onError={handleImageError}

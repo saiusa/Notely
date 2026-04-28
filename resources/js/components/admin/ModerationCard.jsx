@@ -7,6 +7,7 @@
  */
 import React, { useState } from 'react';
 import UserAvatar from '../common/UserAvatar';
+import { getFullImageUrl } from '../../utils/imageUrl';
 import '../../../sass/components/admin/ModerationCard.scss';
 
 export default function ModerationCard({
@@ -22,7 +23,6 @@ export default function ModerationCard({
     const [isExpanded, setIsExpanded]   = useState(false);
     const [imageError, setImageError]   = useState(false);
 
-    const backendUrl = import.meta.env.VITE_BACKEND_URL ?? '';
 
     // Format the creation date
     const formatDate = (dateString) => {
@@ -84,7 +84,7 @@ export default function ModerationCard({
                 {post.image && !imageError && (
                     <div className="post-image-container">
                         <img
-                            src={`${backendUrl}/storage/${post.image}`}
+                            src={getFullImageUrl(post.image)}
                             alt="Post content"
                             className="post-image"
                             loading="lazy"

@@ -8,6 +8,7 @@ import searchService from '../services/searchService';
 import PostCard from '../components/posts/PostCard';
 import CommunityListCard from '../components/community/CommunityListCard';
 import UserAvatar from '../components/common/UserAvatar';
+import { getFullImageUrl } from '../utils/imageUrl';
 import Loader from '../components/common/Loader';
 
 import SocialLayout from '../components/layout/SocialLayout';
@@ -133,7 +134,7 @@ export default function SearchPage() {
                 >
                     {community.image ? (
                         <img 
-                            src={community.image} 
+                            src={getFullImageUrl(community.image)} 
                             alt={community.name} 
                             className="search-page__community-avatar" 
                         />

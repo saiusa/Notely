@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { getFullImageUrl } from '../../utils/imageUrl';
 import '../../../sass/components/profile/ProfileCommunityPanel.scss';
 
 export default function ProfileCommunityPanel({ communities }) {
@@ -12,7 +13,6 @@ export default function ProfileCommunityPanel({ communities }) {
         return communities.slice(0, 6);
     }, [communities, expanded]);
 
-    console.log('ProfileCommunityPanel received communities:', communities);
 
     return (
         <aside className="profile-community-panel">
@@ -33,7 +33,7 @@ export default function ProfileCommunityPanel({ communities }) {
                             >
                                 <div className="profile-community-panel__item">
                                     <img
-                                        src={community.image || 'https://images.unsplash.com/photo-1520523839897-bd0b52f945a0?auto=format&fit=crop&w=110&q=80'}
+                                        src={getFullImageUrl(community.image) || 'https://images.unsplash.com/photo-1520523839897-bd0b52f945a0?auto=format&fit=crop&w=110&q=80'}
                                         alt={community.name}
                                         className="profile-community-panel__image"
                                     />
@@ -46,7 +46,7 @@ export default function ProfileCommunityPanel({ communities }) {
                         ) : (
                             <div key={community.id} className="profile-community-panel__item">
                                 <img
-                                    src={community.image || 'https://images.unsplash.com/photo-1520523839897-bd0b52f945a0?auto=format&fit=crop&w=110&q=80'}
+                                    src={getFullImageUrl(community.image) || 'https://images.unsplash.com/photo-1520523839897-bd0b52f945a0?auto=format&fit=crop&w=110&q=80'}
                                     alt={community.name}
                                     className="profile-community-panel__image"
                                 />

@@ -1,4 +1,5 @@
 import React from 'react';
+import { getFullImageUrl } from '../../utils/imageUrl';
 import '../../../sass/components/community/CommunityAboutPanel.scss';
 
 /**
@@ -6,14 +7,6 @@ import '../../../sass/components/community/CommunityAboutPanel.scss';
  */
 const AVATAR_PLACEHOLDER_SVG = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="48" height="48"%3E%3Crect fill="%234a5568" width="48" height="48" rx="24"/%3E%3Ctext x="50%" y="50%" font-family="system-ui" font-size="20" fill="%8e92a7" text-anchor="middle" dy=".35em"%3E?%3C/text%3E%3C/svg%3E';
 
-/**
- * Normalize image paths to ensure they're absolute from root
- */
-const normalizeImagePath = (imagePath) => {
-    if (!imagePath) return null;
-    if (imagePath.startsWith('/')) return imagePath;
-    return `/${imagePath}`;
-};
 
 const handleImageError = (e) => {
     e.target.src = AVATAR_PLACEHOLDER_SVG;
@@ -79,7 +72,7 @@ export default function CommunityAboutPanel({ community, isCreator, getImageUrl,
                         <h3 className="community-about-panel__section-heading">Created by</h3>
                         <div className="community-about-panel__creator-row">
                             <img
-                                src={normalizeImagePath(community.creator.profile_picture) || AVATAR_PLACEHOLDER_SVG}
+                                src={getFullImageUrl(community.creator.profile_picture) || AVATAR_PLACEHOLDER_SVG}
                                 alt={community.creator.username}
                                 className="community-about-panel__creator-avatar"
                                 onError={handleImageError}

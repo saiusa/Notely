@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { getFullImageUrl } from '../../utils/imageUrl';
 
 export default function RecentJournalCard({ post }) {
     return (
@@ -23,7 +24,7 @@ export default function RecentJournalCard({ post }) {
                 <p className="post-card__recent-text">{post.body || post.content || ''}</p>
                 {post.image && (
                     <img
-                        src={post.image}
+                        src={getFullImageUrl(post.image)}
                         alt="journal"
                         className="post-card__recent-image"
                     />
