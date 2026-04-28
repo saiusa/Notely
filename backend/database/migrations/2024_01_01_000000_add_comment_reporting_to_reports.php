@@ -8,16 +8,28 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (!Schema::hasTable('reports')) {
+            return;
+        }
+
         Schema::table('reports', function (Blueprint $table) {
-            $table->unsignedBigInteger('comment_id')->nullable()->after('post_id');
-            $table->string('report_type')->default('post')->after('comment_id'); // 'post' or 'comment'
-            $table->text('description')->nullable()->after('reason');
-            
-            // Add foreign key constraint for comment_id if comments table exists
-            $table->foreign('comment_id')
-                ->references('comment_id')
-                ->on('comments')
-                ->onDelete('cascade');
+            if (!Schema::hasColumn('reports', 'comment_id')) {
+                $table->unsignedBigInteger('comment_id')->nullable()->after('post_id');
+            }
+            if (!Schema::hasColumn('reports', 'report_type')) {
+                $table->string('report_type')->default('post')->after('comment_id');
+            }
+            if (!Schema::hasColumn('reports', 'description')) {
+                $table->text('description')->nullable()->after('reason');
+            }
+
+            // Add foreign key only if comment_id column exists and comments table exists
+            if (Schema::hasColumn('reports', 'comment_id') && Schema::hasTable('comments')) {
+                $table->foreign('comment_id')
+                    ->references('comment_id')
+                    ->on('comments')
+                    ->onDelete('cascade');
+            }
         });
     }
 
