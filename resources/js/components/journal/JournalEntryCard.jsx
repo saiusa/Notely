@@ -1,5 +1,6 @@
 import React from 'react';
 import { getMoodColorPalette } from '../../utils/moodColorMapper';
+import { getFullImageUrl } from '../../utils/imageUrl';
 import '../../../sass/components/journal/JournalEntryCard.scss';
 
 export default function JournalEntryCard({ entry, isPrivate, onEdit, onTogglePrivacy, onCopyLink, onOpenDetail }) {
@@ -9,12 +10,6 @@ export default function JournalEntryCard({ entry, isPrivate, onEdit, onTogglePri
         const day = date.getDate();
         const time = date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
         return `${month} ${day} • ${time}`;
-    };
-
-    const getImageUrl = (url) => {
-        if (!url) return '';
-        if (url.startsWith('http')) return url;
-        return `/storage/${url}`;
     };
 
     // State for text truncation
@@ -117,7 +112,7 @@ export default function JournalEntryCard({ entry, isPrivate, onEdit, onTogglePri
                 {/* Image - prioritized for image type */}
                 {entry.type === 'image' && entry.image && (
                     <img
-                        src={getImageUrl(entry.image)}
+                        src={getFullImageUrl(entry.image)}
                         alt="Entry image"
                         className="journal-entry-card__image"
                     />

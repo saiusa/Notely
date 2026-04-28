@@ -1,19 +1,11 @@
 import React from 'react';
+import { getFullImageUrl } from '../../utils/imageUrl';
 import '../../../sass/components/community/CommunitySidebar.scss';
 
 /**
  * SVG placeholder for missing images
  */
 const PLACEHOLDER_SVG = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="120" height="120"%3E%3Crect fill="%234a5568" width="120" height="120"/%3E%3Ctext x="50%" y="50%" font-family="system-ui" font-size="12" fill="%238e92a7" text-anchor="middle" dy=".3em"%3ENo image%3C/text%3E%3C/svg%3E';
-
-/**
- * Normalize image paths to ensure they're absolute from root
- */
-const normalizeImagePath = (imagePath) => {
-    if (!imagePath) return PLACEHOLDER_SVG;
-    if (imagePath.startsWith('/')) return imagePath;
-    return `/${imagePath}`;
-};
 
 const handleImageError = (e) => {
     e.target.src = PLACEHOLDER_SVG;
@@ -28,7 +20,7 @@ export default function CommunityRightSidebar({ community, activeTab, onTabChang
         <aside className="community-sidebar__container">
             <div className="community-sidebar__header">
                 <img 
-                    src={normalizeImagePath(community.cardImage)} 
+                    src={getFullImageUrl(community.cardImage) || PLACEHOLDER_SVG} 
                     alt={community.name} 
                     className="community-sidebar__image"
                     onError={handleImageError}

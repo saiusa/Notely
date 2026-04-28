@@ -1,17 +1,8 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { moodOptions } from '../../layout/moodOptions';
 import postService from '../../../services/postService';
+import { getFullImageUrl } from '../../../utils/imageUrl';
 import '../../../../sass/components/posts/modals/EditPostModal.scss';
-
-/**
- * Helper function to normalize image URLs
- */
-const getImageUrl = (url) => {
-    if (!url) return null;
-    if (url.startsWith('http')) return url;
-    if (url.startsWith('/')) return url;
-    return `/${url}`;
-};
 
 /**
  * EditPostModal - Type-aware post editing component
@@ -41,7 +32,7 @@ export default function EditPostModal({
 
     // Image state (for image type posts)
     const [imagePreview, setImagePreview] = useState(
-        post?.image ? getImageUrl(post.image) : null
+        post?.image ? getFullImageUrl(post.image) : null
     );
     const [newImage, setNewImage] = useState(null);
     const fileInputRef = useRef(null);
@@ -182,7 +173,7 @@ export default function EditPostModal({
         setNewImage(null);
         // Reset preview to original image if available
         if (post?.image) {
-            setImagePreview(getImageUrl(post.image));
+            setImagePreview(getFullImageUrl(post.image));
         }
         if (fileInputRef.current) {
             fileInputRef.current.value = '';

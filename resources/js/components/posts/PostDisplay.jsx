@@ -178,7 +178,7 @@ export default function PostDisplay({
                 <PostContent
                     title={postTitle}
                     content={postContent}
-                    image={postImage}
+                    image={getFullImageUrl(postImage)}
                     type={postType}
                     isQuote={isQuote}
                     compact={compact}

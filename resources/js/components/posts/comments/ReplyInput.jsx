@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../../../context/AuthContext';
+import { getFullImageUrl } from '../../../utils/imageUrl';
 import '../../../../sass/components/posts/comments/ReplyInput.scss';
 
 export default function ReplyInput({ commentId, onSubmit, onCancel, autoFocus = true }) {
@@ -33,7 +34,7 @@ export default function ReplyInput({ commentId, onSubmit, onCancel, autoFocus = 
     return (
         <div className="reply-input">
             <img 
-                src={user?.profile?.avatar || user?.avatar || '/default-avatar.png'} 
+                src={getFullImageUrl(user?.profile?.avatar || user?.avatar) || '/default-avatar.png'} 
                 alt={user?.username} 
                 className="reply-input__avatar" 
             />

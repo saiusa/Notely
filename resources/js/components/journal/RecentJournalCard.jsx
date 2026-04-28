@@ -8,7 +8,7 @@ export default function RecentJournalCard({ post }) {
             <div className="post-card__recent-header">
                 <Link to={`/profile/${post.user?.username || post.username || ''}`} style={{ textDecoration: 'none', color: 'inherit' }}>
                     <img
-                        src={post.avatar || post.user?.profile?.profile_picture || ''}
+                        src={getFullImageUrl(post.avatar || post.user?.profile?.profile_picture) || ''}
                         alt={post.user?.username || post.username || ''}
                         className="post-card__recent-avatar"
                     />

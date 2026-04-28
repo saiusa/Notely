@@ -1,21 +1,13 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { slugify } from '../../utils/slugify';
+import { getFullImageUrl } from '../../utils/imageUrl';
 import '../../../sass/components/community/CommunityListCard.scss';
 
 /**
  * SVG placeholder for missing images
  */
 const PLACEHOLDER_SVG = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="300" height="300"%3E%3Crect fill="%234a5568" width="300" height="300"/%3E%3Ctext x="50%" y="50%" font-family="system-ui" font-size="16" fill="%238e92a7" text-anchor="middle" dy=".3em"%3EImage unavailable%3C/text%3E%3C/svg%3E';
-
-/**
- * Normalize image paths to ensure they're absolute from root
- */
-const normalizeImagePath = (imagePath) => {
-    if (!imagePath) return PLACEHOLDER_SVG;
-    if (imagePath.startsWith('/')) return imagePath;
-    return `/${imagePath}`;
-};
 
 const handleImageError = (e) => {
     e.target.src = PLACEHOLDER_SVG;
@@ -52,7 +44,7 @@ export default function CommunityListCard({ community, actionLabel, to, navConte
     return (
         <article className="community-list-card__container">
             <img 
-                src={normalizeImagePath(community.cardImage)} 
+                src={getFullImageUrl(community.cardImage) || PLACEHOLDER_SVG} 
                 alt={community.name} 
                 className="community-list-card__image"
                 onError={handleImageError}
