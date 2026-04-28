@@ -43,9 +43,10 @@ export default defineConfig({
         },
     },
     server: {
+        host: '0.0.0.0',
         proxy: {
             '/api': {
-                target: 'http://localhost:8000',
+                target: 'http://192.168.1.53:8000',
                 changeOrigin: true,
             },
         },
