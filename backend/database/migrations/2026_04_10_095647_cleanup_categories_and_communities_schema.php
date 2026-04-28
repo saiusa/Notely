@@ -12,12 +12,20 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('categories', function (Blueprint $table) {
-            $table->dropColumn(['icon', 'color', 'description']);
+            $columnsToDrop = array_filter(
+                ['icon', 'color', 'description'],
+                fn($col) => Schema::hasColumn('categories', $col)
+            );
+            if (!empty($columnsToDrop)) {
+                $table->dropColumn(array_values($columnsToDrop));
+            }
         });
 
-        Schema::table('communities', function (Blueprint $table) {
-            $table->timestamp('updated_at')->useCurrent();
-        });
+        if (Schema::hasTable('communities') && !Schema::hasColumn('communities', 'updated_at')) {
+            Schema::table('communities', function (Blueprint $table) {
+                $table->timestamp('updated_at')->useCurrent();
+            });
+        }
     }
 
     /**
