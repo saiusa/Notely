@@ -1,33 +1,34 @@
 /**
  * Utility function to build image URLs for loading from Laravel backend.
  *
- * Strategy:
- *  - In production (Railway), the React frontend and Laravel backend share the
- *    SAME origin (https://notelyjournal.me). So all image paths should be
- *    constructed as absolute URLs using window.location.origin — no hardcoded
- *    localhost, no VITE_BACKEND_URL needed at build time.
- *  - In local dev, Vite proxies /storage → http://localhost:8000, so relative
- *    paths like /storage/... work transparently.
- *  - VITE_BACKEND_URL is checked first so you can still override if needed.
+ * NUCLEAR OPTION: Forces all relative image paths to use the production URL.
+ * Also intercepts any localhost/127.0.0.1 strings that may be stored in the DB.
  *
  * @param {string} imagePath - The image path from database (can be relative or absolute)
  * @returns {string|null}
  *
  * Examples:
- * - 'posts/image.jpg'           → '/storage/posts/image.jpg'
- * - 'storage/posts/image.jpg'   → '/storage/posts/image.jpg'
- * - '/storage/posts/image.jpg'  → '/storage/posts/image.jpg'
- * - 'images/category.jpg'       → '/images/category.jpg'   (static, no /storage/ prefix)
- * - 'https://cdn.com/x.jpg'     → 'https://cdn.com/x.jpg'  (unchanged)
- * - null/empty                  → null
+ * - 'posts/image.jpg'                              → 'https://notelyjournal.me/storage/posts/image.jpg'
+ * - 'storage/posts/image.jpg'                      → 'https://notelyjournal.me/storage/posts/image.jpg'
+ * - 'images/category.jpg'                          → 'https://notelyjournal.me/images/category.jpg'
+ * - 'http://127.0.0.1:8000/storage/posts/img.jpg' → 'https://notelyjournal.me/storage/posts/img.jpg'
+ * - 'https://cdn.com/x.jpg'                        → 'https://cdn.com/x.jpg' (unchanged)
+ * - null/empty                                      → null
  */
 export const getFullImageUrl = (imagePath) => {
     if (!imagePath) return null;
 
     // Already an absolute URL (http/https) - use as-is
     if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+        // QUICK CHECK: Intercept localhost and force production
+        if (imagePath.includes('127.0.0.1:8000') || imagePath.includes('localhost:8000')) {
+            return imagePath.replace(/http:\/\/(127\.0\.0\.1|localhost):8000/g, 'https://notelyjournal.me');
+        }
         return imagePath;
     }
+
+    // NUCLEAR OPTION: Hardcode the exact production URL. Ignore Vite variables.
+    const backendUrl = 'https://notelyjournal.me';
 
     // Normalize path: remove leading slash if present
     let normalizedPath = imagePath;
@@ -35,18 +36,12 @@ export const getFullImageUrl = (imagePath) => {
         normalizedPath = normalizedPath.slice(1);
     }
 
-    // Static seeded images (public/images/) bypass /storage/ prefix
-    if (normalizedPath.startsWith('images/')) {
-        return `/${normalizedPath}`;
-    }
-
-    // Ensure /storage/ prefix for user-uploaded files
-    if (!normalizedPath.startsWith('storage/')) {
+    // Add /storage/ prefix ONLY if it's not already there AND it's not a static seeded image
+    if (!normalizedPath.startsWith('storage/') && !normalizedPath.startsWith('images/')) {
         normalizedPath = `storage/${normalizedPath}`;
     }
 
-    // Return as root-relative path:
-    // - Local dev: Vite proxies /storage → http://localhost:8000
-    // - Production: same origin, so /storage/... resolves to https://notelyjournal.me/storage/...
-    return `/${normalizedPath}`;
+    // Combine backend URL with image path
+    return `${backendUrl}/${normalizedPath}`;
 };
+
