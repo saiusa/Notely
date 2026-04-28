@@ -40,9 +40,19 @@ api.interceptors.request.use((config) => {
     return config;
 });
 
-// ── Response interceptor: handle 401 globally ──
+// ── Response interceptor: handle 401 globally and scrub data ──
 api.interceptors.response.use(
-    (response) => response,
+    (response) => {
+        // Global Data Scrubber: Eradicate localhost from all API JSON payloads
+        if (response.data) {
+            let stringified = JSON.stringify(response.data);
+            if (stringified.includes('127.0.0.1:8000') || stringified.includes('localhost:8000')) {
+                stringified = stringified.replace(/http:\/\/(127\.0\.0\.1|localhost):8000/g, 'https://notelyjournal.me');
+                response.data = JSON.parse(stringified);
+            }
+        }
+        return response;
+    },
     (error) => {
         if (error.response?.status === 401) {
             localStorage.removeItem('auth_token');
